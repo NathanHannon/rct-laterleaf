@@ -1,6 +1,13 @@
 import React from 'react';
 import './Header.scss';
 import logo from '../../assets/logo/icon-transparent-06c8e7d.png';
+import {
+    SignedIn,
+    SignedOut,
+    SignInButton,
+    SignUpButton,
+    UserButton,
+} from "@clerk/clerk-react";
 
 const Header: React.FC = () => {
     return (
@@ -25,10 +32,15 @@ const Header: React.FC = () => {
                     </svg>
                     <input type="text" placeholder="Search" />
                 </div>
-                <div
-                    className="avatar"
-                    style={{ backgroundImage: 'url("https://lh3.googleusercontent.com/aida-public/AB6AXuBjjM0X0ilC-g6uSza7paqt3M6pB8G79FQ5UMt1sf8rY8-QocaOQd7IA_ljVJXOz11gAmKkQrRatmUb53svmbSf6k8Bm7bN5GZ9jstWXIqDBUYIKZZWpzHCiYI2xEVSsCE7POP6qG75kdiM5ufp3dbqhNwsqSfyx8uOoYAugtyFNTpBT8NUoOEu6bb1pp62sjbIpeQpz48f57xEuyAgEd98lpxdaJTzYpliicUzhpQi6tTGbVmF1itmGtVssavNrLHKqq-lggx0cEQ")' }}
-                ></div>
+                <div className="auth-container">
+                    <SignedOut>
+                        <SignInButton />
+                        <SignUpButton />
+                    </SignedOut>
+                    <SignedIn>
+                        <UserButton afterSignOutUrl='/' />
+                    </SignedIn>
+                </div>
             </div>
         </header>
     );
