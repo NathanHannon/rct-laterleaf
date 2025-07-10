@@ -2,7 +2,7 @@ import React from 'react';
 import './ArticleCard.scss';
 
 interface ArticleCardProps {
-    imageUrl: string;
+    imageUrl?: string; // Make imageUrl optional
     title: string;
     description: string;
 }
@@ -10,7 +10,7 @@ interface ArticleCardProps {
 const ArticleCard: React.FC<ArticleCardProps> = ({ imageUrl, title, description }) => {
     return (
         <div className="article-card">
-            <div className="card-image" style={{ backgroundImage: `url(${imageUrl})` }}></div>
+            {imageUrl && <div className="card-image" style={{ backgroundImage: `url(${imageUrl})` }}></div>}
             <div className="card-content">
                 <p className="card-title">{title}</p>
                 <p className="card-description">{description}</p>

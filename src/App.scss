@@ -20,7 +20,25 @@
 }
 
 .content-container {
-  max-width: 960px;
   width: 100%;
-  flex: 1;
+  max-width: 1200px;
+  /* Or your preferred max-width */
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.signed-out-message {
+  text-align: center;
+  padding: 80px 24px;
+  color: #525252;
+
+  h2 {
+    font-size: 24px;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+
+  p {
+    font-size: 16px;
+  }
 }

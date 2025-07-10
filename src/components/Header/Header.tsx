@@ -8,6 +8,8 @@ import {
     SignUpButton,
     UserButton,
 } from "@clerk/clerk-react";
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faInbox, faStar, faArchive } from '@fortawesome/free-solid-svg-icons';
 
 const Header: React.FC = () => {
     return (
@@ -15,12 +17,12 @@ const Header: React.FC = () => {
             <div className="header-left">
                 <div className="logo">
                     <img src={logo} alt="laterLeaf logo" />
-                    <h2>laterLeaf</h2>
+                    <h2>Later Leaf</h2>
                 </div>
                 <nav className="nav-links">
-                    <a href="#">Unread</a>
-                    <a href="#">Favorites</a>
-                    <a href="#">Archive</a>
+                    <a href="#"><FontAwesomeIcon icon={faInbox} /><span>Unread</span></a>
+                    <a href="#"><FontAwesomeIcon icon={faStar} /><span>Favorites</span></a>
+                    <a href="#"><FontAwesomeIcon icon={faArchive} /><span>Archive</span></a>
                 </nav>
             </div>
             <div className="header-right">
