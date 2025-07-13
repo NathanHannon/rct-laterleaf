@@ -2,19 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from "@clerk/clerk-react";
 import ArticleCard from '../ArticleCard/ArticleCard';
 import './ArticleList.scss';
+import type { Article } from '../../../interfaces/article';
 
-export interface Article {
-    id?: string;
-    url: string;
-    title?: string;
-    content?: string;
-    excerpt?: string;
-    author?: string;
-    summary?: string;
-    publishedAt?: string;
-    createdAt?: string;
-    updatedAt?: string;
-}
 
 const ArticleList: React.FC = () => {
     const { getToken } = useAuth();
