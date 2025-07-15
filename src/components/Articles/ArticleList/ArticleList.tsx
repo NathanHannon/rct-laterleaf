@@ -47,9 +47,10 @@ const ArticleList: React.FC = () => {
             </div>
             <h2 className="list-title">My List</h2>
             <div className="article-grid">
-                {articles.map((article, index) => (
+                {articles.filter(article => article.id).map(article => (
                     <ArticleCard
-                        key={article.id || index}
+                        key={article.id}
+                        id={article.id!}
                         // imageUrl={article.imageUrl} // This field does not exist on the model
                         title={article.title || 'Untitled'}
                         description={article.excerpt || 'No excerpt available.'}

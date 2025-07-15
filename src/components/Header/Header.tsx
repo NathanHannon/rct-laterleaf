@@ -20,9 +20,9 @@ const Header: React.FC = () => {
                     <h2>Later Leaf</h2>
                 </div>
                 <nav className="nav-links">
-                    <a href="#"><FontAwesomeIcon icon={faInbox} /><span>Unread</span></a>
-                    <a href="#"><FontAwesomeIcon icon={faStar} /><span>Favorites</span></a>
-                    <a href="#"><FontAwesomeIcon icon={faArchive} /><span>Archive</span></a>
+                    <a href="/articles"><FontAwesomeIcon icon={faInbox} /><span>Articles</span></a>
+                    <a href="/favorites"><FontAwesomeIcon icon={faStar} /><span>Favorites</span></a>
+                    <a href="/archive"><FontAwesomeIcon icon={faArchive} /><span>Archive</span></a>
                 </nav>
             </div>
             <div className="header-right">
