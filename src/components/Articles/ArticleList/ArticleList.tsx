@@ -3,55 +3,109 @@ import { useAuth } from "@clerk/clerk-react";
 import ArticleCard from '../ArticleCard/ArticleCard';
 import './ArticleList.scss';
 import type { Article } from '../../../interfaces/article';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faPlus, faSpinner } from '@fortawesome/free-solid-svg-icons';
 
 
 const ArticleList: React.FC = () => {
-    const { getToken } = useAuth();
+    const { getToken, isLoaded, isSignedIn } = useAuth();
     const [articles, setArticles] = useState<Article[]>([]);
+    const [newLink, setNewLink] = useState('');
+    const [isImporting, setIsImporting] = useState(false);
+
+    const fetchArticles = async () => {
+        try {
+            const token = await getToken();
+            const response = await fetch('/api/articles', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`Network response was not ok: ${errorText}`);
+            }
+
+            const data: Article[] = await response.json();
+            setArticles(data);
+        } catch (error) {
+            console.error("Failed to fetch articles:", error);
+        }
+    };
 
     useEffect(() => {
-        const fetchArticles = async () => {
-            try {
-                const token = await getToken();
-                const response = await fetch('/api/articles', {
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
-                });
+        if (isLoaded && isSignedIn) {
+            fetchArticles();
+        }
+    }, [isLoaded, isSignedIn]);
 
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
 
-                const data: Article[] = await response.json();
-                setArticles(data);
-            } catch (error) {
-                console.error("Failed to fetch articles:", error);
+    const handleImportArticle = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!newLink || isImporting) return;
+
+        setIsImporting(true);
+        try {
+            const token = await getToken();
+            const response = await fetch('/api/articles/import', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ url: newLink })
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`Failed to import article: ${errorText}`);
             }
-        };
 
-        fetchArticles();
-    }, [getToken]);
+            setNewLink('');
+            fetchArticles();
+        } catch (error) {
+            console.error("Failed to import article:", error);
+        } finally {
+            setIsImporting(false);
+        }
+    };
+
+    if (!isLoaded) {
+        return <div>Loading...</div>;
+    }
+
+    if (!isSignedIn) {
+        return <div>Please sign in to see your articles.</div>;
+    }
 
     return (
         <div className="article-list-container">
-            <div className="input-container">
+            <form className="input-container" onSubmit={handleImportArticle}>
                 <div className="input-bar">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="currentColor" viewBox="0 0 256 256">
-                        <path
-                            d="M229.66,218.34l-50.07-50.06a88.11,88.11,0,1,0-11.31,11.31l50.06,50.07a8,8,0,0,0,11.32-11.32ZM40,112a72,72,0,1,1,72,72A72.08,72.08,0,0,1,40,112Z"
-                        ></path>
-                    </svg>
-                    <input type="text" placeholder="Paste link here" />
+                    <input
+                        type="text"
+                        placeholder="Paste link here"
+                        value={newLink}
+                        onChange={(e) => setNewLink(e.target.value)}
+                        disabled={isImporting}
+                    />
+                    <button type="submit" className="save-button" disabled={isImporting}>
+                        {isImporting ? (
+                            <FontAwesomeIcon icon={faSpinner} spin />
+                        ) : (
+                            <FontAwesomeIcon icon={faPlus} />
+                        )}
+                        <span>{isImporting ? 'Saving...' : 'Save'}</span>
+                    </button>
                 </div>
-            </div>
+            </form>
             <h2 className="list-title">My List</h2>
             <div className="article-grid">
                 {articles.filter(article => article.id).map(article => (
                     <ArticleCard
                         key={article.id}
                         id={article.id!}
-                        // imageUrl={article.imageUrl} // This field does not exist on the model
                         title={article.title || 'Untitled'}
                         description={article.excerpt || 'No excerpt available.'}
                     />
