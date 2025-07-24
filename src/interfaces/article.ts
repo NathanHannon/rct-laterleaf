@@ -9,4 +9,5 @@ export interface Article {
     publishedAt?: string;
     createdAt?: string;
     updatedAt?: string;
+    imageUrl?: string; // Optional field for the article image URL
 }

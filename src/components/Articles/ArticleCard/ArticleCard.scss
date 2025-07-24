@@ -25,6 +25,14 @@
             font-size: 14px;
             color: #a3a3a3; // neutral-500
             margin: 0;
+
+            /* Add these lines for text truncation */
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            /* Limit to 3 lines, you can change this number */
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
     }
 }

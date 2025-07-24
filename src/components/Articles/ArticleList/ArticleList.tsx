@@ -105,9 +105,7 @@ const ArticleList: React.FC = () => {
                 {articles.filter(article => article.id).map(article => (
                     <ArticleCard
                         key={article.id}
-                        id={article.id!}
-                        title={article.title || 'Untitled'}
-                        description={article.excerpt || 'No excerpt available.'}
+                        article={article}
                     />
                 ))}
             </div>
