@@ -1,17 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth } from "@clerk/clerk-react";
+import { useAuth } from '@clerk/clerk-react';
 import ArticleCard from '../ArticleCard/ArticleCard';
 import './ArticleList.scss';
 import type { Article } from '../../../interfaces/article';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPlus, faSpinner } from '@fortawesome/free-solid-svg-icons';
-
+import { faSpinner } from '@fortawesome/free-solid-svg-icons';
+import AddArticleForm from '../AddArticleForm/AddArticleForm';
 
 const ArticleList: React.FC = () => {
     const { getToken, isLoaded, isSignedIn } = useAuth();
     const [articles, setArticles] = useState<Article[]>([]);
-    const [newLink, setNewLink] = useState('');
-    const [isImporting, setIsImporting] = useState(false);
 
     const fetchArticles = async () => {
         try {
@@ -40,39 +38,40 @@ const ArticleList: React.FC = () => {
         }
     }, [isLoaded, isSignedIn]);
 
-
-    const handleImportArticle = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!newLink || isImporting) return;
-
-        setIsImporting(true);
+    const handleAction = async (articleId: string, endpoint: string, method: 'POST' | 'DELETE' = 'POST') => {
         try {
             const token = await getToken();
-            const response = await fetch('/api/articles/import', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify({ url: newLink })
+            const url = endpoint ? `/api/articles/${articleId}/${endpoint}` : `/api/articles/${articleId}`;
+            const response = await fetch(url, {
+                method,
+                headers: { 'Authorization': `Bearer ${token}` }
             });
-
-            if (!response.ok) {
-                const errorText = await response.text();
-                throw new Error(`Failed to import article: ${errorText}`);
-            }
-
-            setNewLink('');
-            fetchArticles();
+            if (!response.ok) throw new Error(`Action failed: ${endpoint}`);
+            return true;
         } catch (error) {
-            console.error("Failed to import article:", error);
-        } finally {
-            setIsImporting(false);
+            console.error(`Failed to ${endpoint || 'delete'}:`, error);
+            return false;
         }
     };
 
+    const handleDelete = async (articleId: string) => {
+        if (window.confirm('Are you sure?')) {
+            const success = await handleAction(articleId, '', 'DELETE');
+            if (success) setArticles(prev => prev.filter(a => a.id !== articleId));
+        }
+    };
+
+    const handleArchive = async (articleId: string) => {
+        const success = await handleAction(articleId, 'archive');
+        if (success) setArticles(prev => prev.filter(a => a.id !== articleId));
+    };
+
+    const handleToggleFavorite = (articleId: string) => {
+        handleAction(articleId, 'favorite');
+    };
+
     if (!isLoaded) {
-        return <div>Loading...</div>;
+        return <div className="loading-container"><FontAwesomeIcon icon={faSpinner} spin size="3x" /></div>;
     }
 
     if (!isSignedIn) {
@@ -81,31 +80,16 @@ const ArticleList: React.FC = () => {
 
     return (
         <div className="article-list-container">
-            <form className="input-container" onSubmit={handleImportArticle}>
-                <div className="input-bar">
-                    <input
-                        type="text"
-                        placeholder="Paste link here"
-                        value={newLink}
-                        onChange={(e) => setNewLink(e.target.value)}
-                        disabled={isImporting}
-                    />
-                    <button type="submit" className="save-button" disabled={isImporting}>
-                        {isImporting ? (
-                            <FontAwesomeIcon icon={faSpinner} spin />
-                        ) : (
-                            <FontAwesomeIcon icon={faPlus} />
-                        )}
-                        <span>{isImporting ? 'Saving...' : 'Save'}</span>
-                    </button>
-                </div>
-            </form>
+            <AddArticleForm onArticleAdded={fetchArticles} />
             <h2 className="list-title">My List</h2>
             <div className="article-grid">
                 {articles.filter(article => article.id).map(article => (
                     <ArticleCard
                         key={article.id}
                         article={article}
+                        onDelete={handleDelete}
+                        onArchive={handleArchive}
+                        onToggleFavorite={handleToggleFavorite}
                     />
                 ))}
             </div>

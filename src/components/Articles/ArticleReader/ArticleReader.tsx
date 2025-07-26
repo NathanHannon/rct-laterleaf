@@ -12,6 +12,25 @@ const ArticleReader = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
+    const handleFavorite = async () => {
+        if (!articleId) return;
+        try {
+            const token = await getToken();
+            const response = await fetch(`/api/articles/${articleId}/favorite`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            if (!response.ok) {
+                throw new Error('Failed to favorite article');
+            }
+            // Optionally, show a success message or update UI
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'An unknown error occurred');
+        }
+    };
+
     const handleArchive = async () => {
         if (!articleId) return;
         try {
@@ -98,6 +117,7 @@ const ArticleReader = () => {
     return (
         <div className="article-reader">
             <div className="article-actions">
+                <button onClick={handleFavorite} className="button-favorite">Favorite</button>
                 <button onClick={handleArchive} className="button-archive">Archive</button>
                 <button onClick={handleDelete} className="button-delete">Delete</button>
             </div>

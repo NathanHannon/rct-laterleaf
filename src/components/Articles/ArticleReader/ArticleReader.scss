@@ -65,6 +65,15 @@
         transition: background-color 0.3s;
     }
 
+    .button-favorite {
+        background-color: #2196F3;
+        color: white;
+
+        &:hover {
+            background-color: #1a78c2;
+        }
+    }
+
     .button-archive {
         background-color: #4CAF50;
         color: white;
@@ -81,5 +90,15 @@
         &:hover {
             background-color: #da190b;
         }
+    }
+}
+
+.article-source a {
+    color: #007bff;
+    text-decoration: underline;
+
+    &:hover {
+        color: #0056b3;
+        text-decoration: none;
     }
 }
