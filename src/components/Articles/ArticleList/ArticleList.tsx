@@ -63,11 +63,20 @@ const ArticleList: React.FC = () => {
 
     const handleArchive = async (articleId: string) => {
         const success = await handleAction(articleId, 'archive');
-        if (success) setArticles(prev => prev.filter(a => a.id !== articleId));
+        if (success) {
+            setArticles(prev => prev.map(a =>
+                a.id === articleId ? { ...a, isArchived: !a.isArchived } : a
+            ));
+        }
     };
 
-    const handleToggleFavorite = (articleId: string) => {
-        handleAction(articleId, 'favorite');
+    const handleToggleFavorite = async (articleId: string) => {
+        const success = await handleAction(articleId, 'favorite');
+        if (success) {
+            setArticles(prev => prev.map(a =>
+                a.id === articleId ? { ...a, isFavorited: !a.isFavorited } : a
+            ));
+        }
     };
 
     if (!isLoaded) {

@@ -3,6 +3,9 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from "@clerk/clerk-react";
 import type { Article } from '../../../interfaces/article';
 import './ArticleReader.scss';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faStar as faStarSolid, faArchive, faTrash } from '@fortawesome/free-solid-svg-icons';
+import { faStar as faStarRegular } from '@fortawesome/free-regular-svg-icons';
 
 const ArticleReader = () => {
     const { articleId } = useParams<{ articleId: string }>();
@@ -117,9 +120,18 @@ const ArticleReader = () => {
     return (
         <div className="article-reader">
             <div className="article-actions">
-                <button onClick={handleFavorite} className="button-favorite">Favorite</button>
-                <button onClick={handleArchive} className="button-archive">Archive</button>
-                <button onClick={handleDelete} className="button-delete">Delete</button>
+                <button onClick={handleFavorite} className="button-favorite">
+                    <FontAwesomeIcon icon={article.isFavorited ? faStarSolid : faStarRegular} />
+                    <span>Favorite</span>
+                </button>
+                <button onClick={handleArchive} className="button-archive">
+                    <FontAwesomeIcon icon={faArchive} />
+                    <span>Archive</span>
+                </button>
+                <button onClick={handleDelete} className="button-delete">
+                    <FontAwesomeIcon icon={faTrash} />
+                    <span>Delete</span>
+                </button>
             </div>
             <h1>{article.title}</h1>
             <div className="article-author">By {article.author || 'Unknown author'}</div>
