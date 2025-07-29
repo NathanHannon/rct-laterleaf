@@ -5,6 +5,8 @@ import ArticleList from './components/Articles/ArticleList/ArticleList';
 import { SignedIn, SignedOut } from '@clerk/clerk-react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import ArticleReader from './components/Articles/ArticleReader/ArticleReader';
+import ArchivedArticles from './components/Articles/ArchivedArticles/ArchivedArticles';
+import FavoritedArticles from './components/Articles/FavoritedArticles/FavoritedArticles';
 
 function App() {
   return (
@@ -18,8 +20,8 @@ function App() {
                 <Routes>
                   <Route path="/" element={<ArticleList />} />
                   <Route path="/articles" element={<ArticleList />} />
-                  <Route path="/favorites" element={<ArticleList />} />
-                  <Route path="/archive" element={<ArticleList />} />
+                  <Route path="/archive" element={<ArchivedArticles />} />
+                  <Route path="/favorites" element={<FavoritedArticles />} />
                   <Route path="/article/:articleId" element={<ArticleReader />} />
                 </Routes>
               </SignedIn>
