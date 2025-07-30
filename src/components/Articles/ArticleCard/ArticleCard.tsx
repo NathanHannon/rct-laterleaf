@@ -15,6 +15,7 @@ interface ArticleCardProps {
 
 const ArticleCard: React.FC<ArticleCardProps> = ({ article, onDelete, onArchive, onToggleFavorite }) => {
     const { id, imageUrl, title, excerpt, isFavorited, isArchived } = article;
+    console.log(`ArticleCard ${id}: isFavorited=${isFavorited}`);
 
     const handleActionClick = (e: React.MouseEvent) => {
         e.stopPropagation();

@@ -26,6 +26,11 @@ const ArticleList: React.FC = () => {
             }
 
             const data: Article[] = await response.json();
+            console.log('API Response - Articles with isFavorited:', data.map(a => ({
+                id: a.id,
+                title: a.title?.substring(0, 30),
+                isFavorited: a.isFavorited
+            })));
             setArticles(data);
         } catch (error) {
             console.error("Failed to fetch articles:", error);
@@ -73,6 +78,7 @@ const ArticleList: React.FC = () => {
     const handleToggleFavorite = async (articleId: string) => {
         const success = await handleAction(articleId, 'favorite');
         if (success) {
+            // Update local state immediately for responsive UI
             setArticles(prev => prev.map(a =>
                 a.id === articleId ? { ...a, isFavorited: !a.isFavorited } : a
             ));

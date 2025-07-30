@@ -16,7 +16,7 @@ const ArticleReader = () => {
     const [error, setError] = useState<string | null>(null);
 
     const handleFavorite = async () => {
-        if (!articleId) return;
+        if (!articleId || !article) return;
         try {
             const token = await getToken();
             const response = await fetch(`/api/articles/${articleId}/favorite`, {
@@ -28,7 +28,8 @@ const ArticleReader = () => {
             if (!response.ok) {
                 throw new Error('Failed to favorite article');
             }
-            // Optionally, show a success message or update UI
+            // Update local state to reflect the change immediately
+            setArticle(prev => prev ? { ...prev, isFavorited: !prev.isFavorited } : null);
         } catch (err) {
             setError(err instanceof Error ? err.message : 'An unknown error occurred');
         }
