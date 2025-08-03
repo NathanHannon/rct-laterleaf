@@ -16,7 +16,7 @@ const ArticleList: React.FC = () => {
     const [isSearching, setIsSearching] = useState(false);
 
     // Check for Pro access using feature flags
-    const hasProAccess = Array.isArray(user?.publicMetadata?.features) && user.publicMetadata.features.includes('full-text-search');
+    const hasProAccess = Array.isArray(user?.publicMetadata?.features) && user.publicMetadata.features.includes('full_library_search');
 
     const fetchArticles = useCallback(async () => {
         try {

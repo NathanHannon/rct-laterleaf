@@ -22,7 +22,7 @@ const Header: React.FC = () => {
     const userFeatures = Array.isArray(user?.publicMetadata?.features) ? user.publicMetadata.features : [];
 
     // 2. This is the feature flag check. It returns true or false.
-    const hasProAccess = userFeatures.includes('full-text-search');
+    const hasProAccess = userFeatures.includes('full_library_search');
 
     console.log(hasProAccess ? 'User has Pro access' : 'User does not have Pro access');
     console.log('User Features:', userFeatures);
