@@ -1,17 +1,24 @@
-import React, { useState, useEffect } from 'react';
-import { useAuth } from '@clerk/clerk-react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { useAuth, useUser } from '@clerk/clerk-react';
 import ArticleCard from '../ArticleCard/ArticleCard';
 import './ArticleList.scss';
 import type { Article } from '../../../interfaces/article';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSpinner } from '@fortawesome/free-solid-svg-icons';
 import AddArticleForm from '../AddArticleForm/AddArticleForm';
+import { useSearch } from '../../../hooks/searchHook';
 
 const ArticleList: React.FC = () => {
     const { getToken, isLoaded, isSignedIn } = useAuth();
+    const { user } = useUser();
+    const { searchTerm } = useSearch();
     const [articles, setArticles] = useState<Article[]>([]);
+    const [isSearching, setIsSearching] = useState(false);
 
-    const fetchArticles = async () => {
+    // Check for Pro access using feature flags
+    const hasProAccess = Array.isArray(user?.publicMetadata?.features) && user.publicMetadata.features.includes('full-text-search');
+
+    const fetchArticles = useCallback(async () => {
         try {
             const token = await getToken();
             const response = await fetch('/api/articles', {
@@ -25,23 +32,66 @@ const ArticleList: React.FC = () => {
                 throw new Error(`Network response was not ok: ${errorText}`);
             }
 
-            const data: Article[] = await response.json();
-            console.log('API Response - Articles with isFavorited:', data.map(a => ({
-                id: a.id,
-                title: a.title?.substring(0, 30),
-                isFavorited: a.isFavorited
-            })));
-            setArticles(data);
+            const data = await response.json();
+            console.log('Fetch articles response:', data);
+
+            const articlesArray = Array.isArray(data) ? data : [];
+            setArticles(articlesArray);
         } catch (error) {
             console.error("Failed to fetch articles:", error);
+            setArticles([]);
         }
-    };
+    }, [getToken]);
 
+    // Separate effect for search
     useEffect(() => {
-        if (isLoaded && isSignedIn) {
+        const performSearch = async () => {
+            if (!isLoaded || !isSignedIn) return;
+
+            if (!searchTerm) {
+                fetchArticles();
+                return;
+            }
+
+            setIsSearching(true);
+            try {
+                const token = await getToken();
+                const response = await fetch(`/api/search?q=${encodeURIComponent(searchTerm)}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Search failed');
+                }
+
+                const searchResults = await response.json();
+                console.log('Search response:', searchResults);
+                console.log('First search result:', searchResults[0]); // Check what fields are included
+
+                const resultsArray = Array.isArray(searchResults) ? searchResults :
+                    (searchResults.results && Array.isArray(searchResults.results)) ? searchResults.results : [];
+
+                console.log('Processed results array:', resultsArray);
+                console.log('First processed result:', resultsArray[0]);
+
+                setArticles(resultsArray);
+            } catch (error) {
+                console.error("Failed to perform search:", error);
+                fetchArticles();
+            } finally {
+                setIsSearching(false);
+            }
+        };
+
+        performSearch();
+    }, [searchTerm, isLoaded, isSignedIn, fetchArticles, getToken]);
+
+    // Initial fetch - only run once when component mounts and user is ready
+    useEffect(() => {
+        if (isLoaded && isSignedIn && !searchTerm) {
             fetchArticles();
         }
-    }, [isLoaded, isSignedIn]);
+    }, [isLoaded, isSignedIn, fetchArticles, searchTerm]);
 
     const handleAction = async (articleId: string, endpoint: string, method: 'POST' | 'DELETE' = 'POST') => {
         try {
@@ -78,7 +128,6 @@ const ArticleList: React.FC = () => {
     const handleToggleFavorite = async (articleId: string) => {
         const success = await handleAction(articleId, 'favorite');
         if (success) {
-            // Update local state immediately for responsive UI
             setArticles(prev => prev.map(a =>
                 a.id === articleId ? { ...a, isFavorited: !a.isFavorited } : a
             ));
@@ -86,19 +135,25 @@ const ArticleList: React.FC = () => {
     };
 
     if (!isLoaded) {
-        return <div className="loading-container"><FontAwesomeIcon icon={faSpinner} spin size="3x" /></div>;
+        return <div className="loading-container"><FontAwesomeIcon icon={faSpinner} spin size="3x" /> Loading...</div>;
     }
 
     if (!isSignedIn) {
         return <div>Please sign in to see your articles.</div>;
     }
 
+    const validArticles = Array.isArray(articles) ? articles : [];
+
     return (
         <div className="article-list-container">
             <AddArticleForm onArticleAdded={fetchArticles} />
-            <h2 className="list-title">My List</h2>
+            <div className="list-header">
+                <h2 className="list-title">My List</h2>
+                {hasProAccess && <span className="premium-badge">Pro Search Enabled</span>}
+                {isSearching && <><FontAwesomeIcon icon={faSpinner} spin /> Searching...</>}
+            </div>
             <div className="article-grid">
-                {articles.filter(article => article.id).map(article => (
+                {validArticles.filter(article => article.id).map(article => (
                     <ArticleCard
                         key={article.id}
                         article={article}
@@ -112,4 +167,4 @@ const ArticleList: React.FC = () => {
     );
 };
 
-export default ArticleList; 
+export default ArticleList;

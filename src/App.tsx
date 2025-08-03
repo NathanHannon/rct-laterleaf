@@ -7,36 +7,39 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import ArticleReader from './components/Articles/ArticleReader/ArticleReader';
 import ArchivedArticles from './components/Articles/ArchivedArticles/ArchivedArticles';
 import FavoritedArticles from './components/Articles/FavoritedArticles/FavoritedArticles';
+import { SearchProvider } from './providers/searchProvider';
 
 function App() {
   return (
-    <BrowserRouter>
-      <div className="app">
-        <div className="layout-container">
-          <Header />
-          <main className="main-content">
-            <div className="content-container">
-              <SignedIn>
-                <Routes>
-                  <Route path="/" element={<ArticleList />} />
-                  <Route path="/articles" element={<ArticleList />} />
-                  <Route path="/archive" element={<ArchivedArticles />} />
-                  <Route path="/favorites" element={<FavoritedArticles />} />
-                  <Route path="/article/:articleId" element={<ArticleReader />} />
-                </Routes>
-              </SignedIn>
-              <SignedOut>
-                <div className="signed-out-message">
-                  <h2>Welcome to Later Leaf</h2>
-                  <p>Please sign in to view and save articles.</p>
-                </div>
-              </SignedOut>
-            </div>
-          </main>
-          <Footer />
+    <SearchProvider>
+      <BrowserRouter>
+        <div className="app">
+          <div className="layout-container">
+            <Header />
+            <main className="main-content">
+              <div className="content-container">
+                <SignedIn>
+                  <Routes>
+                    <Route path="/" element={<ArticleList />} />
+                    <Route path="/articles" element={<ArticleList />} />
+                    <Route path="/archive" element={<ArchivedArticles />} />
+                    <Route path="/favorites" element={<FavoritedArticles />} />
+                    <Route path="/article/:articleId" element={<ArticleReader />} />
+                  </Routes>
+                </SignedIn>
+                <SignedOut>
+                  <div className="signed-out-message">
+                    <h2>Welcome to Later Leaf</h2>
+                    <p>Please sign in to view and save articles.</p>
+                  </div>
+                </SignedOut>
+              </div>
+            </main>
+            <Footer />
+          </div>
         </div>
-      </div>
-    </BrowserRouter>
+      </BrowserRouter>
+    </SearchProvider>
   );
 }
 

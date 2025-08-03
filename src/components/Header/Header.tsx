@@ -7,11 +7,37 @@ import {
     SignInButton,
     SignUpButton,
     UserButton,
+    useUser,
 } from "@clerk/clerk-react";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faInbox, faStar, faArchive } from '@fortawesome/free-solid-svg-icons';
+import { faInbox, faStar, faArchive, faCrown } from '@fortawesome/free-solid-svg-icons';
+import { useSearch } from '../../hooks/searchHook';
 
 const Header: React.FC = () => {
+    const { searchTerm, setSearchTerm } = useSearch();
+    const { user } = useUser();
+
+    // 1. Safely access the features array from the user's public metadata.
+    // The '|| []' ensures that if 'features' doesn't exist, we get an empty array instead of an error.
+    const userFeatures = Array.isArray(user?.publicMetadata?.features) ? user.publicMetadata.features : [];
+
+    // 2. This is the feature flag check. It returns true or false.
+    const hasProAccess = userFeatures.includes('full-text-search');
+
+    console.log(hasProAccess ? 'User has Pro access' : 'User does not have Pro access');
+    console.log('User Features:', userFeatures);
+
+    // A clearer placeholder for the free user
+    const freePlaceholder = "Search titles & excerpts...";
+
+    // A more powerful placeholder for the pro user
+    const proPlaceholder = "Search the full content of your entire library...";
+
+
+    const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setSearchTerm(event.target.value);
+    };
+
     return (
         <header className="header">
             <div className="header-left">
@@ -32,7 +58,13 @@ const Header: React.FC = () => {
                             d="M229.66,218.34l-50.07-50.06a88.11,88.11,0,1,0-11.31,11.31l50.06,50.07a8,8,0,0,0,11.32-11.32ZM40,112a72,72,0,1,1,72,72A72.08,72.08,0,0,1,40,112Z"
                         ></path>
                     </svg>
-                    <input type="text" placeholder="Search" />
+                    <input
+                        type="text"
+                        placeholder={hasProAccess ? proPlaceholder : freePlaceholder}
+                        value={searchTerm}
+                        onChange={handleSearchChange}
+                    />
+                    {hasProAccess && <FontAwesomeIcon icon={faCrown} className="premium-icon" />}
                 </div>
                 <div className="auth-container">
                     <SignedOut>
@@ -48,4 +80,4 @@ const Header: React.FC = () => {
     );
 };
 
-export default Header; 
+export default Header;
