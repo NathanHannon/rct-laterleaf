@@ -1,6 +1,6 @@
 import React from 'react';
 import './Header.scss';
-import logo from '../../assets/logo/icon-transparent-06c8e7d.png';
+import logo from '../../assets/logo/icon-transparent.png';
 import {
     SignedIn,
     SignedOut,
