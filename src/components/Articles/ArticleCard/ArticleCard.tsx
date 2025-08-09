@@ -33,13 +33,13 @@ const ArticleCard: React.FC<ArticleCardProps> = ({ article, onDelete, onArchive,
                 </div>
             </Link>
             <div className="article-card-actions" onClick={handleActionClick}>
-                <button onClick={() => id && onToggleFavorite(id)} className="button-favorite">
+                <button onClick={() => id && onToggleFavorite(id)} className={`button-favorite ${isFavorited ? 'favorited' : ''}`}>
                     <FontAwesomeIcon icon={isFavorited ? faStarSolid : faStarRegular} />
-                    <span>Favorite</span>
+                    <span>{isFavorited ? 'Unfavorite' : 'Favorite'}</span>
                 </button>
                 <button onClick={() => id && onArchive(id)} className="button-archive">
                     <FontAwesomeIcon icon={faArchive} />
-                    <span>Archive</span>
+                    <span>{isArchived ? 'Unarchive' : 'Archive'}</span>
                 </button>
                 <button onClick={() => id && onDelete(id)} className="button-delete">
                     <FontAwesomeIcon icon={faTrash} />

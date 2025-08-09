@@ -36,7 +36,7 @@ const ArticleReader = () => {
     };
 
     const handleArchive = async () => {
-        if (!articleId) return;
+        if (!articleId || !article) return;
         try {
             const token = await getToken();
             const response = await fetch(`/api/articles/${articleId}/archive`, {
@@ -45,11 +45,11 @@ const ArticleReader = () => {
                     'Authorization': `Bearer ${token}`
                 }
             });
-            if (response.ok) {
-                navigate('/articles'); // Or to an archive view
-            } else {
+            if (!response.ok) {
                 throw new Error('Failed to archive article');
             }
+            // Update local state to reflect the change immediately
+            setArticle(prev => prev ? { ...prev, isArchived: !prev.isArchived } : null);
         } catch (err) {
             setError(err instanceof Error ? err.message : 'An unknown error occurred');
         }
@@ -95,6 +95,12 @@ const ArticleReader = () => {
                 }
 
                 const data: Article = await response.json();
+                // console.log('ArticleReader received data:', {
+                //     articleId: data.id,
+                //     title: data.title,
+                //     isFavorited: data.isFavorited,
+                //     isArchived: data.isArchived
+                // });
                 setArticle(data);
             } catch (err) {
                 setError(err instanceof Error ? err.message : 'An unknown error occurred');
@@ -121,13 +127,13 @@ const ArticleReader = () => {
     return (
         <div className="article-reader">
             <div className="article-actions">
-                <button onClick={handleFavorite} className="button-favorite">
+                <button onClick={handleFavorite} className={`button-favorite ${article.isFavorited ? 'favorited' : ''}`}>
                     <FontAwesomeIcon icon={article.isFavorited ? faStarSolid : faStarRegular} />
-                    <span>Favorite</span>
+                    <span>{article.isFavorited ? 'Unfavorite' : 'Favorite'}</span>
                 </button>
                 <button onClick={handleArchive} className="button-archive">
                     <FontAwesomeIcon icon={faArchive} />
-                    <span>Archive</span>
+                    <span>{article.isArchived ? 'Unarchive' : 'Archive'}</span>
                 </button>
                 <button onClick={handleDelete} className="button-delete">
                     <FontAwesomeIcon icon={faTrash} />
