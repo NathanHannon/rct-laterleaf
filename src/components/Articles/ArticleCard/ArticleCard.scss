@@ -6,10 +6,11 @@
     border: 1px solid #ddd;
     border-radius: 8px;
     overflow: hidden;
-    transition: box-shadow 0.3s ease;
+    transition: box-shadow 0.3s ease, transform 0.2s ease;
 
     &:hover {
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        transform: translateY(-2px);
 
         .article-card-actions {
             opacity: 1;
@@ -27,7 +28,8 @@
         right: 10px;
         color: #ffc107;
         font-size: 1.2em;
-        z-index: 2;
+        z-index: 3;
+        filter: drop-shadow(0 2px 4px rgba(255, 193, 7, 0.3));
     }
 }
 
@@ -64,6 +66,7 @@
         /* Add these lines for text truncation */
         display: -webkit-box;
         -webkit-line-clamp: 3;
+        line-clamp: 3;
         /* Limit to 3 lines, you can change this number */
         -webkit-box-orient: vertical;
         overflow: hidden;

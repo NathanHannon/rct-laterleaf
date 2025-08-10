@@ -1,6 +1,7 @@
 import React from 'react';
 import './ArticleCard.scss';
 import { Link } from 'react-router-dom';
+import { motion } from 'motion/react';
 import type { Article } from '../../../interfaces/article';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faStar as faStarSolid, faArchive, faTrash } from '@fortawesome/free-solid-svg-icons';
@@ -24,9 +25,29 @@ const ArticleCard: React.FC<ArticleCardProps> = ({ article, onDelete, onArchive,
 
     return (
         <div className={`article-card-wrapper ${isArchived ? 'archived' : ''}`}>
-            {isFavorited && <div className="favorite-indicator"><FontAwesomeIcon icon={faStarSolid} /></div>}
+            {isFavorited && (
+                <motion.div
+                    className="favorite-indicator"
+                    animate={isFavorited ? {
+                        scale: [1, 1.1, 1],
+                    } : {}}
+                    transition={{
+                        duration: 2,
+                        repeat: Infinity,
+                        repeatDelay: 4,
+                        ease: "easeInOut"
+                    }}
+                >
+                    <FontAwesomeIcon icon={faStarSolid} />
+                </motion.div>
+            )}
             <Link to={`/article/${id}`} className="article-card-link">
-                {imageUrl && <div className="card-image" style={{ backgroundImage: `url(${imageUrl})` }}></div>}
+                {imageUrl && (
+                    <div
+                        className="card-image"
+                        style={{ backgroundImage: `url(${imageUrl})` }}
+                    />
+                )}
                 <div className="card-content">
                     <p className="card-title">{title}</p>
                     <p className="card-description">{excerpt}</p>
