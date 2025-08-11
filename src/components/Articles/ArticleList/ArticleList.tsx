@@ -4,7 +4,7 @@ import ArticleCard from '../ArticleCard/ArticleCard';
 import './ArticleList.scss';
 import type { Article } from '../../../interfaces/article';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faSpinner, faCrown } from '@fortawesome/free-solid-svg-icons';
+import { faSpinner, faGem } from '@fortawesome/free-solid-svg-icons';
 import AddArticleForm from '../AddArticleForm/AddArticleForm';
 import { useSearch } from '../../../hooks/searchHook';
 
@@ -149,7 +149,7 @@ const ArticleList: React.FC = () => {
             <AddArticleForm onArticleAdded={fetchArticles} />
             <div className="list-header">
                 <h2 className="list-title">My List</h2>
-                {hasProAccess && <span className="premium-badge">Pro Search Enabled <FontAwesomeIcon icon={faCrown} className="premium-icon" /></span>}
+                {hasProAccess && <span className="premium-badge">Pro Search Enabled <FontAwesomeIcon icon={faGem} className="premium-icon" /></span>}
                 {isSearching && <><FontAwesomeIcon icon={faSpinner} spin /> Searching...</>}
             </div>
             <div className="article-grid">

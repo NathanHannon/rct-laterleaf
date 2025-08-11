@@ -63,8 +63,18 @@
     }
 
     .premium-icon {
-        color: #ffc107; // Gold color for premium icon
-        // golden glow effect
-        filter: drop-shadow(0 0 5px rgba(255, 193, 7, 0.5));
+        // Diamond emoji color - bright cyan-blue
+        color: #00b4d8;
+
+        // Diamond sparkle effect with cyan glow
+        filter: drop-shadow(0 0 8px rgba(0, 180, 216, 0.6)) drop-shadow(0 0 12px rgba(0, 180, 216, 0.4)) drop-shadow(0 0 16px rgba(0, 180, 216, 0.2));
+
+        // Slight scale and animation
+        transform: scale(1.15);
+        animation: diamond-sparkle 3s ease-in-out infinite;
+
+        // Ensure it stands out
+        position: relative;
+        z-index: 10;
     }
 }
