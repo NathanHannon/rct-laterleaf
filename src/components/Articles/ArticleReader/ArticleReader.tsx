@@ -34,7 +34,7 @@ const ArticleReader = () => {
                 }
             });
             if (!response.ok) {
-                throw new Error('Failed to favorite article');
+                throw new Error('Failed to bookmark article');
             }
             // Update local state to reflect the change immediately
             setArticle(prev => prev ? { ...prev, isBookmarked: !prev.isBookmarked } : null);
@@ -58,8 +58,7 @@ const ArticleReader = () => {
             const response = await fetch(`/api/articles/${articleId}/summarize`, {
                 method: 'POST',
                 headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
+                    'Authorization': `Bearer ${token}`
                 }
             });
 
