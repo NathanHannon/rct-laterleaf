@@ -73,7 +73,7 @@ const ArchivedArticles: React.FC = () => {
         const success = await handleAction(articleId, 'favorite');
         if (success) {
             setArticles(prev => prev.map(a =>
-                a.id === articleId ? { ...a, isFavorited: !a.isFavorited } : a
+                a.id === articleId ? { ...a, isBookmarked: !a.isBookmarked } : a
             ));
         }
     };

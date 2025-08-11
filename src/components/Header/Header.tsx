@@ -10,7 +10,7 @@ import {
     useUser,
 } from "@clerk/clerk-react";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faInbox, faStar, faArchive, faCrown } from '@fortawesome/free-solid-svg-icons';
+import { faInbox, faBookmark, faArchive, faGem, faFolderOpen } from '@fortawesome/free-solid-svg-icons';
 import { useSearch } from '../../hooks/searchHook';
 
 const Header: React.FC = () => {
@@ -47,7 +47,8 @@ const Header: React.FC = () => {
                 </div>
                 <nav className="nav-links">
                     <a href="/articles"><FontAwesomeIcon icon={faInbox} /><span>Articles</span></a>
-                    <a href="/favorites"><FontAwesomeIcon icon={faStar} /><span>Favorites</span></a>
+                    <a href="/bookmarks"><FontAwesomeIcon icon={faBookmark} /><span>Bookmarks</span></a>
+                    <a href="/collections"><FontAwesomeIcon icon={faFolderOpen} /><span>Collections</span></a>
                     <a href="/archive"><FontAwesomeIcon icon={faArchive} /><span>Archive</span></a>
                 </nav>
             </div>
@@ -64,7 +65,7 @@ const Header: React.FC = () => {
                         value={searchTerm}
                         onChange={handleSearchChange}
                     />
-                    {hasProAccess && <FontAwesomeIcon icon={faCrown} className="premium-icon" />}
+                    {hasProAccess && <FontAwesomeIcon icon={faGem} className="premium-icon" />}
                 </div>
                 <div className="auth-container">
                     <SignedOut>

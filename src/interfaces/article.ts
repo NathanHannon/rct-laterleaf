@@ -10,7 +10,7 @@ export interface Article {
     createdAt?: string;
     updatedAt?: string;
     imageUrl?: string; // Optional field for the article image URL
-    isFavorited?: boolean;
+    isBookmarked?: boolean;
     isArchived?: boolean;
     notes?: object
 }

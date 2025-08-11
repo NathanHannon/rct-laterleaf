@@ -1,19 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@clerk/clerk-react';
 import ArticleCard from '../ArticleCard/ArticleCard';
-import './FavoritedArticles.scss';
+import './BookmarkedArticles.scss';
 import type { Article } from '../../../interfaces/article';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSpinner } from '@fortawesome/free-solid-svg-icons';
 
-const FavoritedArticles: React.FC = () => {
+const BookmarkedArticles: React.FC = () => {
     const { getToken, isLoaded, isSignedIn } = useAuth();
     const [articles, setArticles] = useState<Article[]>([]);
 
     const fetchArticles = async () => {
         try {
             const token = await getToken();
-            const filter = encodeURIComponent(JSON.stringify({ where: { isFavorited: true } }));
+            const filter = encodeURIComponent(JSON.stringify({ where: { isBookmarked: true } }));
             const response = await fetch(`/api/articles?filter=${filter}`, {
                 headers: {
                     'Authorization': `Bearer ${token}`
@@ -88,7 +88,7 @@ const FavoritedArticles: React.FC = () => {
 
     return (
         <div className="article-list-container">
-            <h2 className="list-title">Favorited Articles</h2>
+            <h2 className="list-title">Bookmarked Articles</h2>
             <div className="article-grid">
                 {articles.filter(article => article.id).map(article => (
                     <ArticleCard
@@ -104,4 +104,4 @@ const FavoritedArticles: React.FC = () => {
     );
 };
 
-export default FavoritedArticles; 
+export default BookmarkedArticles; 

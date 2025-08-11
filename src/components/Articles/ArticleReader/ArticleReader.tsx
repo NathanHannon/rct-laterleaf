@@ -4,8 +4,8 @@ import { useAuth } from "@clerk/clerk-react";
 import type { Article } from '../../../interfaces/article';
 import './ArticleReader.scss';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faStar as faStarSolid, faArchive, faTrash } from '@fortawesome/free-solid-svg-icons';
-import { faStar as faStarRegular } from '@fortawesome/free-regular-svg-icons';
+import { faBookmark as faBookmarkSolid, faArchive, faTrash } from '@fortawesome/free-solid-svg-icons';
+import { faBookmark as faBookmarkRegular } from '@fortawesome/free-regular-svg-icons';
 
 const ArticleReader = () => {
     const { articleId } = useParams<{ articleId: string }>();
@@ -19,7 +19,7 @@ const ArticleReader = () => {
         if (!articleId || !article) return;
         try {
             const token = await getToken();
-            const response = await fetch(`/api/articles/${articleId}/favorite`, {
+            const response = await fetch(`/api/articles/${articleId}/bookmark`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`
@@ -29,7 +29,7 @@ const ArticleReader = () => {
                 throw new Error('Failed to favorite article');
             }
             // Update local state to reflect the change immediately
-            setArticle(prev => prev ? { ...prev, isFavorited: !prev.isFavorited } : null);
+            setArticle(prev => prev ? { ...prev, isBookmarked: !prev.isBookmarked } : null);
         } catch (err) {
             setError(err instanceof Error ? err.message : 'An unknown error occurred');
         }
@@ -98,7 +98,7 @@ const ArticleReader = () => {
                 // console.log('ArticleReader received data:', {
                 //     articleId: data.id,
                 //     title: data.title,
-                //     isFavorited: data.isFavorited,
+                //     isBookmarked: data.isBookmarked,
                 //     isArchived: data.isArchived
                 // });
                 setArticle(data);
@@ -127,9 +127,9 @@ const ArticleReader = () => {
     return (
         <div className="article-reader">
             <div className="article-actions">
-                <button onClick={handleFavorite} className={`button-favorite ${article.isFavorited ? 'favorited' : ''}`}>
-                    <FontAwesomeIcon icon={article.isFavorited ? faStarSolid : faStarRegular} />
-                    <span>{article.isFavorited ? 'Unfavorite' : 'Favorite'}</span>
+                <button onClick={handleFavorite} className={`button-favorite ${article.isBookmarked ? 'favorited' : ''}`}>
+                    <FontAwesomeIcon icon={article.isBookmarked ? faBookmarkSolid : faBookmarkRegular} />
+                    <span>{article.isBookmarked ? 'Remove Bookmark' : 'Bookmark'}</span>
                 </button>
                 <button onClick={handleArchive} className="button-archive">
                     <FontAwesomeIcon icon={faArchive} />

@@ -61,4 +61,10 @@
         grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
         gap: 1rem;
     }
+
+    .premium-icon {
+        color: #ffc107; // Gold color for premium icon
+        // golden glow effect
+        filter: drop-shadow(0 0 5px rgba(255, 193, 7, 0.5));
+    }
 }

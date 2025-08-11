@@ -78,6 +78,12 @@
                 color: #a3a3a3; // neutral-500
             }
         }
+
+        .premium-icon {
+            color: #ffc107; // Gold color for premium icon
+            // golden glow effect
+            filter: drop-shadow(0 0 5px rgba(255, 193, 7, 0.5));
+        }
     }
 
     .avatar {

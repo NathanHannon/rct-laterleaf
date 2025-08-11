@@ -4,7 +4,7 @@ import ArticleCard from '../ArticleCard/ArticleCard';
 import './ArticleList.scss';
 import type { Article } from '../../../interfaces/article';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faSpinner } from '@fortawesome/free-solid-svg-icons';
+import { faSpinner, faCrown } from '@fortawesome/free-solid-svg-icons';
 import AddArticleForm from '../AddArticleForm/AddArticleForm';
 import { useSearch } from '../../../hooks/searchHook';
 
@@ -129,7 +129,7 @@ const ArticleList: React.FC = () => {
         const success = await handleAction(articleId, 'favorite');
         if (success) {
             setArticles(prev => prev.map(a =>
-                a.id === articleId ? { ...a, isFavorited: !a.isFavorited } : a
+                a.id === articleId ? { ...a, isBookmarked: !a.isBookmarked } : a
             ));
         }
     };
@@ -149,7 +149,7 @@ const ArticleList: React.FC = () => {
             <AddArticleForm onArticleAdded={fetchArticles} />
             <div className="list-header">
                 <h2 className="list-title">My List</h2>
-                {hasProAccess && <span className="premium-badge">Pro Search Enabled</span>}
+                {hasProAccess && <span className="premium-badge">Pro Search Enabled <FontAwesomeIcon icon={faCrown} className="premium-icon" /></span>}
                 {isSearching && <><FontAwesomeIcon icon={faSpinner} spin /> Searching...</>}
             </div>
             <div className="article-grid">
