@@ -7,25 +7,18 @@ import {
     SignInButton,
     SignUpButton,
     UserButton,
-    useUser,
 } from "@clerk/clerk-react";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faInbox, faBookmark, faArchive, faGem, faFolderOpen } from '@fortawesome/free-solid-svg-icons';
 import { useSearch } from '../../hooks/searchHook';
+import { useUserTier } from '../../hooks/userTierHook';
 
 const Header: React.FC = () => {
     const { searchTerm, setSearchTerm } = useSearch();
-    const { user } = useUser();
+    const { hasProAccess } = useUserTier();
 
-    // 1. Safely access the features array from the user's public metadata.
-    // The '|| []' ensures that if 'features' doesn't exist, we get an empty array instead of an error.
-    const userFeatures = Array.isArray(user?.publicMetadata?.features) ? user.publicMetadata.features : [];
-
-    // 2. This is the feature flag check. It returns true or false.
-    const hasProAccess = userFeatures.includes('full_library_search');
-
-    console.log(hasProAccess ? 'User has Pro access' : 'User does not have Pro access');
-    console.log('User Features:', userFeatures);
+    // Log pro status for debugging
+    console.log('🎨 Header: Pro access status:', hasProAccess);
 
     // A clearer placeholder for the free user
     const freePlaceholder = "Search titles & excerpts...";
@@ -73,7 +66,7 @@ const Header: React.FC = () => {
                         <SignUpButton />
                     </SignedOut>
                     <SignedIn>
-                        <UserButton afterSignOutUrl='/' />
+                        <UserButton />
                     </SignedIn>
                 </div>
             </div>

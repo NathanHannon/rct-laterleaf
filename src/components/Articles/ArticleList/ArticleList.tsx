@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useAuth, useUser } from '@clerk/clerk-react';
+import { useAuth } from '@clerk/clerk-react';
 import ArticleCard from '../ArticleCard/ArticleCard';
 import './ArticleList.scss';
 import type { Article } from '../../../interfaces/article';
@@ -7,16 +7,17 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSpinner, faGem } from '@fortawesome/free-solid-svg-icons';
 import AddArticleForm from '../AddArticleForm/AddArticleForm';
 import { useSearch } from '../../../hooks/searchHook';
+import { useUserTier } from '../../../hooks/userTierHook';
 
 const ArticleList: React.FC = () => {
     const { getToken, isLoaded, isSignedIn } = useAuth();
-    const { user } = useUser();
     const { searchTerm } = useSearch();
+    const { hasProAccess, loading: tierLoading } = useUserTier();
     const [articles, setArticles] = useState<Article[]>([]);
     const [isSearching, setIsSearching] = useState(false);
 
-    // Check for Pro access using feature flags
-    const hasProAccess = Array.isArray(user?.publicMetadata?.features) && user.publicMetadata.features.includes('full_library_search');
+    // Log pro status for debugging
+    console.log('📋 ArticleList: Pro access status:', hasProAccess, '| Tier loading:', tierLoading);
 
     const fetchArticles = useCallback(async () => {
         try {
@@ -46,7 +47,7 @@ const ArticleList: React.FC = () => {
     // Separate effect for search
     useEffect(() => {
         const performSearch = async () => {
-            if (!isLoaded || !isSignedIn) return;
+            if (!isLoaded || !isSignedIn || tierLoading) return;
 
             if (!searchTerm) {
                 fetchArticles();
@@ -84,14 +85,14 @@ const ArticleList: React.FC = () => {
         };
 
         performSearch();
-    }, [searchTerm, isLoaded, isSignedIn, fetchArticles, getToken]);
+    }, [searchTerm, isLoaded, isSignedIn, tierLoading, fetchArticles, getToken]);
 
     // Initial fetch - only run once when component mounts and user is ready
     useEffect(() => {
-        if (isLoaded && isSignedIn && !searchTerm) {
+        if (isLoaded && isSignedIn && !tierLoading && !searchTerm) {
             fetchArticles();
         }
-    }, [isLoaded, isSignedIn, fetchArticles, searchTerm]);
+    }, [isLoaded, isSignedIn, tierLoading, fetchArticles, searchTerm]);
 
     const handleAction = async (articleId: string, endpoint: string, method: 'POST' | 'DELETE' = 'POST') => {
         try {
@@ -134,7 +135,7 @@ const ArticleList: React.FC = () => {
         }
     };
 
-    if (!isLoaded) {
+    if (!isLoaded || tierLoading) {
         return <div className="loading-container"><FontAwesomeIcon icon={faSpinner} spin size="3x" /> Loading...</div>;
     }
 
