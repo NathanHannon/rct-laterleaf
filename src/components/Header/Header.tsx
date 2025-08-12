@@ -7,18 +7,20 @@ import {
     SignInButton,
     SignUpButton,
     UserButton,
+    useUser,
 } from "@clerk/clerk-react";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faInbox, faBookmark, faArchive, faGem, faFolderOpen } from '@fortawesome/free-solid-svg-icons';
 import { useSearch } from '../../hooks/searchHook';
-import { useUserTier } from '../../hooks/userTierHook';
+import { hasProAccess } from '../../utils/tierUtils';
 
 const Header: React.FC = () => {
     const { searchTerm, setSearchTerm } = useSearch();
-    const { hasProAccess } = useUserTier();
+    const { user } = useUser();
+    const userHasProAccess = hasProAccess(user);
 
     // Log pro status for debugging
-    console.log('🎨 Header: Pro access status:', hasProAccess);
+    console.log('🎨 Header: Pro access status:', userHasProAccess);
 
     // A clearer placeholder for the free user
     const freePlaceholder = "Search titles & excerpts...";
@@ -54,11 +56,11 @@ const Header: React.FC = () => {
                     </svg>
                     <input
                         type="text"
-                        placeholder={hasProAccess ? proPlaceholder : freePlaceholder}
+                        placeholder={userHasProAccess ? proPlaceholder : freePlaceholder}
                         value={searchTerm}
                         onChange={handleSearchChange}
                     />
-                    {hasProAccess && <FontAwesomeIcon icon={faGem} className="premium-icon" />}
+                    {userHasProAccess && <FontAwesomeIcon icon={faGem} className="premium-icon" />}
                 </div>
                 <div className="auth-container">
                     <SignedOut>
