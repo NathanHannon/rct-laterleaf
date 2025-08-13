@@ -24,6 +24,7 @@ const ArticleReader = () => {
     const [chatMessages, setChatMessages] = useState<{ role: 'user' | 'assistant', content: string, timestamp?: string }[]>([]);
     const [isGeneratingChat, setIsGeneratingChat] = useState(false);
     const [chatInput, setChatInput] = useState('');
+    const [hasAutoShownSummary, setHasAutoShownSummary] = useState(false);
 
     // Check if user has pro access for chat functionality
     const userHasProAccess = hasProAccess(user);
@@ -78,6 +79,7 @@ const ArticleReader = () => {
             const data = await response.json();
             setArticle(prev => prev ? { ...prev, summary: data.summary } : null);
             setShowSummary(true);
+            setHasAutoShownSummary(true);
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Failed to generate summary');
         } finally {
@@ -105,6 +107,7 @@ const ArticleReader = () => {
             const data = await response.json();
             setArticle(prev => prev ? { ...prev, summary: data.summary } : null);
             setShowSummary(true);
+            setHasAutoShownSummary(true);
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Failed to regenerate summary');
         } finally {
@@ -267,6 +270,8 @@ const ArticleReader = () => {
                 //     isArchived: data.isArchived
                 // });
                 setArticle(data);
+                // Reset auto-show flag when loading new article
+                setHasAutoShownSummary(false);
             } catch (err) {
                 setError(err instanceof Error ? err.message : 'An unknown error occurred');
             } finally {
@@ -277,12 +282,13 @@ const ArticleReader = () => {
         fetchArticle();
     }, [articleId, getToken]);
 
-    // Auto-show summary if it exists
+    // Auto-show summary if it exists (only once)
     useEffect(() => {
-        if (article?.summary && !showSummary) {
+        if (article?.summary && !hasAutoShownSummary) {
             setShowSummary(true);
+            setHasAutoShownSummary(true);
         }
-    }, [article?.summary, showSummary]);
+    }, [article?.summary, hasAutoShownSummary]);
 
     if (loading) {
         return <div>Loading article...</div>;
