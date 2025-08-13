@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import './Header.scss';
 import logo from '../../assets/logo/icon-transparent.png';
 import {
@@ -12,12 +12,41 @@ import {
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faInbox, faBookmark, faArchive, faGem, faFolderOpen } from '@fortawesome/free-solid-svg-icons';
 import { useSearch } from '../../hooks/searchHook';
-import { hasProAccess } from '../../utils/tierUtils';
+import { hasProAccess, extractUserTier } from '../../utils/tierUtils';
 
 const Header: React.FC = () => {
     const { searchTerm, setSearchTerm } = useSearch();
-    const { user } = useUser();
+    const { user, isLoaded } = useUser();
     const userHasProAccess = hasProAccess(user);
+
+    // Log user plan tier when user data becomes available
+    useEffect(() => {
+        if (isLoaded && user) {
+            const tier = extractUserTier(user);
+            const features = (user.publicMetadata?.features as string[]) || [];
+            const role = user.publicMetadata?.role as string;
+
+            // Extract plan info from JWT if available
+            const userWithToken = user as typeof user & {
+                unsafeMetadata?: { _rawToken?: { pla?: string } };
+                __unstable__environment?: { jwt?: { pla?: string } };
+            };
+            const rawToken = userWithToken.unsafeMetadata?._rawToken ||
+                userWithToken.__unstable__environment?.jwt || {};
+            const plaField = rawToken.pla || 'unknown';
+
+            console.log('🎯 Frontend User Sign-In Detected:', {
+                userId: user.id.substring(0, 8) + '...',
+                email: user.primaryEmailAddress?.emailAddress || 'no email',
+                planTier: tier,
+                plaField,
+                features: features.length > 0 ? features : 'none',
+                role: role || 'none',
+                hasProAccess: userHasProAccess,
+                signInTime: new Date().toISOString()
+            });
+        }
+    }, [isLoaded, user, userHasProAccess]);
 
     // Log pro status for debugging
     console.log('🎨 Header: Pro access status:', userHasProAccess);
