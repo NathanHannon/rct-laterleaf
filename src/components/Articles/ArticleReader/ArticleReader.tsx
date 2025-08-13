@@ -1,16 +1,18 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useAuth } from "@clerk/clerk-react";
+import { useAuth, useUser } from "@clerk/clerk-react";
 import { motion, AnimatePresence } from 'motion/react';
 import type { Article } from '../../../interfaces/article';
 import './ArticleReader.scss';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBookmark as faBookmarkSolid, faArchive, faTrash, faMagicWandSparkles, faRotateRight } from '@fortawesome/free-solid-svg-icons';
+import { faBookmark as faBookmarkSolid, faArchive, faTrash, faMagicWandSparkles, faRotateRight, faComments } from '@fortawesome/free-solid-svg-icons';
 import { faBookmark as faBookmarkRegular } from '@fortawesome/free-regular-svg-icons';
+import { hasProAccess } from '../../../utils/tierUtils';
 
 const ArticleReader = () => {
     const { articleId } = useParams<{ articleId: string }>();
     const { getToken } = useAuth();
+    const { user } = useUser();
     const navigate = useNavigate();
     const [article, setArticle] = useState<Article | null>(null);
     const [loading, setLoading] = useState(true);
@@ -18,6 +20,13 @@ const ArticleReader = () => {
     const [isGeneratingSummary, setIsGeneratingSummary] = useState(false);
     const [showSummary, setShowSummary] = useState(false);
     const [isBookmarkAnimating, setIsBookmarkAnimating] = useState(false);
+    const [isChatMode, setIsChatMode] = useState(false);
+    const [chatMessages, setChatMessages] = useState<{ role: 'user' | 'assistant', content: string, timestamp?: string }[]>([]);
+    const [isGeneratingChat, setIsGeneratingChat] = useState(false);
+    const [chatInput, setChatInput] = useState('');
+
+    // Check if user has pro access for chat functionality
+    const userHasProAccess = hasProAccess(user);
 
     const handleFavorite = async () => {
         if (!articleId || !article) return;
@@ -145,6 +154,94 @@ const ArticleReader = () => {
         }
     };
 
+    const handleStartChat = async () => {
+        if (!article?.summary) return;
+
+        // Check if user has pro access for chat functionality
+        if (!userHasProAccess) {
+            alert('Chat functionality is available for Pro users only. Please upgrade to access this feature.');
+            return;
+        }
+
+        try {
+            // Load existing chat history from database
+            const token = await getToken();
+            const response = await fetch(`http://localhost:3000/articles/${articleId}/chat`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                setChatMessages(data.chatHistory || []);
+            } else {
+                // If no history exists, start with summary context
+                setChatMessages([
+                    {
+                        role: 'assistant',
+                        content: `I've analyzed this article about "${article.title}". Here's my summary:\n\n${article.summary}\n\nWhat would you like to discuss about this article?`,
+                        timestamp: new Date().toISOString()
+                    }
+                ]);
+            }
+        } catch {
+            // Fallback to summary context if loading fails
+            setChatMessages([
+                {
+                    role: 'assistant',
+                    content: `I've analyzed this article about "${article.title}". Here's my summary:\n\n${article.summary}\n\nWhat would you like to discuss about this article?`,
+                    timestamp: new Date().toISOString()
+                }
+            ]);
+        }
+
+        setIsChatMode(true);
+    };
+
+    const handleSendMessage = async (message: string) => {
+        if (!article || !message.trim()) return;
+
+        // Double-check pro access when sending messages
+        if (!userHasProAccess) {
+            alert('Chat functionality is available for Pro users only. Please upgrade to access this feature.');
+            return;
+        }
+
+        setIsGeneratingChat(true);
+
+        try {
+            const token = await getToken();
+            const response = await fetch(`http://localhost:3000/articles/${articleId}/chat`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    message
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to generate chat response');
+            }
+
+            const data = await response.json();
+            // Update with the complete chat history from server
+            setChatMessages(data.chatHistory || []);
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Failed to generate chat response');
+        } finally {
+            setIsGeneratingChat(false);
+        }
+    };
+
+    const handleExitChat = () => {
+        setIsChatMode(false);
+        setChatMessages([]);
+    };
+
     useEffect(() => {
         const fetchArticle = async () => {
             if (!articleId) return;
@@ -179,6 +276,13 @@ const ArticleReader = () => {
 
         fetchArticle();
     }, [articleId, getToken]);
+
+    // Auto-show summary if it exists
+    useEffect(() => {
+        if (article?.summary && !showSummary) {
+            setShowSummary(true);
+        }
+    }, [article?.summary, showSummary]);
 
     if (loading) {
         return <div>Loading article...</div>;
@@ -248,23 +352,102 @@ const ArticleReader = () => {
                     >
                         <div className="summary-header">
                             <div className="summary-title">
-                                <h3>✨ AI Summary</h3>
+                                <h3>{isChatMode ? '💬 Article Chat' : '✨ AI Summary'}</h3>
                                 <small>Generated by AI • Not editorial judgment</small>
                             </div>
-                            <button
-                                onClick={handleRefreshSummary}
-                                className="refresh-summary-button"
-                                disabled={isGeneratingSummary}
-                                title="Regenerate summary"
-                            >
-                                <FontAwesomeIcon
-                                    icon={faRotateRight}
-                                    className={isGeneratingSummary ? 'spinning' : ''}
-                                />
-                            </button>
+                            <div className="summary-actions">
+                                {!isChatMode && (
+                                    <>
+                                        <button
+                                            onClick={handleStartChat}
+                                            className={`converse-button ${!userHasProAccess ? 'pro-only' : ''}`}
+                                            title={userHasProAccess ? "Discuss this article" : "Chat is available for Pro users only"}
+                                            disabled={!userHasProAccess}
+                                        >
+                                            <FontAwesomeIcon icon={faComments} />
+                                            {!userHasProAccess && <span className="pro-badge">PRO</span>}
+                                        </button>
+                                        <button
+                                            onClick={handleRefreshSummary}
+                                            className="refresh-summary-button"
+                                            disabled={isGeneratingSummary}
+                                            title="Regenerate summary"
+                                        >
+                                            <FontAwesomeIcon
+                                                icon={faRotateRight}
+                                                className={isGeneratingSummary ? 'spinning' : ''}
+                                            />
+                                        </button>
+                                    </>
+                                )}
+                                {isChatMode && (
+                                    <button
+                                        onClick={handleExitChat}
+                                        className="exit-chat-button"
+                                        title="Exit chat mode"
+                                    >
+                                        ✕
+                                    </button>
+                                )}
+                            </div>
                         </div>
                         <div className="summary-content">
-                            {article.summary}
+                            {!isChatMode ? (
+                                // Regular summary display
+                                article.summary
+                            ) : (
+                                // Chat interface
+                                <div className="chat-interface">
+                                    <div className="chat-messages">
+                                        {chatMessages.map((msg, index) => (
+                                            <div
+                                                key={index}
+                                                className={`chat-message ${msg.role === 'user' ? 'user-message' : 'assistant-message'}`}
+                                            >
+                                                <div className="message-content">
+                                                    {msg.content}
+                                                </div>
+                                            </div>
+                                        ))}
+                                        {isGeneratingChat && (
+                                            <div className="chat-message assistant-message">
+                                                <div className="message-content">
+                                                    <div className="typing-indicator">
+                                                        <span></span>
+                                                        <span></span>
+                                                        <span></span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                    <div className="chat-input">
+                                        <form onSubmit={(e) => {
+                                            e.preventDefault();
+                                            if (chatInput.trim()) {
+                                                handleSendMessage(chatInput);
+                                                setChatInput('');
+                                            }
+                                        }}>
+                                            <input
+                                                type="text"
+                                                value={chatInput}
+                                                onChange={(e) => setChatInput(e.target.value)}
+                                                placeholder="Ask a question about this article..."
+                                                disabled={isGeneratingChat}
+                                                className="chat-input-field"
+                                            />
+                                            <button
+                                                type="submit"
+                                                disabled={isGeneratingChat || !chatInput.trim()}
+                                                className="chat-send-button"
+                                            >
+                                                Send
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     </motion.div>
                 )}
