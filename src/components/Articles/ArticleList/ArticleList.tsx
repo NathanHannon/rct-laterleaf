@@ -128,7 +128,7 @@ const ArticleList: React.FC = () => {
     };
 
     const handleToggleFavorite = async (articleId: string) => {
-        const success = await handleAction(articleId, 'favorite');
+        const success = await handleAction(articleId, 'bookmark');
         if (success) {
             setArticles(prev => prev.map(a =>
                 a.id === articleId ? { ...a, isBookmarked: !a.isBookmarked } : a
