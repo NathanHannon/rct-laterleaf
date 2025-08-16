@@ -1,6 +1,6 @@
 .article-card-wrapper {
     position: relative;
-    display: block; // Allows the Link to fill the wrapper
+    display: block;
     text-decoration: none;
     color: inherit;
     border: 1px solid #ddd;
@@ -26,7 +26,7 @@
         position: absolute;
         top: 10px;
         right: 10px;
-        color: #c62828; // Deep red color
+        color: #c62828;
         font-size: 1.2em;
         z-index: 3;
         filter: drop-shadow(0 2px 4px rgba(198, 40, 40, 0.3));
@@ -58,7 +58,7 @@
 
 .card-image {
     width: 100%;
-    padding-top: 56.25%; // Aspect ratio 16:9
+    padding-top: 56.25%;
     background-size: cover;
     background-position: center;
     height: 180px;
@@ -79,12 +79,9 @@
         font-size: 1rem;
         color: #555;
         margin: 0;
-
-        /* Add these lines for text truncation */
         display: -webkit-box;
         -webkit-line-clamp: 3;
         line-clamp: 3;
-        /* Limit to 3 lines, you can change this number */
         -webkit-box-orient: vertical;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -97,44 +94,37 @@
     left: 0;
     right: 0;
     display: flex;
-    justify-content: center;
-    gap: 10px;
-    padding: 10px;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 15px;
     background: linear-gradient(to top, rgba(0, 0, 0, 0.7) 0%, rgba(0, 0, 0, 0) 100%);
     opacity: 0;
     transform: translateY(20px);
     transition: opacity 0.3s ease, transform 0.3s ease;
 
-    button {
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
+    .button-favorite {
+        background-color: #424242;
         color: white;
-        transition: background-color 0.3s;
-        padding: 8px 12px;
+        border: none;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
         display: flex;
         align-items: center;
-        gap: 8px;
-        font-size: 14px;
-        white-space: nowrap; // Prevent text wrapping
-        min-height: 36px; // Consistent button height
-        box-sizing: border-box;
-    }
-
-    .button-favorite {
-        background-color: #424242; // Warm dark gray
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
         position: relative;
         overflow: hidden;
 
         &:hover {
-            background-color: #616161; // Lighter gray on hover
+            background-color: #616161;
+            transform: scale(1.1);
         }
 
         &.favorited {
-
-            // Keep button blue; change bookmark icon to deep red
             svg {
-                color: #c62828; // Deep red to match the ribbon
+                color: #c62828;
             }
 
             &::after {
@@ -150,19 +140,83 @@
         }
     }
 
-    .button-archive {
-        background-color: #4CAF50; // Green for archive
+    .actions-dropdown {
+        position: relative;
 
-        &:hover {
-            background-color: #45a049;
+        .dropdown-toggle {
+            background-color: #424242;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+
+            &:hover {
+                background-color: #616161;
+                transform: scale(1.1);
+            }
         }
-    }
 
-    .button-delete {
-        background-color: #f44336; // Red for delete
+        .dropdown-menu {
+            position: absolute;
+            bottom: 100%;
+            right: 0;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+            z-index: 1000;
+            min-width: 140px;
+            overflow: hidden;
+            margin-bottom: 5px;
 
-        &:hover {
-            background-color: #da190b;
+            .dropdown-item {
+                width: 100%;
+                background: none;
+                border: none;
+                padding: 0.75rem 1rem;
+                text-align: left;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+                transition: background-color 0.2s;
+                color: #333;
+                font-size: 0.9rem;
+
+                &:hover {
+                    background: #f8f9fa;
+                }
+
+                &.archive-item {
+                    svg {
+                        color: #4CAF50;
+                    }
+                }
+
+                &.collection-item {
+                    svg {
+                        color: #FF9800;
+                    }
+                }
+
+                &.delete-item {
+                    color: #dc3545;
+
+                    &:hover {
+                        background: #f8d7da;
+                    }
+
+                    svg {
+                        color: #dc3545;
+                    }
+                }
+            }
         }
     }
 }

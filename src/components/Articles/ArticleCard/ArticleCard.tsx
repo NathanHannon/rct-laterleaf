@@ -1,24 +1,40 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './ArticleCard.scss';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import type { Article } from '../../../interfaces/article';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBookmark as faBookmarkSolid, faArchive, faTrash } from '@fortawesome/free-solid-svg-icons';
-import { faBookmark as faBookmarkRegular } from '@fortawesome/free-solid-svg-icons';
+import { faBookmark as faBookmarkSolid, faArchive, faTrash, faEllipsisV, faFolderPlus } from '@fortawesome/free-solid-svg-icons';
+import { faBookmark as faBookmarkRegular } from '@fortawesome/free-regular-svg-icons';
+import CollectionSelector from '../../Collections/CollectionSelector/CollectionSelector';
 
 interface ArticleCardProps {
     article: Article;
     onDelete: (id: string) => void;
     onArchive: (id: string) => void;
-    onToggleFavorite: (id: string) => void;
+    onToggleBookmark: (id: string) => void;
 }
 
-const ArticleCard: React.FC<ArticleCardProps> = ({ article, onDelete, onArchive, onToggleFavorite }) => {
+const ArticleCard: React.FC<ArticleCardProps> = ({ article, onDelete, onArchive, onToggleBookmark }) => {
     const { id, imageUrl, title, excerpt, isBookmarked, isArchived } = article;
     const [isBookmarkAnimating, setIsBookmarkAnimating] = useState(false);
     const [showSaveEffect, setShowSaveEffect] = useState(false);
-    console.log(`ArticleCard ${id}: isBookmarked=${isBookmarked}`);
+    const [showDropdown, setShowDropdown] = useState(false);
+    const [showCollectionSelector, setShowCollectionSelector] = useState(false);
+    // Optimistic UI state for bookmark
+    const [optimisticBookmark, setOptimisticBookmark] = useState<boolean | null>(null);
+
+    // Use optimistic state if available, otherwise fall back to prop
+    const currentBookmarkState = optimisticBookmark !== null ? optimisticBookmark : isBookmarked;
+
+    console.log(`ArticleCard ${id}: isBookmarked=${isBookmarked}, optimistic=${optimisticBookmark}, current=${currentBookmarkState}`);
+
+    // Reset optimistic state when the actual prop changes (backend response received)
+    useEffect(() => {
+        if (optimisticBookmark !== null && optimisticBookmark === isBookmarked) {
+            setOptimisticBookmark(null);
+        }
+    }, [isBookmarked, optimisticBookmark]);
 
     const handleActionClick = (e: React.MouseEvent) => {
         e.stopPropagation();
@@ -28,14 +44,23 @@ const ArticleCard: React.FC<ArticleCardProps> = ({ article, onDelete, onArchive,
     const handleBookmarkClick = () => {
         if (!id) return;
 
+        // Optimistic UI update
+        const newBookmarkState = !currentBookmarkState;
+        setOptimisticBookmark(newBookmarkState);
+
         setIsBookmarkAnimating(true);
-        if (!isBookmarked) {
+        if (newBookmarkState) {
             setShowSaveEffect(true);
             setTimeout(() => setShowSaveEffect(false), 1200);
         }
 
         setTimeout(() => setIsBookmarkAnimating(false), 600);
-        onToggleFavorite(id);
+        onToggleBookmark(id);
+    };
+
+    const handleDropdownAction = (action: () => void) => {
+        action();
+        setShowDropdown(false);
     };
 
     return (
@@ -45,10 +70,13 @@ const ArticleCard: React.FC<ArticleCardProps> = ({ article, onDelete, onArchive,
                 scale: [1, 1.02, 1],
                 rotateY: [0, 2, 0]
             } : {}}
-            transition={{ duration: 0.6, ease: "easeInOut" }}
+            transition={{
+                duration: 0.6,
+                ease: "easeInOut"
+            }}
         >
             <AnimatePresence>
-                {isBookmarked && (
+                {currentBookmarkState && (
                     <motion.div
                         className="favorite-indicator"
                         initial={{ y: -30, opacity: 0, rotateX: -90 }}
@@ -90,6 +118,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({ article, onDelete, onArchive,
                     </motion.div>
                 )}
             </AnimatePresence>
+
             <Link to={`/article/${id}`} className="article-card-link">
                 {imageUrl && (
                     <div
@@ -102,10 +131,12 @@ const ArticleCard: React.FC<ArticleCardProps> = ({ article, onDelete, onArchive,
                     <p className="card-description">{excerpt}</p>
                 </div>
             </Link>
+
+            {/* Updated Actions with Dropdown */}
             <div className="article-card-actions" onClick={handleActionClick}>
                 <motion.button
                     onClick={handleBookmarkClick}
-                    className={`button-favorite ${isBookmarked ? 'favorited' : ''}`}
+                    className={`button-favorite ${currentBookmarkState ? 'favorited' : ''}`}
                     whileTap={{ scale: 0.95 }}
                     animate={isBookmarkAnimating ? {
                         scale: [1, 1.1, 1],
@@ -113,20 +144,65 @@ const ArticleCard: React.FC<ArticleCardProps> = ({ article, onDelete, onArchive,
                     } : {}}
                     transition={{ duration: 0.3 }}
                 >
-                    <FontAwesomeIcon icon={isBookmarked ? faBookmarkSolid : faBookmarkRegular} />
-                    <span>{isBookmarked ? 'Remove' : 'Bookmark'}</span>
+                    <FontAwesomeIcon icon={currentBookmarkState ? faBookmarkSolid : faBookmarkRegular} />
                 </motion.button>
-                <button onClick={() => id && onArchive(id)} className="button-archive">
-                    <FontAwesomeIcon icon={faArchive} />
-                    <span>{isArchived ? 'Unarchive' : 'Archive'}</span>
-                </button>
-                <button onClick={() => id && onDelete(id)} className="button-delete">
-                    <FontAwesomeIcon icon={faTrash} />
-                    <span>Delete</span>
-                </button>
+
+                <div className="actions-dropdown">
+                    <button
+                        onClick={() => setShowDropdown(!showDropdown)}
+                        className="dropdown-toggle"
+                    >
+                        <FontAwesomeIcon icon={faEllipsisV} />
+                    </button>
+
+                    <AnimatePresence>
+                        {showDropdown && (
+                            <motion.div
+                                className="dropdown-menu"
+                                initial={{ opacity: 0, scale: 0.95, y: -10 }}
+                                animate={{ opacity: 1, scale: 1, y: 0 }}
+                                exit={{ opacity: 0, scale: 0.95, y: -10 }}
+                                transition={{ duration: 0.15 }}
+                            >
+                                <button
+                                    onClick={() => handleDropdownAction(() => setShowCollectionSelector(true))}
+                                    className="dropdown-item collection-item"
+                                >
+                                    <FontAwesomeIcon icon={faFolderPlus} />
+                                    <span>Add to Collection</span>
+                                </button>
+                                <button
+                                    onClick={() => handleDropdownAction(() => id && onArchive(id))}
+                                    className="dropdown-item archive-item"
+                                >
+                                    <FontAwesomeIcon icon={faArchive} />
+                                    <span>{isArchived ? 'Unarchive' : 'Archive'}</span>
+                                </button>
+                                <button
+                                    onClick={() => handleDropdownAction(() => id && onDelete(id))}
+                                    className="dropdown-item delete-item"
+                                >
+                                    <FontAwesomeIcon icon={faTrash} />
+                                    <span>Delete</span>
+                                </button>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+                </div>
             </div>
+
+            {/* Collection Selector Modal */}
+            <CollectionSelector
+                articleId={id || ''}
+                isOpen={showCollectionSelector}
+                onClose={() => setShowCollectionSelector(false)}
+                onSuccess={() => {
+                    setShowSaveEffect(true);
+                    setTimeout(() => setShowSaveEffect(false), 1200);
+                }}
+            />
         </motion.div>
     );
 };
 
-export default ArticleCard; 
+export default ArticleCard;

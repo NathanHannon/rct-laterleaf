@@ -3,9 +3,10 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth, useUser } from "@clerk/clerk-react";
 import { motion, AnimatePresence } from 'motion/react';
 import type { Article } from '../../../interfaces/article';
+import CollectionSelector from '../../Collections/CollectionSelector/CollectionSelector';
 import './ArticleReader.scss';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBookmark as faBookmarkSolid, faArchive, faTrash, faMagicWandSparkles, faRotateRight, faComments } from '@fortawesome/free-solid-svg-icons';
+import { faBookmark as faBookmarkSolid, faArchive, faTrash, faMagicWandSparkles, faRotateRight, faComments, faFolderPlus } from '@fortawesome/free-solid-svg-icons';
 import { faBookmark as faBookmarkRegular } from '@fortawesome/free-regular-svg-icons';
 import { hasProAccess } from '../../../utils/tierUtils';
 
@@ -25,6 +26,7 @@ const ArticleReader = () => {
     const [isGeneratingChat, setIsGeneratingChat] = useState(false);
     const [chatInput, setChatInput] = useState('');
     const [hasAutoShownSummary, setHasAutoShownSummary] = useState(false);
+    const [showCollectionSelector, setShowCollectionSelector] = useState(false);
 
     // Check if user has pro access for chat functionality
     const userHasProAccess = hasProAccess(user);
@@ -340,6 +342,10 @@ const ArticleReader = () => {
                     <FontAwesomeIcon icon={faTrash} />
                     <span>Delete</span>
                 </button>
+                <button onClick={() => setShowCollectionSelector(true)} className="button-collection">
+                    <FontAwesomeIcon icon={faFolderPlus} />
+                    <span>Add to Collection</span>
+                </button>
             </div>
 
             <h1>{article.title}</h1>
@@ -464,6 +470,12 @@ const ArticleReader = () => {
             </div>
             <hr />
             <div className="article-content" dangerouslySetInnerHTML={{ __html: article.content || '' }}></div>
+            
+            <CollectionSelector
+                isOpen={showCollectionSelector}
+                onClose={() => setShowCollectionSelector(false)}
+                articleId={article.id ?? ''}
+            />
         </div>
     );
 };

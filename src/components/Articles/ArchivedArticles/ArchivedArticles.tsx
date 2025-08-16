@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@clerk/clerk-react';
+import { motion } from 'motion/react';
 import ArticleCard from '../ArticleCard/ArticleCard';
 import './ArchivedArticles.scss';
 import type { Article } from '../../../interfaces/article';
@@ -10,7 +11,7 @@ const ArchivedArticles: React.FC = () => {
     const { getToken, isLoaded, isSignedIn } = useAuth();
     const [articles, setArticles] = useState<Article[]>([]);
 
-    const fetchArticles = async () => {
+    const fetchArticles = useCallback(async () => {
         try {
             const token = await getToken();
             const filter = encodeURIComponent(JSON.stringify({ where: { isArchived: true } }));
@@ -30,13 +31,13 @@ const ArchivedArticles: React.FC = () => {
         } catch (error) {
             console.error("Failed to fetch archived articles:", error);
         }
-    };
+    }, [getToken]);
 
     useEffect(() => {
         if (isLoaded && isSignedIn) {
             fetchArticles();
         }
-    }, [isLoaded, isSignedIn]);
+    }, [isLoaded, isSignedIn, fetchArticles]);
 
     const handleAction = async (articleId: string, endpoint: string, method: 'POST' | 'DELETE' = 'POST') => {
         try {
@@ -69,7 +70,7 @@ const ArchivedArticles: React.FC = () => {
         }
     };
 
-    const handleToggleFavorite = async (articleId: string) => {
+    const handleToggleBookmark = async (articleId: string) => {
         const success = await handleAction(articleId, 'favorite');
         if (success) {
             setArticles(prev => prev.map(a =>
@@ -89,17 +90,37 @@ const ArchivedArticles: React.FC = () => {
     return (
         <div className="article-list-container">
             <h2 className="list-title">Archived Articles</h2>
-            <div className="article-grid">
-                {articles.filter(article => article.id).map(article => (
-                    <ArticleCard
+            <motion.div
+                className="article-grid"
+                initial="hidden"
+                animate="visible"
+                variants={{
+                    hidden: {},
+                    visible: {
+                        transition: {
+                            staggerChildren: 0.1
+                        }
+                    }
+                }}
+            >
+                {articles.filter(article => article.id).map((article) => (
+                    <motion.div
                         key={article.id}
-                        article={article}
-                        onDelete={handleDelete}
-                        onArchive={handleArchive}
-                        onToggleFavorite={handleToggleFavorite}
-                    />
+                        variants={{
+                            hidden: { opacity: 0 },
+                            visible: { opacity: 1 }
+                        }}
+                        transition={{ duration: 0.4 }}
+                    >
+                        <ArticleCard
+                            article={article}
+                            onDelete={handleDelete}
+                            onArchive={handleArchive}
+                            onToggleBookmark={handleToggleBookmark}
+                        />
+                    </motion.div>
                 ))}
-            </div>
+            </motion.div>
         </div>
     );
 };

@@ -152,6 +152,15 @@
             background-color: #da190b;
         }
     }
+
+    .button-collection {
+        background-color: #FF9800;
+        color: white;
+
+        &:hover {
+            background-color: #F57C00;
+        }
+    }
 }
 
 .article-source a {

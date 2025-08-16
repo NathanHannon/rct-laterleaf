@@ -51,9 +51,30 @@
         }
     }
 
+    .list-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        gap: 1rem;
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            flex: 1;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+    }
+
     .list-title {
         font-size: 1.5rem;
-        margin-bottom: 1rem;
+        margin: 0;
     }
 
     .article-grid {
@@ -76,5 +97,38 @@
         // Ensure it stands out
         position: relative;
         z-index: 10;
+    }
+
+    // Mobile responsive design for header
+    @media (max-width: 768px) {
+        .list-header {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 1rem;
+
+            .header-left {
+                justify-content: center;
+                text-align: center;
+            }
+
+            .header-right {
+                justify-content: center;
+            }
+        }
+
+        .article-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @media (max-width: 480px) {
+        padding: 0 8px;
+
+        .list-header {
+            .header-left {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+        }
     }
 }

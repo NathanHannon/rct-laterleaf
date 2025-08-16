@@ -1,6 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth, useUser } from '@clerk/clerk-react';
+import { motion } from 'motion/react';
 import ArticleCard from '../ArticleCard/ArticleCard';
+import SortDropdown from '../SortDropdown/SortDropdown';
+import type { SortOption } from '../../../interfaces/sort';
 import './ArticleList.scss';
 import type { Article } from '../../../interfaces/article';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -8,6 +11,7 @@ import { faSpinner, faGem } from '@fortawesome/free-solid-svg-icons';
 import AddArticleForm from '../AddArticleForm/AddArticleForm';
 import { useSearch } from '../../../hooks/searchHook';
 import { hasProAccess } from '../../../utils/tierUtils';
+import { sortArticles } from '../../../utils/sortUtils';
 
 const ArticleList: React.FC = () => {
     const { getToken, isLoaded, isSignedIn } = useAuth();
@@ -16,6 +20,12 @@ const ArticleList: React.FC = () => {
     const userHasProAccess = hasProAccess(user);
     const [articles, setArticles] = useState<Article[]>([]);
     const [isSearching, setIsSearching] = useState(false);
+    const [sortBy, setSortBy] = useState<SortOption>(() => {
+        // Load saved sort preference from localStorage, default to 'newest-first'
+        const saved = localStorage.getItem('articleSortPreference');
+        return (saved as SortOption) || 'newest-first';
+    });
+    const [isSortDropdownOpen, setIsSortDropdownOpen] = useState(false);
 
     // Log pro status for debugging
     console.log('📋 ArticleList: Pro access status:', userHasProAccess, '| User loaded:', userLoaded);
@@ -95,6 +105,23 @@ const ArticleList: React.FC = () => {
         }
     }, [isLoaded, isSignedIn, userLoaded, fetchArticles, searchTerm]);
 
+    // Close sort dropdown when clicking outside
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (isSortDropdownOpen) {
+                const target = event.target as Element;
+                if (!target.closest('.sort-dropdown')) {
+                    setIsSortDropdownOpen(false);
+                }
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [isSortDropdownOpen]);
+
     const handleAction = async (articleId: string, endpoint: string, method: 'POST' | 'DELETE' = 'POST') => {
         try {
             const token = await getToken();
@@ -127,7 +154,7 @@ const ArticleList: React.FC = () => {
         }
     };
 
-    const handleToggleFavorite = async (articleId: string) => {
+    const handleToggleBookmark = async (articleId: string) => {
         const success = await handleAction(articleId, 'bookmark');
         if (success) {
             setArticles(prev => prev.map(a =>
@@ -145,26 +172,67 @@ const ArticleList: React.FC = () => {
     }
 
     const validArticles = Array.isArray(articles) ? articles : [];
+    const sortedArticles = sortArticles(validArticles, sortBy);
+
+    const handleSortChange = (newSortBy: SortOption) => {
+        setSortBy(newSortBy);
+        // Save sort preference to localStorage
+        localStorage.setItem('articleSortPreference', newSortBy);
+    };
+
+    const toggleSortDropdown = () => {
+        setIsSortDropdownOpen(!isSortDropdownOpen);
+    };
 
     return (
         <div className="article-list-container">
             <AddArticleForm onArticleAdded={fetchArticles} />
             <div className="list-header">
-                <h2 className="list-title">My List</h2>
-                {userHasProAccess && <span className="premium-badge">Pro Search Enabled <FontAwesomeIcon icon={faGem} className="premium-icon" /></span>}
-                {isSearching && <><FontAwesomeIcon icon={faSpinner} spin /> Searching...</>}
-            </div>
-            <div className="article-grid">
-                {validArticles.filter(article => article.id).map(article => (
-                    <ArticleCard
-                        key={article.id}
-                        article={article}
-                        onDelete={handleDelete}
-                        onArchive={handleArchive}
-                        onToggleFavorite={handleToggleFavorite}
+                <div className="header-left">
+                    <h2 className="list-title">My List</h2>
+                    {userHasProAccess && <span className="premium-badge">Pro Search Enabled <FontAwesomeIcon icon={faGem} className="premium-icon" /></span>}
+                    {isSearching && <><FontAwesomeIcon icon={faSpinner} spin /> Searching...</>}
+                </div>
+                <div className="header-right">
+                    <SortDropdown
+                        sortBy={sortBy}
+                        onSortChange={handleSortChange}
+                        isOpen={isSortDropdownOpen}
+                        onToggle={toggleSortDropdown}
                     />
-                ))}
+                </div>
             </div>
+            <motion.div
+                className="article-grid"
+                initial="hidden"
+                animate="visible"
+                variants={{
+                    hidden: {},
+                    visible: {
+                        transition: {
+                            staggerChildren: 0.1
+                        }
+                    }
+                }}
+            >
+                {sortedArticles.filter(article => article.id).map((article) => (
+                    <motion.div
+                        key={article.id}
+                        variants={{
+                            hidden: { opacity: 0 },
+                            visible: { opacity: 1 }
+                        }}
+                        transition={{ duration: 0.4 }}
+                    >
+                        <ArticleCard
+                            article={article}
+                            onDelete={handleDelete}
+                            onArchive={handleArchive}
+                            onToggleBookmark={handleToggleBookmark}
+                        />
+                    </motion.div>
+                ))}
+            </motion.div>
         </div>
     );
 };
