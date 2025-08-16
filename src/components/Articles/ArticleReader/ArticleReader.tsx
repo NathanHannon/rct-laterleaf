@@ -6,7 +6,7 @@ import type { Article } from '../../../interfaces/article';
 import CollectionSelector from '../../Collections/CollectionSelector/CollectionSelector';
 import './ArticleReader.scss';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBookmark as faBookmarkSolid, faArchive, faTrash, faMagicWandSparkles, faRotateRight, faComments, faFolderPlus } from '@fortawesome/free-solid-svg-icons';
+import { faBookmark as faBookmarkSolid, faArchive, faTrash, faMagicWandSparkles, faRotateRight, faComments, faFolderPlus, faEllipsisV } from '@fortawesome/free-solid-svg-icons';
 import { faBookmark as faBookmarkRegular } from '@fortawesome/free-regular-svg-icons';
 import { hasProAccess } from '../../../utils/tierUtils';
 
@@ -27,6 +27,7 @@ const ArticleReader = () => {
     const [chatInput, setChatInput] = useState('');
     const [hasAutoShownSummary, setHasAutoShownSummary] = useState(false);
     const [showCollectionSelector, setShowCollectionSelector] = useState(false);
+    const [showDropdown, setShowDropdown] = useState(false);
 
     // Check if user has pro access for chat functionality
     const userHasProAccess = hasProAccess(user);
@@ -157,6 +158,11 @@ const ArticleReader = () => {
                 setError(err instanceof Error ? err.message : 'An unknown error occurred');
             }
         }
+    };
+
+    const handleDropdownAction = (action: () => void) => {
+        action();
+        setShowDropdown(false);
     };
 
     const handleStartChat = async () => {
@@ -334,18 +340,48 @@ const ArticleReader = () => {
                     </span>
                 </button>
 
-                <button onClick={handleArchive} className="button-archive">
-                    <FontAwesomeIcon icon={faArchive} />
-                    <span>{article.isArchived ? 'Unarchive' : 'Archive'}</span>
-                </button>
-                <button onClick={handleDelete} className="button-delete">
-                    <FontAwesomeIcon icon={faTrash} />
-                    <span>Delete</span>
-                </button>
-                <button onClick={() => setShowCollectionSelector(true)} className="button-collection">
-                    <FontAwesomeIcon icon={faFolderPlus} />
-                    <span>Add to Collection</span>
-                </button>
+                <div className="actions-dropdown">
+                    <button
+                        onClick={() => setShowDropdown(!showDropdown)}
+                        className="dropdown-toggle"
+                    >
+                        <FontAwesomeIcon icon={faEllipsisV} />
+                    </button>
+
+                    <AnimatePresence>
+                        {showDropdown && (
+                            <motion.div
+                                className="dropdown-menu"
+                                initial={{ opacity: 0, scale: 0.95, y: -10 }}
+                                animate={{ opacity: 1, scale: 1, y: 0 }}
+                                exit={{ opacity: 0, scale: 0.95, y: -10 }}
+                                transition={{ duration: 0.15 }}
+                            >
+                                <button
+                                    onClick={() => handleDropdownAction(() => setShowCollectionSelector(true))}
+                                    className="dropdown-item collection-item"
+                                >
+                                    <FontAwesomeIcon icon={faFolderPlus} />
+                                    <span>Add to Collection</span>
+                                </button>
+                                <button
+                                    onClick={() => handleDropdownAction(handleArchive)}
+                                    className="dropdown-item archive-item"
+                                >
+                                    <FontAwesomeIcon icon={faArchive} />
+                                    <span>{article.isArchived ? 'Unarchive' : 'Archive'}</span>
+                                </button>
+                                <button
+                                    onClick={() => handleDropdownAction(handleDelete)}
+                                    className="dropdown-item delete-item"
+                                >
+                                    <FontAwesomeIcon icon={faTrash} />
+                                    <span>Delete</span>
+                                </button>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+                </div>
             </div>
 
             <h1>{article.title}</h1>
@@ -480,4 +516,5 @@ const ArticleReader = () => {
     );
 };
 
-export default ArticleReader; 
+export default ArticleReader;
+ 

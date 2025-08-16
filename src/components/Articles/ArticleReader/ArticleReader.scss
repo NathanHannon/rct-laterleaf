@@ -135,30 +135,83 @@
         }
     }
 
-    .button-archive {
-        background-color: #4CAF50;
-        color: white;
+    .actions-dropdown {
+        position: relative;
 
-        &:hover {
-            background-color: #45a049;
+        .dropdown-toggle {
+            background-color: #424242;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+
+            &:hover {
+                background-color: #616161;
+                transform: scale(1.1);
+            }
         }
-    }
 
-    .button-delete {
-        background-color: #f44336;
-        color: white;
+        .dropdown-menu {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+            z-index: 1000;
+            min-width: 180px;
+            overflow: hidden;
+            margin-top: 5px;
 
-        &:hover {
-            background-color: #da190b;
-        }
-    }
+            .dropdown-item {
+                width: 100%;
+                background: none;
+                border: none;
+                padding: 0.75rem 1rem;
+                text-align: left;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                gap: 0.75rem;
+                transition: background-color 0.2s;
+                color: #333;
+                font-size: 0.9rem;
 
-    .button-collection {
-        background-color: #FF9800;
-        color: white;
+                &:hover {
+                    background: #f8f9fa;
+                }
 
-        &:hover {
-            background-color: #F57C00;
+                &.archive-item {
+                    svg {
+                        color: #4CAF50;
+                    }
+                }
+
+                &.collection-item {
+                    svg {
+                        color: #FF9800;
+                    }
+                }
+
+                &.delete-item {
+                    color: #dc3545;
+
+                    &:hover {
+                        background: #f8d7da;
+                    }
+
+                    svg {
+                        color: #dc3545;
+                    }
+                }
+            }
         }
     }
 }

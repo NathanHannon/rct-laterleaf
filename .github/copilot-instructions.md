@@ -27,7 +27,7 @@ Purpose: Give AI agents the minimum, project-specific context (NOT generic advic
 
 ### 4. Frontend Workflows
 - Dev server: `npm run dev` (Vite). Build: `npm run build` (TS project refs + Vite). Lint: `npm run lint`. Preview: `npm run preview`.
-- Component structure: Each feature under `components/<Domain>/<ComponentName>/` with `.tsx` + `.scss` pairing.
+- Component structure: Each feature under `components/<Domain>/<ComponentName>/` with the component file named `ComponentName.tsx` and its stylesheet named `ComponentName.scss`.
 
 ### 5. Adding a New Many-to-Many Relation (Example Template)
 1. Create junction model with its own id + the two FK columns (with `postgresql.columnName`).
