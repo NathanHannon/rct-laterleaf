@@ -4,6 +4,7 @@ import { useAuth, useUser } from "@clerk/clerk-react";
 import { motion, AnimatePresence } from 'motion/react';
 import type { Article } from '../../../interfaces/article';
 import CollectionSelector from '../../Collections/CollectionSelector/CollectionSelector';
+import ConfirmationDialog from '../../Common/ConfirmationDialog/ConfirmationDialog';
 import './ArticleReader.scss';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBookmark as faBookmarkSolid, faArchive, faTrash, faMagicWandSparkles, faRotateRight, faComments, faFolderPlus, faEllipsisV } from '@fortawesome/free-solid-svg-icons';
@@ -28,6 +29,7 @@ const ArticleReader = () => {
     const [hasAutoShownSummary, setHasAutoShownSummary] = useState(false);
     const [showCollectionSelector, setShowCollectionSelector] = useState(false);
     const [showDropdown, setShowDropdown] = useState(false);
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
     // Check if user has pro access for chat functionality
     const userHasProAccess = hasProAccess(user);
@@ -140,23 +142,27 @@ const ArticleReader = () => {
 
     const handleDelete = async () => {
         if (!articleId) return;
-        if (window.confirm('Are you sure you want to delete this article?')) {
-            try {
-                const token = await getToken();
-                const response = await fetch(`/api/articles/${articleId}`, {
-                    method: 'DELETE',
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
-                });
-                if (response.ok) {
-                    navigate('/articles');
-                } else {
-                    throw new Error('Failed to delete article');
+        setShowDeleteConfirm(true);
+    };
+
+    const confirmDelete = async () => {
+        if (!articleId) return;
+        setShowDeleteConfirm(false);
+        try {
+            const token = await getToken();
+            const response = await fetch(`/api/articles/${articleId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${token}`
                 }
-            } catch (err) {
-                setError(err instanceof Error ? err.message : 'An unknown error occurred');
+            });
+            if (response.ok) {
+                navigate('/articles');
+            } else {
+                throw new Error('Failed to delete article');
             }
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'An unknown error occurred');
         }
     };
 
@@ -506,15 +512,25 @@ const ArticleReader = () => {
             </div>
             <hr />
             <div className="article-content" dangerouslySetInnerHTML={{ __html: article.content || '' }}></div>
-            
+
             <CollectionSelector
                 isOpen={showCollectionSelector}
                 onClose={() => setShowCollectionSelector(false)}
                 articleId={article.id ?? ''}
+            />
+
+            <ConfirmationDialog
+                isOpen={showDeleteConfirm}
+                title="Delete Article"
+                message="Are you sure you want to delete this article? This action cannot be undone."
+                confirmText="Delete"
+                cancelText="Cancel"
+                variant="danger"
+                onConfirm={confirmDelete}
+                onCancel={() => setShowDeleteConfirm(false)}
             />
         </div>
     );
 };
 
 export default ArticleReader;
- 

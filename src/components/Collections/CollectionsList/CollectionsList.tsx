@@ -4,6 +4,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSpinner, faPlus } from '@fortawesome/free-solid-svg-icons';
 import { motion, AnimatePresence } from 'motion/react';
 import AnimatedCollectionCard from '../AnimatedCollectionCard/AnimatedCollectionCard';
+import ConfirmationDialog from '../../Common/ConfirmationDialog/ConfirmationDialog';
 import type { Article } from '../../../interfaces/article';
 import './CollectionsList.scss';
 
@@ -28,6 +29,11 @@ const CollectionsList: React.FC = () => {
     const [editingCollection, setEditingCollection] = useState<Collection | null>(null);
     const [newCollection, setNewCollection] = useState({ name: '', description: '' });
     const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
+    const [deleteConfirm, setDeleteConfirm] = useState<{ show: boolean; collectionId: string | null; collectionName: string }>({
+        show: false,
+        collectionId: null,
+        collectionName: ''
+    });
 
     const fetchCollections = async () => {
         try {
@@ -142,13 +148,20 @@ const CollectionsList: React.FC = () => {
     };
 
     const handleDeleteCollection = async (collectionId: string) => {
-        if (!window.confirm('Are you sure you want to delete this collection? Articles will not be deleted.')) {
-            return;
-        }
+        const collection = collections.find(c => c.id === collectionId);
+        setDeleteConfirm({
+            show: true,
+            collectionId,
+            collectionName: collection?.name || 'this collection'
+        });
+    };
+
+    const confirmDeleteCollection = async () => {
+        if (!deleteConfirm.collectionId) return;
 
         try {
             const token = await getToken();
-            const response = await fetch(`/api/collections/${collectionId}`, {
+            const response = await fetch(`/api/collections/${deleteConfirm.collectionId}`, {
                 method: 'DELETE',
                 headers: {
                     'Authorization': `Bearer ${token}`
@@ -160,8 +173,10 @@ const CollectionsList: React.FC = () => {
             }
 
             fetchCollections();
+            setDeleteConfirm({ show: false, collectionId: '', collectionName: '' });
         } catch (error) {
             console.error('Failed to delete collection:', error);
+            setDeleteConfirm({ show: false, collectionId: '', collectionName: '' });
         }
     };
 
@@ -337,6 +352,15 @@ const CollectionsList: React.FC = () => {
                     </motion.div>
                 )}
             </AnimatePresence>
+
+            <ConfirmationDialog
+                isOpen={deleteConfirm.show}
+                onConfirm={confirmDeleteCollection}
+                onCancel={() => setDeleteConfirm({ show: false, collectionId: '', collectionName: '' })}
+                title="Delete Collection"
+                message={`Are you sure you want to delete "${deleteConfirm.collectionName}"? Articles will not be deleted.`}
+                variant="danger"
+            />
         </div>
     );
 };

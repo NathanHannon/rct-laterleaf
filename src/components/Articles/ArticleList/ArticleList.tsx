@@ -3,6 +3,7 @@ import { useAuth, useUser } from '@clerk/clerk-react';
 import { motion } from 'motion/react';
 import ArticleCard from '../ArticleCard/ArticleCard';
 import SortDropdown from '../SortDropdown/SortDropdown';
+import ConfirmationDialog from '../../Common/ConfirmationDialog/ConfirmationDialog';
 import type { SortOption } from '../../../interfaces/sort';
 import './ArticleList.scss';
 import type { Article } from '../../../interfaces/article';
@@ -26,6 +27,10 @@ const ArticleList: React.FC = () => {
         return (saved as SortOption) || 'newest-first';
     });
     const [isSortDropdownOpen, setIsSortDropdownOpen] = useState(false);
+    const [deleteConfirm, setDeleteConfirm] = useState<{ show: boolean; articleId: string | null }>({
+        show: false,
+        articleId: null
+    });
 
     // Log pro status for debugging
     console.log('📋 ArticleList: Pro access status:', userHasProAccess, '| User loaded:', userLoaded);
@@ -139,10 +144,14 @@ const ArticleList: React.FC = () => {
     };
 
     const handleDelete = async (articleId: string) => {
-        if (window.confirm('Are you sure?')) {
-            const success = await handleAction(articleId, '', 'DELETE');
-            if (success) setArticles(prev => prev.filter(a => a.id !== articleId));
-        }
+        setDeleteConfirm({ show: true, articleId });
+    };
+
+    const confirmDelete = async () => {
+        if (!deleteConfirm.articleId) return;
+        const success = await handleAction(deleteConfirm.articleId, '', 'DELETE');
+        if (success) setArticles(prev => prev.filter(a => a.id !== deleteConfirm.articleId));
+        setDeleteConfirm({ show: false, articleId: null });
     };
 
     const handleArchive = async (articleId: string) => {
@@ -233,6 +242,17 @@ const ArticleList: React.FC = () => {
                     </motion.div>
                 ))}
             </motion.div>
+
+            <ConfirmationDialog
+                isOpen={deleteConfirm.show}
+                title="Delete Article"
+                message="Are you sure you want to delete this article? This action cannot be undone."
+                confirmText="Delete"
+                cancelText="Cancel"
+                variant="danger"
+                onConfirm={confirmDelete}
+                onCancel={() => setDeleteConfirm({ show: false, articleId: null })}
+            />
         </div>
     );
 };

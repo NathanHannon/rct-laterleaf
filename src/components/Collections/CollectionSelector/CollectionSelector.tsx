@@ -3,6 +3,7 @@ import { useAuth } from '@clerk/clerk-react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlus, faSpinner } from '@fortawesome/free-solid-svg-icons';
 import { motion, AnimatePresence } from 'motion/react';
+import { useToastContext } from '../../../context/toastContextUtils';
 import './CollectionSelector.scss';
 
 interface Collection {
@@ -18,13 +19,14 @@ interface CollectionSelectorProps {
     onSuccess?: () => void;
 }
 
-const CollectionSelector: React.FC<CollectionSelectorProps> = ({ 
-    articleId, 
-    isOpen, 
-    onClose, 
-    onSuccess 
+const CollectionSelector: React.FC<CollectionSelectorProps> = ({
+    articleId,
+    isOpen,
+    onClose,
+    onSuccess
 }) => {
     const { getToken } = useAuth();
+    const { showSuccess, showError, showWarning } = useToastContext();
     const [collections, setCollections] = useState<Collection[]>([]);
     const [loading, setLoading] = useState(false);
     const [addingToCollection, setAddingToCollection] = useState<string | null>(null);
@@ -51,6 +53,7 @@ const CollectionSelector: React.FC<CollectionSelectorProps> = ({
                 setCollections(data);
             }
         } catch (error) {
+            showError('Failed to fetch collections', 'Please try again later.');
             console.error('Failed to fetch collections:', error);
         } finally {
             setLoading(false);
@@ -59,6 +62,9 @@ const CollectionSelector: React.FC<CollectionSelectorProps> = ({
 
     const handleAddToCollection = async (collectionId: string) => {
         setAddingToCollection(collectionId);
+        const selectedCollection = collections.find(c => c.id === collectionId);
+        const collectionName = selectedCollection?.name || 'collection';
+
         try {
             const token = await getToken();
             const response = await fetch(`/api/collections/${collectionId}/link-article`, {
@@ -71,15 +77,17 @@ const CollectionSelector: React.FC<CollectionSelectorProps> = ({
             });
 
             if (response.ok) {
+                showSuccess('Article added to collection', `Successfully added to "${collectionName}"`);
                 onSuccess?.();
                 onClose();
             } else if (response.status === 409) {
                 // Article already in collection
-                console.log('Article already in this collection');
+                showWarning('Article already in collection', `This article is already in "${collectionName}"`);
             } else {
                 throw new Error('Failed to add to collection');
             }
         } catch (error) {
+            showError('Failed to add to collection', 'Please try again later.');
             console.error('Failed to add article to collection:', error);
         } finally {
             setAddingToCollection(null);
@@ -89,25 +97,30 @@ const CollectionSelector: React.FC<CollectionSelectorProps> = ({
     if (!isOpen) return null;
 
     return (
-        <AnimatePresence>
+        <AnimatePresence mode="wait">
             <motion.div
                 className="collection-selector-overlay"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
+                transition={{ duration: 0.2 }}
                 onClick={onClose}
             >
                 <motion.div
                     className="collection-selector-modal"
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.9 }}
+                    initial={{ opacity: 0, scale: 0.8, y: 20 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.8, y: -10 }}
+                    transition={{
+                        duration: 0.25,
+                        ease: [0.4, 0.0, 0.2, 1] // Custom easing for smoother animation
+                    }}
                     onClick={(e) => e.stopPropagation()}
                 >
                     <div className="modal-header">
                         <h3>Add to Collection</h3>
                     </div>
-                    
+
                     <div className="modal-content">
                         {loading ? (
                             <div className="loading-state">
@@ -148,7 +161,7 @@ const CollectionSelector: React.FC<CollectionSelectorProps> = ({
                             </div>
                         )}
                     </div>
-                    
+
                     <div className="modal-footer">
                         <div className="modal-actions">
                             <button onClick={onClose} className="cancel-button">

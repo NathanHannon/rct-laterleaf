@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@clerk/clerk-react';
 import { motion } from 'motion/react';
 import ArticleCard from '../ArticleCard/ArticleCard';
+import ConfirmationDialog from '../../Common/ConfirmationDialog/ConfirmationDialog';
 import './BookmarkedArticles.scss';
 import type { Article } from '../../../interfaces/article';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -10,6 +11,10 @@ import { faSpinner } from '@fortawesome/free-solid-svg-icons';
 const BookmarkedArticles: React.FC = () => {
     const { getToken, isLoaded, isSignedIn } = useAuth();
     const [articles, setArticles] = useState<Article[]>([]);
+    const [deleteConfirm, setDeleteConfirm] = useState<{ show: boolean; articleId: string | null }>({
+        show: false,
+        articleId: null
+    });
 
     const fetchArticles = useCallback(async () => {
         try {
@@ -56,10 +61,14 @@ const BookmarkedArticles: React.FC = () => {
     };
 
     const handleDelete = async (articleId: string) => {
-        if (window.confirm('Are you sure?')) {
-            const success = await handleAction(articleId, '', 'DELETE');
-            if (success) setArticles(prev => prev.filter(a => a.id !== articleId));
-        }
+        setDeleteConfirm({ show: true, articleId });
+    };
+
+    const confirmDelete = async () => {
+        if (!deleteConfirm.articleId) return;
+        const success = await handleAction(deleteConfirm.articleId, '', 'DELETE');
+        if (success) setArticles(prev => prev.filter(a => a.id !== deleteConfirm.articleId));
+        setDeleteConfirm({ show: false, articleId: null });
     };
 
     const handleArchive = async (articleId: string) => {
@@ -121,6 +130,17 @@ const BookmarkedArticles: React.FC = () => {
                     </motion.div>
                 ))}
             </motion.div>
+
+            <ConfirmationDialog
+                isOpen={deleteConfirm.show}
+                title="Delete Article"
+                message="Are you sure you want to delete this article? This action cannot be undone."
+                confirmText="Delete"
+                cancelText="Cancel"
+                variant="danger"
+                onConfirm={confirmDelete}
+                onCancel={() => setDeleteConfirm({ show: false, articleId: null })}
+            />
         </div>
     );
 };

@@ -1,12 +1,14 @@
 .article-card-wrapper {
     position: relative;
-    display: block;
+    display: flex;
+    flex-direction: column;
     text-decoration: none;
     color: inherit;
     border: 1px solid #ddd;
     border-radius: 8px;
     overflow: hidden;
     transition: box-shadow 0.3s ease, transform 0.2s ease;
+    height: 400px; // Fixed height for uniform cards
 
     &:hover {
         box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
@@ -51,28 +53,46 @@
 }
 
 .article-card-link {
-    display: block;
+    display: flex;
+    flex-direction: column;
     text-decoration: none;
     color: inherit;
+    height: 100%;
 }
 
 .card-image {
     width: 100%;
-    padding-top: 56.25%;
+    height: 160px;
+    /* Fixed height for image */
     background-size: cover;
     background-position: center;
-    height: 180px;
     border-radius: 8px;
+    flex-shrink: 0;
+    /* Prevent image from shrinking */
 }
 
 .card-content {
     padding: 15px;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    /* Take up remaining space */
+    min-height: 0;
+    /* Allow content to shrink if needed */
 
     .card-title {
         font-size: 1.2rem;
         font-weight: bold;
         color: #141414;
         margin: 0 0 10px 0;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        /* Limit title to 2 lines */
+        line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        line-height: 1.4;
     }
 
     .card-description {
@@ -80,11 +100,15 @@
         color: #555;
         margin: 0;
         display: -webkit-box;
-        -webkit-line-clamp: 3;
-        line-clamp: 3;
+        -webkit-line-clamp: 4;
+        /* Show up to 4 lines of description */
+        line-clamp: 4;
         -webkit-box-orient: vertical;
         overflow: hidden;
         text-overflow: ellipsis;
+        line-height: 1.5;
+        flex-grow: 1;
+        /* Fill remaining space */
     }
 }
 

@@ -6,6 +6,7 @@ import { faSpinner, faArrowLeft, faPlus, faTrash } from '@fortawesome/free-solid
 import { motion, AnimatePresence } from 'motion/react';
 import { useCollectionAnimation } from '../../../hooks/useCollectionAnimation';
 import ArticleCard from '../../Articles/ArticleCard/ArticleCard';
+import ConfirmationDialog from '../../Common/ConfirmationDialog/ConfirmationDialog';
 import type { Article } from '../../../interfaces/article';
 import './CollectionView.scss';
 
@@ -27,6 +28,12 @@ const CollectionView: React.FC = () => {
     const [allUserArticles, setAllUserArticles] = useState<Article[]>([]);
     const [loading, setLoading] = useState(true);
     const [showAddModal, setShowAddModal] = useState(false);
+    const [removeConfirm, setRemoveConfirm] = useState<{ show: boolean; articleId: string; articleTitle: string }>({
+        show: false, articleId: '', articleTitle: ''
+    });
+    const [deleteConfirm, setDeleteConfirm] = useState<{ show: boolean; articleId: string; articleTitle: string }>({
+        show: false, articleId: '', articleTitle: ''
+    });
     // const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
 
     const fetchCollection = async () => {
@@ -123,13 +130,20 @@ const CollectionView: React.FC = () => {
     };
 
     const handleRemoveArticleFromCollection = async (articleId: string) => {
-        if (!window.confirm('Remove this article from the collection?')) {
-            return;
-        }
+        const article = articles.find(a => a.id === articleId);
+        setRemoveConfirm({
+            show: true,
+            articleId,
+            articleTitle: article?.title || 'this article'
+        });
+    };
+
+    const confirmRemoveArticle = async () => {
+        if (!removeConfirm.articleId) return;
 
         try {
             const token = await getToken();
-            const response = await fetch(`/api/collections/${collectionId}/unlink-article/${articleId}`, {
+            const response = await fetch(`/api/collections/${collectionId}/unlink-article/${removeConfirm.articleId}`, {
                 method: 'DELETE',
                 headers: {
                     'Authorization': `Bearer ${token}`
@@ -140,9 +154,11 @@ const CollectionView: React.FC = () => {
                 throw new Error('Failed to remove article from collection');
             }
 
-            setArticles(prev => prev.filter(article => article.id !== articleId));
+            setArticles(prev => prev.filter(article => article.id !== removeConfirm.articleId));
+            setRemoveConfirm({ show: false, articleId: '', articleTitle: '' });
         } catch (error) {
             console.error('Failed to remove article from collection:', error);
+            setRemoveConfirm({ show: false, articleId: '', articleTitle: '' });
         }
     };
 
@@ -163,13 +179,23 @@ const CollectionView: React.FC = () => {
     };
 
     const handleDelete = async (articleId: string) => {
-        if (window.confirm('Are you sure? This will delete the article entirely.')) {
-            const success = await handleArticleAction(articleId, '', 'DELETE');
-            if (success) {
-                setArticles(prev => prev.filter(a => a.id !== articleId));
-                setAllUserArticles(prev => prev.filter(a => a.id !== articleId));
-            }
+        const article = articles.find(a => a.id === articleId);
+        setDeleteConfirm({
+            show: true,
+            articleId,
+            articleTitle: article?.title || 'this article'
+        });
+    };
+
+    const confirmDeleteArticle = async () => {
+        if (!deleteConfirm.articleId) return;
+
+        const success = await handleArticleAction(deleteConfirm.articleId, '', 'DELETE');
+        if (success) {
+            setArticles(prev => prev.filter(a => a.id !== deleteConfirm.articleId));
+            setAllUserArticles(prev => prev.filter(a => a.id !== deleteConfirm.articleId));
         }
+        setDeleteConfirm({ show: false, articleId: '', articleTitle: '' });
     };
 
     const handleArchive = async (articleId: string) => {
@@ -348,6 +374,24 @@ const CollectionView: React.FC = () => {
                     </motion.div>
                 )}
             </AnimatePresence>
+
+            <ConfirmationDialog
+                isOpen={removeConfirm.show}
+                onConfirm={confirmRemoveArticle}
+                onCancel={() => setRemoveConfirm({ show: false, articleId: '', articleTitle: '' })}
+                title="Remove Article"
+                message={`Remove "${removeConfirm.articleTitle}" from this collection?`}
+                variant="warning"
+            />
+
+            <ConfirmationDialog
+                isOpen={deleteConfirm.show}
+                onConfirm={confirmDeleteArticle}
+                onCancel={() => setDeleteConfirm({ show: false, articleId: '', articleTitle: '' })}
+                title="Delete Article"
+                message={`Are you sure you want to delete "${deleteConfirm.articleTitle}"? This will delete the article entirely.`}
+                variant="danger"
+            />
         </div>
     );
 };
