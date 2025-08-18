@@ -10,7 +10,7 @@ import {
     useUser,
 } from "@clerk/clerk-react";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faInbox, faBookmark, faArchive, faGem, faFolderOpen } from '@fortawesome/free-solid-svg-icons';
+import { faInbox, faBookmark, faArchive, faGem, faFolderOpen, faFileExport } from '@fortawesome/free-solid-svg-icons';
 import { useSearch } from '../../hooks/searchHook';
 import { hasProAccess, extractUserTier } from '../../utils/tierUtils';
 
@@ -73,6 +73,7 @@ const Header: React.FC = () => {
                     <a href="/articles"><FontAwesomeIcon icon={faInbox} /><span>Articles</span></a>
                     <a href="/bookmarks"><FontAwesomeIcon icon={faBookmark} /><span>Bookmarks</span></a>
                     <a href="/collections"><FontAwesomeIcon icon={faFolderOpen} /><span>Collections</span></a>
+                    <a href="/export"><FontAwesomeIcon icon={faFileExport} /><span>Export</span></a>
                     <a href="/archive"><FontAwesomeIcon icon={faArchive} /><span>Archive</span></a>
                 </nav>
             </div>

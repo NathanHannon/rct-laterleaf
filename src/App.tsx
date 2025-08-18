@@ -13,6 +13,11 @@ import CollectionView from './components/Collections/CollectionView/CollectionVi
 import { CollectionAnimationProvider } from './context/collectionAnimationContext';
 import ExplosionOverlay from './components/Collections/ExplosionOverlay/ExplosionOverlay';
 import { ToastProvider } from './context/toastContext';
+import AboutPage from './components/StaticPages/AboutPage/AboutPage';
+import ContactPage from './components/StaticPages/ContactPage/ContactPage';
+import PrivacyPage from './components/StaticPages/PrivacyPage/PrivacyPage';
+import FAQPage from './components/StaticPages/FAQPage/FAQPage';
+import ExportPage from './components/DataManagement/ExportPage/ExportPage';
 
 function App() {
   return (
@@ -34,13 +39,26 @@ function App() {
                         <Route path="/article/:articleId" element={<ArticleReader />} />
                         <Route path="/collections" element={<CollectionsList />} />
                         <Route path="/collections/:collectionId" element={<CollectionView />} />
+                        <Route path="/about" element={<AboutPage />} />
+                        <Route path="/contact" element={<ContactPage />} />
+                        <Route path="/privacy" element={<PrivacyPage />} />
+                        <Route path="/faq" element={<FAQPage />} />
+                        <Route path="/export" element={<ExportPage />} />
                       </Routes>
                     </SignedIn>
                     <SignedOut>
-                      <div className="signed-out-message">
-                        <h2>Welcome to Later Leaf</h2>
-                        <p>Please sign in to view and save articles.</p>
-                      </div>
+                      <Routes>
+                        <Route path="/about" element={<AboutPage />} />
+                        <Route path="/contact" element={<ContactPage />} />
+                        <Route path="/privacy" element={<PrivacyPage />} />
+                        <Route path="/faq" element={<FAQPage />} />
+                        <Route path="*" element={
+                          <div className="signed-out-message">
+                            <h2>Welcome to Later Leaf</h2>
+                            <p>Please sign in to view and save articles.</p>
+                          </div>
+                        } />
+                      </Routes>
                     </SignedOut>
                   </div>
                 </main>
