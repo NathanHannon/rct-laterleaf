@@ -248,6 +248,7 @@ const CollectionView: React.FC = () => {
                     <motion.h1
                         layoutId={`collection-title-${collectionId}`}
                     >
+                        {collection.emoji && <span className="collection-emoji">{collection.emoji}</span>}
                         {collection.name}
                     </motion.h1>
                     {collection.description && (
