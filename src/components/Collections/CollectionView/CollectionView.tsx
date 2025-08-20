@@ -9,14 +9,7 @@ import ArticleCard from '../../Articles/ArticleCard/ArticleCard';
 import ConfirmationDialog from '../../Common/ConfirmationDialog/ConfirmationDialog';
 import type { Article } from '../../../interfaces/article';
 import './CollectionView.scss';
-
-interface Collection {
-    id: string;
-    name: string;
-    description?: string;
-    createdAt: string;
-    updatedAt: string;
-}
+import type { Collection } from '../../../interfaces/collection';
 
 const CollectionView: React.FC = () => {
     const { collectionId } = useParams<{ collectionId: string }>();

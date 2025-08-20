@@ -20,41 +20,41 @@
     }
 }
 
-.collection-header {
+.card-header {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-    position: relative;
-    z-index: 2;
+    margin-bottom: 12px;
 }
 
-.collection-info {
-    flex: 1;
-
-    h3 {
-        margin: 0 0 0.5rem 0;
-        color: #333;
-        font-size: 1.25rem;
-    }
-
-    .collection-description {
-        color: #666;
-        margin: 0 0 1rem 0;
-        font-size: 0.9rem;
-        line-height: 1.4;
-    }
-
-    .article-count {
-        background: #f8f9fa;
-        color: #666;
-        padding: 0.25rem 0.5rem;
-        border-radius: 4px;
-        font-size: 0.8rem;
-        font-weight: 500;
-    }
+.card-title-container {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-grow: 1;
+    // Allow the title to wrap if it's very long
+    min-width: 0;
 }
 
-.collection-actions {
+.card-emoji {
+    font-size: 24px;
+    line-height: 1;
+    // Prevent the emoji from shrinking
+    flex-shrink: 0;
+}
+
+.card-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin: 0;
+    color: var(--text-color-primary);
+    // Truncate long titles
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.card-menu {
     position: relative;
 
     .dropdown-trigger {
@@ -109,6 +109,34 @@
             }
         }
     }
+}
+
+.collection-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    width: 100%;
+}
+
+.collection-info {
+    flex-grow: 1;
+    min-width: 0; // Prevents flex item from overflowing
+}
+
+.collection-title-container {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
+}
+
+.collection-emoji {
+    font-size: 1.75rem; // ~28px
+    line-height: 1;
+}
+
+.collection-description {
+    font-size: 0.9rem;
 }
 
 // Explosion animation keyframes

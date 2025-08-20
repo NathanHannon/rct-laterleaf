@@ -11,7 +11,6 @@ import BookmarkedArticles from './components/Articles/BookmarkedArticles/Bookmar
 import CollectionsList from './components/Collections/CollectionsList/CollectionsList';
 import CollectionView from './components/Collections/CollectionView/CollectionView';
 import { CollectionAnimationProvider } from './context/collectionAnimationContext';
-import ExplosionOverlay from './components/Collections/ExplosionOverlay/ExplosionOverlay';
 import { ToastProvider } from './context/toastContext';
 import AboutPage from './components/StaticPages/AboutPage/AboutPage';
 import ContactPage from './components/StaticPages/ContactPage/ContactPage';
@@ -65,8 +64,6 @@ function App() {
                 <Footer />
               </div>
             </div>
-            {/* Global explosion overlay */}
-            <ExplosionOverlay />
           </BrowserRouter>
         </SearchProvider>
       </CollectionAnimationProvider>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { motion } from 'motion/react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEllipsisV, faEdit, faTrash } from '@fortawesome/free-solid-svg-icons';
@@ -6,18 +6,19 @@ import { useNavigate } from 'react-router-dom';
 import { useCollectionAnimation } from '../../../hooks/useCollectionAnimation';
 import ConfirmationDialog from '../../Common/ConfirmationDialog/ConfirmationDialog';
 import type { Article } from '../../../interfaces/article';
-import './AnimatedCollectionCard.scss';
+import './CollectionCard.scss';
 
 interface Collection {
     id: string;
     name: string;
     description?: string;
+    emoji?: string;
     createdAt: string;
     updatedAt: string;
     articleCount?: number;
 }
 
-interface AnimatedCollectionCardProps {
+interface CollectionCardProps {
     collection: Collection;
     articles: Article[];
     isDropdownOpen: boolean;
@@ -26,7 +27,7 @@ interface AnimatedCollectionCardProps {
     onDelete: (collectionId: string) => void;
 }
 
-const AnimatedCollectionCard: React.FC<AnimatedCollectionCardProps> = ({
+const CollectionCard: React.FC<CollectionCardProps> = ({
     collection,
     isDropdownOpen,
     onToggleDropdown,
@@ -36,20 +37,22 @@ const AnimatedCollectionCard: React.FC<AnimatedCollectionCardProps> = ({
     const navigate = useNavigate();
     const { triggerExplode } = useCollectionAnimation();
     const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
+    const dropdownRef = useRef<HTMLDivElement>(null);
 
     const handleCardClick = () => {
         // Simple fade transition
         triggerExplode();
-        
+
         // Navigate with a short delay
         setTimeout(() => {
             navigate(`/collections/${collection.id}`);
         }, 100);
     };
 
-    const handleDeleteClick = () => {
+    const handleDeleteClick = (e: React.MouseEvent) => {
+        e.stopPropagation(); // Prevents the card's onClick from firing
         setShowDeleteConfirmation(true);
-        onToggleDropdown();
+        onToggleDropdown(); // Close the dropdown
     };
 
     const handleConfirmDelete = () => {
@@ -73,7 +76,7 @@ const AnimatedCollectionCard: React.FC<AnimatedCollectionCardProps> = ({
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
-                whileHover={{ 
+                whileHover={{
                     scale: 1.02,
                     transition: { duration: 0.2 }
                 }}
@@ -82,20 +85,23 @@ const AnimatedCollectionCard: React.FC<AnimatedCollectionCardProps> = ({
             >
                 <div className="collection-header">
                     <div className="collection-info">
-                        <motion.h3
-                            layoutId={`collection-title-${collection.id}`}
-                        >
-                            {collection.name}
-                        </motion.h3>
+                        <div className="collection-title-container">
+                            {collection.emoji && <span className="collection-emoji">{collection.emoji}</span>}
+                            <motion.h3
+                                layoutId={`collection-title-${collection.id}`}
+                            >
+                                {collection.name}
+                            </motion.h3>
+                        </div>
                         {collection.description && (
-                            <motion.p 
+                            <motion.p
                                 className="collection-description"
                                 layoutId={`collection-description-${collection.id}`}
                             >
                                 {collection.description}
                             </motion.p>
                         )}
-                        <motion.span 
+                        <motion.span
                             className="article-count"
                             layoutId={`collection-count-${collection.id}`}
                         >
@@ -118,19 +124,20 @@ const AnimatedCollectionCard: React.FC<AnimatedCollectionCardProps> = ({
                                 initial={{ opacity: 0, scale: 0.95 }}
                                 animate={{ opacity: 1, scale: 1 }}
                                 exit={{ opacity: 0, scale: 0.95 }}
+                                ref={dropdownRef}
                             >
-                                <button onClick={(e) => { 
-                                    e.stopPropagation(); 
-                                    onEdit(collection); 
-                                    onToggleDropdown(); 
+                                <button onClick={(e) => {
+                                    e.stopPropagation();
+                                    onEdit(collection);
+                                    onToggleDropdown();
                                 }}>
                                     <FontAwesomeIcon icon={faEdit} />
                                     Edit
                                 </button>
                                 <button
-                                    onClick={(e) => { 
-                                        e.stopPropagation(); 
-                                        handleDeleteClick(); 
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleDeleteClick(e);
                                     }}
                                     className="delete-action"
                                 >
@@ -157,4 +164,4 @@ const AnimatedCollectionCard: React.FC<AnimatedCollectionCardProps> = ({
     );
 };
 
-export default AnimatedCollectionCard;
+export default CollectionCard;

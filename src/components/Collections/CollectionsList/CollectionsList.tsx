@@ -2,9 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '@clerk/clerk-react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSpinner, faPlus } from '@fortawesome/free-solid-svg-icons';
-import { motion, AnimatePresence } from 'motion/react';
-import AnimatedCollectionCard from '../AnimatedCollectionCard/AnimatedCollectionCard';
+import { motion } from 'motion/react';
+import CollectionCard from '../CollectionCard/CollectionCard';
 import ConfirmationDialog from '../../Common/ConfirmationDialog/ConfirmationDialog';
+import CollectionFormModal from '../CollectionFormModal/CollectionFormModal';
 import type { Article } from '../../../interfaces/article';
 import './CollectionsList.scss';
 
@@ -12,6 +13,7 @@ interface Collection {
     id: string;
     name: string;
     description?: string;
+    emoji?: string;
     createdAt: string;
     updatedAt: string;
     articleCount?: number;
@@ -27,7 +29,6 @@ const CollectionsList: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [editingCollection, setEditingCollection] = useState<Collection | null>(null);
-    const [newCollection, setNewCollection] = useState({ name: '', description: '' });
     const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
     const [deleteConfirm, setDeleteConfirm] = useState<{ show: boolean; collectionId: string | null; collectionName: string }>({
         show: false,
@@ -91,9 +92,8 @@ const CollectionsList: React.FC = () => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isLoaded, isSignedIn]);
 
-    const handleCreateCollection = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!newCollection.name.trim()) return;
+    const handleCreateCollection = async (data: Partial<{ name: string; description: string; emoji: string }>) => {
+        if (!data.name?.trim()) return;
 
         try {
             const token = await getToken();
@@ -103,14 +103,13 @@ const CollectionsList: React.FC = () => {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
                 },
-                body: JSON.stringify(newCollection)
+                body: JSON.stringify(data)
             });
 
             if (!response.ok) {
                 throw new Error('Failed to create collection');
             }
 
-            setNewCollection({ name: '', description: '' });
             setShowCreateModal(false);
             fetchCollections();
         } catch (error) {
@@ -118,9 +117,15 @@ const CollectionsList: React.FC = () => {
         }
     };
 
-    const handleEditCollection = async (e: React.FormEvent) => {
-        e.preventDefault();
+    const handleEditCollection = async (data: Partial<Collection>) => {
         if (!editingCollection) return;
+
+        // Only send editable fields to avoid 422 validation errors
+        const payload = {
+            name: data.name,
+            description: data.description,
+            emoji: data.emoji,
+        };
 
         try {
             const token = await getToken();
@@ -130,14 +135,11 @@ const CollectionsList: React.FC = () => {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
                 },
-                body: JSON.stringify({
-                    name: editingCollection.name,
-                    description: editingCollection.description
-                })
+                body: JSON.stringify(payload)
             });
 
             if (!response.ok) {
-                throw new Error('Failed to update collection');
+                throw new Error(`Failed to update collection ${response.status}`);
             }
 
             setEditingCollection(null);
@@ -227,7 +229,7 @@ const CollectionsList: React.FC = () => {
                         }}
                         transition={{ duration: 0.5 }}
                     >
-                        <AnimatedCollectionCard
+                        <CollectionCard
                             collection={collection}
                             articles={collection.articles}
                             isDropdownOpen={activeDropdown === collection.id}
@@ -241,117 +243,24 @@ const CollectionsList: React.FC = () => {
                 ))}
             </motion.div>
 
-            {/* Create Collection Modal */}
-            <AnimatePresence>
-                {showCreateModal && (
-                    <motion.div
-                        className="modal-overlay"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        onClick={() => setShowCreateModal(false)}
-                    >
-                        <motion.div
-                            className="modal-content"
-                            initial={{ opacity: 0, scale: 0.9 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            exit={{ opacity: 0, scale: 0.9 }}
-                            onClick={(e) => e.stopPropagation()}
-                        >
-                            <h2>Create New Collection</h2>
-                            <form onSubmit={handleCreateCollection}>
-                                <div className="form-group">
-                                    <label>Name</label>
-                                    <input
-                                        type="text"
-                                        value={newCollection.name}
-                                        onChange={(e) => setNewCollection(prev => ({
-                                            ...prev,
-                                            name: e.target.value
-                                        }))}
-                                        placeholder="Collection name"
-                                        required
-                                    />
-                                </div>
-                                <div className="form-group">
-                                    <label>Description (optional)</label>
-                                    <textarea
-                                        value={newCollection.description}
-                                        onChange={(e) => setNewCollection(prev => ({
-                                            ...prev,
-                                            description: e.target.value
-                                        }))}
-                                        placeholder="Collection description"
-                                        rows={3}
-                                    />
-                                </div>
-                                <div className="modal-actions">
-                                    <button type="button" onClick={() => setShowCreateModal(false)}>
-                                        Cancel
-                                    </button>
-                                    <button type="submit">Create Collection</button>
-                                </div>
-                            </form>
-                        </motion.div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
+            {/* Create/Edit Modals */}
+            <CollectionFormModal
+                isOpen={showCreateModal}
+                onClose={() => setShowCreateModal(false)}
+                onSave={handleCreateCollection}
+                mode="create"
+                initialData={{ name: '', description: '', emoji: '📦' }}
+            />
 
-            {/* Edit Collection Modal */}
-            <AnimatePresence>
-                {editingCollection && (
-                    <motion.div
-                        className="modal-overlay"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        onClick={() => setEditingCollection(null)}
-                    >
-                        <motion.div
-                            className="modal-content"
-                            initial={{ opacity: 0, scale: 0.9 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            exit={{ opacity: 0, scale: 0.9 }}
-                            onClick={(e) => e.stopPropagation()}
-                        >
-                            <h2>Edit Collection</h2>
-                            <form onSubmit={handleEditCollection}>
-                                <div className="form-group">
-                                    <label>Name</label>
-                                    <input
-                                        type="text"
-                                        value={editingCollection.name}
-                                        onChange={(e) => setEditingCollection(prev => prev ? ({
-                                            ...prev,
-                                            name: e.target.value
-                                        }) : null)}
-                                        placeholder="Collection name"
-                                        required
-                                    />
-                                </div>
-                                <div className="form-group">
-                                    <label>Description (optional)</label>
-                                    <textarea
-                                        value={editingCollection.description || ''}
-                                        onChange={(e) => setEditingCollection(prev => prev ? ({
-                                            ...prev,
-                                            description: e.target.value
-                                        }) : null)}
-                                        placeholder="Collection description"
-                                        rows={3}
-                                    />
-                                </div>
-                                <div className="modal-actions">
-                                    <button type="button" onClick={() => setEditingCollection(null)}>
-                                        Cancel
-                                    </button>
-                                    <button type="submit">Save Changes</button>
-                                </div>
-                            </form>
-                        </motion.div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
+            {editingCollection && (
+                <CollectionFormModal
+                    isOpen={!!editingCollection}
+                    onClose={() => setEditingCollection(null)}
+                    onSave={handleEditCollection}
+                    mode="edit"
+                    initialData={editingCollection}
+                />
+            )}
 
             <ConfirmationDialog
                 isOpen={deleteConfirm.show}
