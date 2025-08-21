@@ -37,6 +37,9 @@
         gap: 36px;
 
         a {
+            display: flex;
+            align-items: center;
+            gap: 8px;
             font-size: 14px;
             font-weight: 500;
             color: #141414;
@@ -75,6 +78,36 @@
                 color: #a3a3a3; // neutral-500
             }
         }
+
+        .premium-icon {
+            // Diamond emoji color - bright cyan-blue
+            color: #00b4d8;
+
+            // Diamond sparkle effect with cyan glow
+            filter: drop-shadow(0 0 8px rgba(0, 180, 216, 0.6)) drop-shadow(0 0 12px rgba(0, 180, 216, 0.4)) drop-shadow(0 0 16px rgba(0, 180, 216, 0.2));
+
+            // Slight scale and animation
+            transform: scale(1.15);
+            animation: diamond-sparkle 3s ease-in-out infinite;
+
+            // Ensure it stands out
+            position: relative;
+            z-index: 10;
+        }
+
+        @keyframes diamond-sparkle {
+
+            0%,
+            100% {
+                filter: drop-shadow(0 0 8px rgba(0, 180, 216, 0.6)) drop-shadow(0 0 12px rgba(0, 180, 216, 0.4)) drop-shadow(0 0 16px rgba(0, 180, 216, 0.2));
+                transform: scale(1.15);
+            }
+
+            50% {
+                filter: drop-shadow(0 0 12px rgba(0, 180, 216, 0.8)) drop-shadow(0 0 18px rgba(0, 180, 216, 0.6)) drop-shadow(0 0 24px rgba(0, 180, 216, 0.4));
+                transform: scale(1.2);
+            }
+        }
     }
 
     .avatar {
@@ -83,5 +116,49 @@
         border-radius: 50%;
         background-size: cover;
         background-position: center;
+    }
+
+    .auth-container {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+
+        .cl-userButton-root {
+            .cl-userButton-avatarBox {
+                width: 40px;
+                height: 40px;
+            }
+        }
+
+        button {
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            padding: 8px 16px;
+            transition: all 0.2s ease-in-out;
+            cursor: pointer;
+
+            &:first-of-type {
+                background-color: transparent;
+                color: #44E0A1;
+                border: 1px solid #44E0A1;
+
+                &:hover {
+                    background-color: #44E0A1;
+                    color: #fff;
+                }
+            }
+
+            &:last-of-type {
+                background-color: #0B4F4A;
+                color: #fff;
+                border: 1px solid #0B4F4A;
+
+                &:hover {
+                    background-color: #0B4F4A;
+                    border-color: #0B4F4A;
+                }
+            }
+        }
     }
 }

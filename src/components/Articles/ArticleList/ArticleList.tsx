@@ -1,67 +1,260 @@
-import React from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { useAuth, useUser } from '@clerk/clerk-react';
+import { motion } from 'motion/react';
 import ArticleCard from '../ArticleCard/ArticleCard';
+import SortDropdown from '../SortDropdown/SortDropdown';
+import ConfirmationDialog from '../../Common/ConfirmationDialog/ConfirmationDialog';
+import type { SortOption } from '../../../interfaces/sort';
 import './ArticleList.scss';
-
-// Placeholder data based on the mockup
-const articles = [
-    {
-        imageUrl: "https://lh3.googleusercontent.com/aida-public/AB6AXuDeKRn7bin6zAaLP-T08KBSn-fsRDEV9tD_U7bI3H_FJV_dpyZSZanTtcarDL2lCFMl4UHVGyQIXgPvTuR7STs5nhlO4JsPSVQeRgjjQdmUnD8kOMYPLQGvopwRNKYCTj760IIO3Vde1UYWExKQ7Hk1tVmyMYrS12oUmE_FBwyZbPwPHt2D9T7V8bSplsnj8jP86DN_RSYOkk1SD5AY7ubDUaMNY_cNz0k5W3JN9XXsYRsgjLlJXWFqT-b8jKPF8w41xb11yEWok_g",
-        title: "The Future of Work: Remote Collaboration Tools",
-        description: "Explore the latest tools and strategies for effective remote teamwork."
-    },
-    {
-        imageUrl: "https://lh3.googleusercontent.com/aida-public/AB6AXuBYwPo_eN6P4OlT5_oh6NNNRja4CT773addNvhWm0OhtwFdQrmyO37U8TIxVsEMGlWHzieMFv1fZ-17cM3ViRtJrn-PyXb5pusctPpG52C9r4bm85QmNniaTVjTsWL5S-80NKswH0Np_gpdN5zQKhm59hWimiMo_WJWrUTStpHQwavTdK-8Q5aOle79O1gChDwbsAUyjSejUaFk82IFkIsuCpQa-1TMXHK7uwyQtTOvVy4_QA8NKIol27oC0lJvZ_sOX_y3UA76LYo",
-        title: "Sustainable Living: Tips for Eco-Friendly Homes",
-        description: "Learn how to make your home more environmentally friendly with these practical tips."
-    },
-    {
-        imageUrl: "https://lh3.googleusercontent.com/aida-public/AB6AXuDX7G8CITM9ESFaQPatVVq6IraOoO53aKENj2biCn6gLzNHGdzntfeE8lJ4zsxaXNmT7QWZjeC3WLXCYh4IfbGMNYrkuMC5Ko3rkKpd2Ws-JUbMjZncGPkViiSK7ccIwVdtQdOCCS6WpA_8NnbRYgy9xLGUSw-U32BdBnrRPHB-22-2J8DNTtaphjoY3ib4pDqLOJ7M8y_Q6NO1gVV6Z7kmcj-26iL9SUVNYL9_cq_GD1tspHFZk0KmZRIey9EvUfZ-IuDymzFktUU",
-        title: "Mastering Time Management: Productivity Hacks",
-        description: "Boost your productivity with proven time management techniques."
-    },
-    {
-        imageUrl: "https://lh3.googleusercontent.com/aida-public/AB6AXuBPec4UI4Kuoqxi0B-lGqClECcxvA_lv-qAMvdX6LglKtk830a21zC7nUegrO6vh4dRywkexWqQwETQDTHL8DzvFG-0wiYboeiIPHB2o8jYycRV1oRwpejzQc3hq6PUo3dGCgKfD840uwsBmTe-cvCohXWPPuRGAQTO5uiY1-0pRtcygiw3q19ydM9AecC3E1KNsfxc3Wt1BrqwiJnutG6noSPCcrgIa3rzorWND5vFsoG1G-bjjexreqXuZgPHwvIij5X86GbtWto",
-        title: "The Art of Photography: Capturing Moments",
-        description: "Discover the techniques and artistry behind stunning photography."
-    },
-    {
-        imageUrl: "https://lh3.googleusercontent.com/aida-public/AB6AXuBwu3IrT6H1Z-zZhQ-_9-VFoeN0O34WCm_BCbJPSRpwUiruLlmliBfoE6qqTx9brpfnLE4ue9NV7WHQGUPZ4cJeK8YOaoEV2R6t-MJnvDDO0h46eRTtSBjK70zdWZrEZKqKD4zHemnMMYO1IUb_LlqmXDkxCvyTNjO3Ted0FcgY3is3avRPiGTPE1ndROHk9WIXIr7vL3d1WQelOmvdm-P5ezbmYm9Naq1v6t-849pf2d6q16hHsVmbT_-OXt8mo4lv1L46tQuXVJ8",
-        title: "Healthy Eating: Delicious and Nutritious Recipes",
-        description: "Enjoy a variety of healthy and tasty recipes for a balanced diet."
-    },
-    {
-        imageUrl: "https://lh3.googleusercontent.com/aida-public/AB6AXuCuuTNTiHITCdZ5Kxx2tv0ajIrE0zeEM5q-To3Ce2ekohXL8OFEDOtZ_GTKZB5VjLuLxh-I047ap7HK-JVO2QcMhVX7gGaW-YWT1HGPNZgrxQuSIuitc2ic7E8iMOAqYHGEYhWg0kYkKn_yi2OV8z_yRM_SuzGmHjrWbfPPsBSjZ5vc-ml2EQ0-xaQjcmkfdIagPUs14Uqr6FvipQZE4XbsbgOrX_fIb-qwbLuYx57ouPGp12rNzXcYhA9rEp6BqYOPXLsDsgv0XTg",
-        title: "Exploring Space: Latest Discoveries and Missions",
-        description: "Stay updated on the latest space explorations and groundbreaking missions."
-    }
-];
+import type { Article } from '../../../interfaces/article';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faSpinner, faGem } from '@fortawesome/free-solid-svg-icons';
+import AddArticleForm from '../AddArticleForm/AddArticleForm';
+import { useSearch } from '../../../hooks/searchHook';
+import { hasProAccess } from '../../../utils/tierUtils';
+import { sortArticles } from '../../../utils/sortUtils';
 
 const ArticleList: React.FC = () => {
+    const { getToken, isLoaded, isSignedIn } = useAuth();
+    const { user, isLoaded: userLoaded } = useUser();
+    const { searchTerm } = useSearch();
+    const userHasProAccess = hasProAccess(user);
+    const [articles, setArticles] = useState<Article[]>([]);
+    const [isSearching, setIsSearching] = useState(false);
+    const [sortBy, setSortBy] = useState<SortOption>(() => {
+        // Load saved sort preference from localStorage, default to 'newest-first'
+        const saved = localStorage.getItem('articleSortPreference');
+        return (saved as SortOption) || 'newest-first';
+    });
+    const [isSortDropdownOpen, setIsSortDropdownOpen] = useState(false);
+    const [deleteConfirm, setDeleteConfirm] = useState<{ show: boolean; articleId: string | null }>({
+        show: false,
+        articleId: null
+    });
+
+    // Log pro status for debugging
+    console.log('📋 ArticleList: Pro access status:', userHasProAccess, '| User loaded:', userLoaded);
+
+    const fetchArticles = useCallback(async () => {
+        try {
+            const token = await getToken();
+            const response = await fetch('/api/articles', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`Network response was not ok: ${errorText}`);
+            }
+
+            const data = await response.json();
+            console.log('Fetch articles response:', data);
+
+            const articlesArray = Array.isArray(data) ? data : [];
+            setArticles(articlesArray);
+        } catch (error) {
+            console.error("Failed to fetch articles:", error);
+            setArticles([]);
+        }
+    }, [getToken]);
+
+    // Separate effect for search
+    useEffect(() => {
+        const performSearch = async () => {
+            if (!isLoaded || !isSignedIn || !userLoaded) return;
+
+            if (!searchTerm) {
+                fetchArticles();
+                return;
+            }
+
+            setIsSearching(true);
+            try {
+                const token = await getToken();
+                const response = await fetch(`/api/search?q=${encodeURIComponent(searchTerm)}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Search failed');
+                }
+
+                const searchResults = await response.json();
+                console.log('Search response:', searchResults);
+                console.log('First search result:', searchResults[0]); // Check what fields are included
+
+                const resultsArray = Array.isArray(searchResults) ? searchResults :
+                    (searchResults.results && Array.isArray(searchResults.results)) ? searchResults.results : [];
+
+                console.log('Processed results array:', resultsArray);
+                console.log('First processed result:', resultsArray[0]);
+
+                setArticles(resultsArray);
+            } catch (error) {
+                console.error("Failed to perform search:", error);
+                fetchArticles();
+            } finally {
+                setIsSearching(false);
+            }
+        };
+
+        performSearch();
+    }, [searchTerm, isLoaded, isSignedIn, userLoaded, fetchArticles, getToken]);
+
+    // Initial fetch - only run once when component mounts and user is ready
+    useEffect(() => {
+        if (isLoaded && isSignedIn && userLoaded && !searchTerm) {
+            fetchArticles();
+        }
+    }, [isLoaded, isSignedIn, userLoaded, fetchArticles, searchTerm]);
+
+    // Close sort dropdown when clicking outside
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (isSortDropdownOpen) {
+                const target = event.target as Element;
+                if (!target.closest('.sort-dropdown')) {
+                    setIsSortDropdownOpen(false);
+                }
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [isSortDropdownOpen]);
+
+    const handleAction = async (articleId: string, endpoint: string, method: 'POST' | 'DELETE' = 'POST') => {
+        try {
+            const token = await getToken();
+            const url = endpoint ? `/api/articles/${articleId}/${endpoint}` : `/api/articles/${articleId}`;
+            const response = await fetch(url, {
+                method,
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (!response.ok) throw new Error(`Action failed: ${endpoint}`);
+            return true;
+        } catch (error) {
+            console.error(`Failed to ${endpoint || 'delete'}:`, error);
+            return false;
+        }
+    };
+
+    const handleDelete = async (articleId: string) => {
+        setDeleteConfirm({ show: true, articleId });
+    };
+
+    const confirmDelete = async () => {
+        if (!deleteConfirm.articleId) return;
+        const success = await handleAction(deleteConfirm.articleId, '', 'DELETE');
+        if (success) setArticles(prev => prev.filter(a => a.id !== deleteConfirm.articleId));
+        setDeleteConfirm({ show: false, articleId: null });
+    };
+
+    const handleArchive = async (articleId: string) => {
+        const success = await handleAction(articleId, 'archive');
+        if (success) {
+            setArticles(prev => prev.map(a =>
+                a.id === articleId ? { ...a, isArchived: !a.isArchived } : a
+            ));
+        }
+    };
+
+    const handleToggleBookmark = async (articleId: string) => {
+        const success = await handleAction(articleId, 'bookmark');
+        if (success) {
+            setArticles(prev => prev.map(a =>
+                a.id === articleId ? { ...a, isBookmarked: !a.isBookmarked } : a
+            ));
+        }
+    };
+
+    if (!isLoaded || !userLoaded) {
+        return <div className="loading-container"><FontAwesomeIcon icon={faSpinner} spin size="3x" /> Loading...</div>;
+    }
+
+    if (!isSignedIn) {
+        return <div>Please sign in to see your articles.</div>;
+    }
+
+    const validArticles = Array.isArray(articles) ? articles : [];
+    const sortedArticles = sortArticles(validArticles, sortBy);
+
+    const handleSortChange = (newSortBy: SortOption) => {
+        setSortBy(newSortBy);
+        // Save sort preference to localStorage
+        localStorage.setItem('articleSortPreference', newSortBy);
+    };
+
+    const toggleSortDropdown = () => {
+        setIsSortDropdownOpen(!isSortDropdownOpen);
+    };
+
     return (
         <div className="article-list-container">
-            <div className="input-container">
-                <div className="input-bar">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="currentColor" viewBox="0 0 256 256">
-                        <path
-                            d="M229.66,218.34l-50.07-50.06a88.11,88.11,0,1,0-11.31,11.31l50.06,50.07a8,8,0,0,0,11.32-11.32ZM40,112a72,72,0,1,1,72,72A72.08,72.08,0,0,1,40,112Z"
-                        ></path>
-                    </svg>
-                    <input type="text" placeholder="Paste link here" />
+            <AddArticleForm onArticleAdded={fetchArticles} />
+            <div className="list-header">
+                <div className="header-left">
+                    <h2 className="list-title">My List</h2>
+                    {userHasProAccess && <span className="premium-badge">Pro Search Enabled <FontAwesomeIcon icon={faGem} className="premium-icon" /></span>}
+                    {isSearching && <><FontAwesomeIcon icon={faSpinner} spin /> Searching...</>}
+                </div>
+                <div className="header-right">
+                    <SortDropdown
+                        sortBy={sortBy}
+                        onSortChange={handleSortChange}
+                        isOpen={isSortDropdownOpen}
+                        onToggle={toggleSortDropdown}
+                    />
                 </div>
             </div>
-            <h2 className="list-title">My List</h2>
-            <div className="article-grid">
-                {articles.map((article, index) => (
-                    <ArticleCard
-                        key={index}
-                        imageUrl={article.imageUrl}
-                        title={article.title}
-                        description={article.description}
-                    />
+            <motion.div
+                className="article-grid"
+                initial="hidden"
+                animate="visible"
+                variants={{
+                    hidden: {},
+                    visible: {
+                        transition: {
+                            staggerChildren: 0.1
+                        }
+                    }
+                }}
+            >
+                {sortedArticles.filter(article => article.id).map((article) => (
+                    <motion.div
+                        key={article.id}
+                        variants={{
+                            hidden: { opacity: 0 },
+                            visible: { opacity: 1 }
+                        }}
+                        transition={{ duration: 0.4 }}
+                    >
+                        <ArticleCard
+                            article={article}
+                            onDelete={handleDelete}
+                            onArchive={handleArchive}
+                            onToggleBookmark={handleToggleBookmark}
+                        />
+                    </motion.div>
                 ))}
-            </div>
+            </motion.div>
+
+            <ConfirmationDialog
+                isOpen={deleteConfirm.show}
+                title="Delete Article"
+                message="Are you sure you want to delete this article? This action cannot be undone."
+                confirmText="Delete"
+                cancelText="Cancel"
+                variant="danger"
+                onConfirm={confirmDelete}
+                onCancel={() => setDeleteConfirm({ show: false, articleId: null })}
+            />
         </div>
     );
 };
 
-export default ArticleList; 
+export default ArticleList;

@@ -1,0 +1,59 @@
+.add-article-form {
+    margin-bottom: 30px;
+
+    .input-wrapper {
+        position: relative;
+        border-bottom: 2px solid #e0e0e0; // Light grey line for the "link" look
+        transition: border-color 0.3s ease;
+
+        &:focus-within {
+            border-color: #333; // Darker line on focus
+        }
+
+        input[type="text"] {
+            width: 100%;
+            border: none;
+            outline: none;
+            padding: 10px 100px 10px 0; // Make space for the button
+            font-size: 16px;
+            background-color: transparent;
+            color: #333;
+
+            &::placeholder {
+                color: #aaa;
+            }
+        }
+
+        .save-link-button {
+            position: absolute;
+            right: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: #333;
+            cursor: pointer;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px;
+            transition: color 0.3s ease;
+
+            &:hover:not(:disabled) {
+                color: #007bff; // Highlight on hover
+            }
+
+            &:disabled {
+                color: #ccc;
+                cursor: not-allowed;
+            }
+        }
+    }
+
+    .import-error {
+        color: #f44336;
+        margin-top: 8px;
+        font-size: 14px;
+    }
+}

@@ -1,0 +1,270 @@
+.animated-collection-card {
+    position: relative;
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    transition: all 0.2s ease;
+    overflow: hidden;
+    cursor: pointer;
+    min-height: 200px;
+
+    &:hover {
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+        border-color: #d0d0d0;
+    }
+
+    &:active {
+        transform: scale(0.98);
+    }
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 12px;
+}
+
+.card-title-container {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-grow: 1;
+    // Allow the title to wrap if it's very long
+    min-width: 0;
+}
+
+.card-emoji {
+    font-size: 24px;
+    line-height: 1;
+    // Prevent the emoji from shrinking
+    flex-shrink: 0;
+}
+
+.card-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin: 0;
+    color: var(--text-color-primary);
+    // Truncate long titles
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.card-menu {
+    position: relative;
+
+    .dropdown-trigger {
+        background: none;
+        border: none;
+        color: #666;
+        cursor: pointer;
+        padding: 0.5rem;
+        border-radius: 4px;
+        transition: background-color 0.2s;
+
+        &:hover {
+            background: #f8f9fa;
+            color: #333;
+        }
+    }
+
+    .dropdown-menu {
+        position: absolute;
+        top: 100%;
+        right: 0;
+        background: white;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+        z-index: 1000;
+        min-width: 160px;
+        overflow: hidden;
+
+        button {
+            width: 100%;
+            background: none;
+            border: none;
+            padding: 0.75rem 1rem;
+            text-align: left;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: background-color 0.2s;
+
+            &:hover {
+                background: #f8f9fa;
+            }
+
+            &.delete-action {
+                color: #dc3545;
+
+                &:hover {
+                    background: #f8d7da;
+                }
+            }
+        }
+    }
+}
+
+.collection-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    width: 100%;
+}
+
+.collection-info {
+    flex-grow: 1;
+    min-width: 0; // Prevents flex item from overflowing
+}
+
+.collection-title-container {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
+}
+
+.collection-emoji {
+    font-size: 1.75rem; // ~28px
+    line-height: 1;
+}
+
+.collection-description {
+    font-size: 0.9rem;
+}
+
+// Explosion animation keyframes
+@keyframes explode-out {
+    0% {
+        transform: translate(-50%, -50%) scale(1) rotate(0deg);
+        opacity: 0.6;
+    }
+
+    50% {
+        opacity: 0.8;
+    }
+
+    100% {
+        transform: translate(var(--target-x), var(--target-y)) scale(1.2) rotate(var(--rotation));
+        opacity: 1;
+    }
+}
+
+@keyframes implode-in {
+    0% {
+        transform: translate(var(--target-x), var(--target-y)) scale(1.2) rotate(var(--rotation));
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.8;
+    }
+
+    100% {
+        transform: translate(-50%, -50%) scale(1) rotate(0deg);
+        opacity: 0.6;
+    }
+}
+
+// Animation classes applied during transitions
+.exploding {
+    .article-preview-card {
+        animation: explode-out 0.6s ease-out forwards;
+
+        &:nth-child(1) {
+            --target-x: -200px;
+            --target-y: -150px;
+            --rotation: -15deg;
+            animation-delay: 0s;
+        }
+
+        &:nth-child(2) {
+            --target-x: 0px;
+            --target-y: -180px;
+            --rotation: 5deg;
+            animation-delay: 0.1s;
+        }
+
+        &:nth-child(3) {
+            --target-x: 200px;
+            --target-y: -150px;
+            --rotation: 20deg;
+            animation-delay: 0.2s;
+        }
+
+        &:nth-child(4) {
+            --target-x: -180px;
+            --target-y: 0px;
+            --rotation: -25deg;
+            animation-delay: 0.15s;
+        }
+
+        &:nth-child(5) {
+            --target-x: 180px;
+            --target-y: 0px;
+            --rotation: 25deg;
+            animation-delay: 0.25s;
+        }
+
+        &:nth-child(6) {
+            --target-x: 0px;
+            --target-y: 150px;
+            --rotation: -10deg;
+            animation-delay: 0.3s;
+        }
+    }
+}
+
+.imploding {
+    .article-preview-card {
+        animation: implode-in 0.6s ease-in forwards;
+
+        &:nth-child(1) {
+            --target-x: -200px;
+            --target-y: -150px;
+            --rotation: -15deg;
+            animation-delay: 0.3s;
+        }
+
+        &:nth-child(2) {
+            --target-x: 0px;
+            --target-y: -180px;
+            --rotation: 5deg;
+            animation-delay: 0.25s;
+        }
+
+        &:nth-child(3) {
+            --target-x: 200px;
+            --target-y: -150px;
+            --rotation: 20deg;
+            animation-delay: 0.2s;
+        }
+
+        &:nth-child(4) {
+            --target-x: -180px;
+            --target-y: 0px;
+            --rotation: -25deg;
+            animation-delay: 0.15s;
+        }
+
+        &:nth-child(5) {
+            --target-x: 180px;
+            --target-y: 0px;
+            --rotation: 25deg;
+            animation-delay: 0.1s;
+        }
+
+        &:nth-child(6) {
+            --target-x: 0px;
+            --target-y: 150px;
+            --rotation: -10deg;
+            animation-delay: 0s;
+        }
+    }
+}
