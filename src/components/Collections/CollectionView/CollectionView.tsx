@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '@clerk/clerk-react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -49,25 +49,50 @@ const CollectionView: React.FC = () => {
         }
     };
 
-    const fetchCollectionArticles = async () => {
+    const fetchCollectionArticles = useCallback(async () => {
+        if (!collectionId) return;
+
         try {
             const token = await getToken();
-            const response = await fetch(`/api/collections/${collectionId}/articles`, {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
+
+            // Fetch collection articles
+            const articlesResponse = await fetch(`/api/collections/${collectionId}/articles`, {
+                headers: { 'Authorization': `Bearer ${token}` }
             });
 
-            if (!response.ok) {
-                throw new Error('Failed to fetch collection articles');
-            }
+            if (!articlesResponse.ok) throw new Error('Failed to fetch collection articles');
+            const articlesData = await articlesResponse.json();
 
-            const data = await response.json();
-            setArticles(data);
+            // Fetch user's article statuses
+            const statusResponse = await fetch('/api/articles?filter=' + encodeURIComponent(JSON.stringify({
+                where: { id: { inq: articlesData.map((a: Article) => a.id) } }
+            })), {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+
+            const userArticlesData = await statusResponse.json();
+
+            // Create a lookup map for user statuses
+            const statusMap = new Map();
+            userArticlesData.forEach((article: Article) => {
+                statusMap.set(article.id, {
+                    isBookmarked: article.isBookmarked,
+                    isArchived: article.isArchived
+                });
+            });
+
+            // Merge the data
+            const articlesWithStatus = articlesData.map((article: Article) => ({
+                ...article,
+                isBookmarked: statusMap.get(article.id)?.isBookmarked || false,
+                isArchived: statusMap.get(article.id)?.isArchived || false
+            }));
+
+            setArticles(articlesWithStatus);
         } catch (error) {
             console.error('Failed to fetch collection articles:', error);
         }
-    };
+    }, [collectionId, getToken]);
 
     const fetchAllUserArticles = async () => {
         try {

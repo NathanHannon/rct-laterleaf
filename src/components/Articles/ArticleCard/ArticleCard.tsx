@@ -27,7 +27,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({ article, onDelete, onArchive,
     const [optimisticBookmark, setOptimisticBookmark] = useState<boolean | null>(null);
 
     // Generate a consistent gradient for placeholders
-    const placeholderGradient = getGradientForString(title || id);
+    const placeholderGradient = getGradientForString(title ?? id ?? '');
 
     // Use optimistic state if available, otherwise fall back to prop
     const currentBookmarkState = optimisticBookmark !== null ? optimisticBookmark : isBookmarked;

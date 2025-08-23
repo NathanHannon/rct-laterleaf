@@ -1,6 +1,5 @@
 import React, { useEffect } from 'react';
-import './Header.scss';
-import logo from '../../assets/logo/icon-transparent.png';
+import { Link } from 'react-router-dom';
 import {
     SignedIn,
     SignedOut,
@@ -12,12 +11,16 @@ import {
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faInbox, faBookmark, faArchive, faGem, faFolderOpen, faFileExport } from '@fortawesome/free-solid-svg-icons';
 import { useSearch } from '../../hooks/searchHook';
+import { useUserStatus } from '../../context/UserStatusContext'; // Import the new hook
 import { hasProAccess, extractUserTier } from '../../utils/tierUtils';
-import UpgradeButton from '../Common/Controls/Upgradebutton/UpgradeButton';
+import UpgradeButton from '../Common/Controls/UpgradeButton/UpgradeButton';
+import './Header.scss';
+import logo from '../../assets/logo/icon-transparent.png';
 
 const Header: React.FC = () => {
     const { searchTerm, setSearchTerm } = useSearch();
     const { user, isLoaded } = useUser();
+    const { isPro, isLoading } = useUserStatus(); // Use the hook to get status from your DB
     const userHasProAccess = hasProAccess(user);
 
     // Log user plan tier when user data becomes available
@@ -56,7 +59,7 @@ const Header: React.FC = () => {
     const freePlaceholder = "Search titles & excerpts...";
 
     // A more powerful placeholder for the pro user
-    const proPlaceholder = "Search the full content of your entire library...";
+    const proPlaceholder = "Search the full content of your entire library..."
 
 
     const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -66,25 +69,20 @@ const Header: React.FC = () => {
     return (
         <header className="header">
             <div className="header-left">
-                <div className="logo">
+                <Link to="/" className="logo">
                     <img src={logo} alt="laterLeaf logo" />
                     <h2>Later Leaf</h2>
-                </div>
+                </Link>
                 <nav className="nav-links">
-                    <a href="/articles"><FontAwesomeIcon icon={faInbox} /><span>Articles</span></a>
-                    <a href="/bookmarks"><FontAwesomeIcon icon={faBookmark} /><span>Bookmarks</span></a>
-                    <a href="/collections"><FontAwesomeIcon icon={faFolderOpen} /><span>Collections</span></a>
-                    <a href="/export"><FontAwesomeIcon icon={faFileExport} /><span>Export</span></a>
-                    <a href="/archive"><FontAwesomeIcon icon={faArchive} /><span>Archive</span></a>
+                    <Link to="/articles"><FontAwesomeIcon icon={faInbox} /><span>Articles</span></Link>
+                    <Link to="/bookmarks"><FontAwesomeIcon icon={faBookmark} /><span>Bookmarks</span></Link>
+                    <Link to="/collections"><FontAwesomeIcon icon={faFolderOpen} /><span>Collections</span></Link>
+                    <Link to="/export"><FontAwesomeIcon icon={faFileExport} /><span>Export</span></Link>
+                    <Link to="/archive"><FontAwesomeIcon icon={faArchive} /><span>Archive</span></Link>
                 </nav>
             </div>
-            <div className="header-right">
+            <div className="header-center">
                 <div className="search-bar">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="currentColor" viewBox="0 0 256 256">
-                        <path
-                            d="M229.66,218.34l-50.07-50.06a88.11,88.11,0,1,0-11.31,11.31l50.06,50.07a8,8,0,0,0,11.32-11.32ZM40,112a72,72,0,1,1,72,72A72.08,72.08,0,0,1,40,112Z"
-                        ></path>
-                    </svg>
                     <input
                         type="text"
                         placeholder={userHasProAccess ? proPlaceholder : freePlaceholder}
@@ -93,13 +91,16 @@ const Header: React.FC = () => {
                     />
                     {userHasProAccess && <FontAwesomeIcon icon={faGem} className="premium-icon" />}
                 </div>
+            </div>
+            <div className="header-right">
                 <div className="auth-container">
                     <SignedOut>
                         <SignInButton />
                         <SignUpButton />
                     </SignedOut>
                     <SignedIn>
-                        {!userHasProAccess && <UpgradeButton />}
+                        {/* Show upgrade button only if status is loaded and user is not pro */}
+                        {!isLoading && !isPro && <UpgradeButton />}
                         <UserButton />
                     </SignedIn>
                 </div>
