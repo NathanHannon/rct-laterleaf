@@ -4,9 +4,10 @@ import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import type { Article } from '../../../interfaces/article';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBookmark as faBookmarkSolid, faArchive, faTrash, faEllipsisV, faFolderPlus } from '@fortawesome/free-solid-svg-icons';
+import { faBookmark as faBookmarkSolid, faArchive, faTrash, faEllipsisV, faFolderPlus, faNewspaper } from '@fortawesome/free-solid-svg-icons';
 import { faBookmark as faBookmarkRegular } from '@fortawesome/free-regular-svg-icons';
 import CollectionSelector from '../../Collections/CollectionSelector/CollectionSelector';
+import { getGradientForString } from '../../../utils/colorUtils';
 
 interface ArticleCardProps {
     article: Article;
@@ -16,6 +17,7 @@ interface ArticleCardProps {
 }
 
 const ArticleCard: React.FC<ArticleCardProps> = ({ article, onDelete, onArchive, onToggleBookmark }) => {
+    // Reverted to `imageUrl` to match the actual data property for the hero image.
     const { id, imageUrl, title, excerpt, isBookmarked, isArchived } = article;
     const [isBookmarkAnimating, setIsBookmarkAnimating] = useState(false);
     const [showSaveEffect, setShowSaveEffect] = useState(false);
@@ -23,6 +25,9 @@ const ArticleCard: React.FC<ArticleCardProps> = ({ article, onDelete, onArchive,
     const [showCollectionSelector, setShowCollectionSelector] = useState(false);
     // Optimistic UI state for bookmark
     const [optimisticBookmark, setOptimisticBookmark] = useState<boolean | null>(null);
+
+    // Generate a consistent gradient for placeholders
+    const placeholderGradient = getGradientForString(title || id);
 
     // Use optimistic state if available, otherwise fall back to prop
     const currentBookmarkState = optimisticBookmark !== null ? optimisticBookmark : isBookmarked;
@@ -128,12 +133,17 @@ const ArticleCard: React.FC<ArticleCardProps> = ({ article, onDelete, onArchive,
                 </AnimatePresence>
 
                 <Link to={`/article/${id}`} className="article-card-link">
-                    {imageUrl && (
-                        <div
-                            className="card-image"
-                            style={{ backgroundImage: `url(${imageUrl})` }}
-                        />
-                    )}
+                    <div className="card-image-container">
+                        {imageUrl ? (
+                            <img src={imageUrl} alt={title} className="card-image" loading="lazy" />
+                        ) : (
+                            <div className="card-image-placeholder" style={{ background: placeholderGradient }}>
+                                <span className="placeholder-icon">
+                                    <FontAwesomeIcon icon={faNewspaper} />
+                                </span>
+                            </div>
+                        )}
+                    </div>
                     <div className="card-content">
                         <p className="card-title">{title}</p>
                         <p className="card-description">{excerpt}</p>

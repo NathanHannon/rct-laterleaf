@@ -8,14 +8,12 @@ import type { UserResource } from '@clerk/types';
 export const extractUserTier = (user: UserResource | null | undefined): 'pro' | 'free' => {
     if (!user) return 'free';
 
-    // Check if user has admin role in publicMetadata first
-    if (user.publicMetadata?.role === 'admin') {
-        console.log('🔱 Admin user detected, granting pro access');
+    // Check publicMetadata first, as it's synced from our DB via webhooks.
+    if (user.publicMetadata?.isPro === true || user.publicMetadata?.role === 'admin') {
         return 'pro';
     }
 
-    // Access the raw token from Clerk's user object
-    // The tier info is in the 'pla' field (e.g., "u:free_user" or "u:pro_user")
+    // Fallback for older JWTs or if metadata sync is delayed.
     const userWithToken = user as UserResource & {
         unsafeMetadata?: { _rawToken?: { pla?: string } };
         __unstable__environment?: { jwt?: { pla?: string } };
@@ -32,12 +30,15 @@ export const extractUserTier = (user: UserResource | null | undefined): 'pro' | 
 };
 
 /**
- * Check if user has pro access
+ * Check if user has pro access. Prefers the synced `isPro` flag from public metadata.
  * @param user - Clerk user object
  * @returns boolean
  */
 export const hasProAccess = (user: UserResource | null | undefined): boolean => {
-    return extractUserTier(user) === 'pro';
+    if (!user) return false;
+    // The primary source of truth is the `isPro` flag synced from our database.
+    // The admin role is a permanent override.
+    return user.publicMetadata?.isPro === true || user.publicMetadata?.role === 'admin';
 };
 
 /**

@@ -2,12 +2,13 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth, useUser } from "@clerk/clerk-react";
 import { motion, AnimatePresence } from 'motion/react';
+import ReactMarkdown from 'react-markdown';
 import type { Article } from '../../../interfaces/article';
 import CollectionSelector from '../../Collections/CollectionSelector/CollectionSelector';
 import ConfirmationDialog from '../../Common/ConfirmationDialog/ConfirmationDialog';
 import './ArticleReader.scss';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBookmark as faBookmarkSolid, faArchive, faTrash, faMagicWandSparkles, faRotateRight, faComments, faFolderPlus, faEllipsisV } from '@fortawesome/free-solid-svg-icons';
+import { faBookmark as faBookmarkSolid, faArchive, faTrash, faMagicWandSparkles, faRotateRight, faComments, faFolderPlus, faEllipsisV, faGem } from '@fortawesome/free-solid-svg-icons';
 import { faBookmark as faBookmarkRegular } from '@fortawesome/free-regular-svg-icons';
 import { hasProAccess } from '../../../utils/tierUtils';
 
@@ -30,6 +31,7 @@ const ArticleReader = () => {
     const [showCollectionSelector, setShowCollectionSelector] = useState(false);
     const [showDropdown, setShowDropdown] = useState(false);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+    const [useProSummary, setUseProSummary] = useState(false); // State for Pro summary toggle
 
     // Check if user has pro access for chat functionality
     const userHasProAccess = hasProAccess(user);
@@ -70,7 +72,9 @@ const ArticleReader = () => {
         setIsGeneratingSummary(true);
         try {
             const token = await getToken();
-            const response = await fetch(`/api/articles/${articleId}/summarize`, {
+            // Append `usePro=true` if the user has toggled it on
+            const url = `/api/articles/${articleId}/summarize${useProSummary && !userHasProAccess ? '?usePro=true' : ''}`;
+            const response = await fetch(url, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`
@@ -98,7 +102,9 @@ const ArticleReader = () => {
         setIsGeneratingSummary(true);
         try {
             const token = await getToken();
-            const response = await fetch(`/api/articles/${articleId}/summarize?force=true`, {
+            // Append `usePro=true` if the user has toggled it on
+            const url = `/api/articles/${articleId}/summarize?force=true${useProSummary && !userHasProAccess ? '&usePro=true' : ''}`;
+            const response = await fetch(url, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`
@@ -346,6 +352,26 @@ const ArticleReader = () => {
                     </span>
                 </button>
 
+                {/* Pro Summary Toggle for Free Users */}
+                {!userHasProAccess && !article.summary && (
+                    <div className="pro-toggle-container">
+                        <span className="toggle-label">
+                            <FontAwesomeIcon icon={faGem} />
+                            Pro Summary
+                        </span>
+                        <label className="toggle-switch">
+                            <input
+                                id="pro-toggle"
+                                type="checkbox"
+                                checked={useProSummary}
+                                onChange={(e) => setUseProSummary(e.target.checked)}
+                                disabled={isGeneratingSummary}
+                            />
+                            <span className="slider round"></span>
+                        </label>
+                    </div>
+                )}
+
                 <div className="actions-dropdown">
                     <button
                         onClick={() => setShowDropdown(!showDropdown)}
@@ -448,7 +474,7 @@ const ArticleReader = () => {
                         <div className="summary-content">
                             {!isChatMode ? (
                                 // Regular summary display
-                                article.summary
+                                <ReactMarkdown>{article.summary}</ReactMarkdown>
                             ) : (
                                 // Chat interface
                                 <div className="chat-interface">

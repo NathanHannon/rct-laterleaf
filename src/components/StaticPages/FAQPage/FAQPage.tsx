@@ -1,28 +1,17 @@
 import React, { useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faChevronDown, faChevronUp } from '@fortawesome/free-solid-svg-icons';
+import { faChevronDown } from '@fortawesome/free-solid-svg-icons';
 import './FAQPage.scss';
-
-interface FAQItem {
-    id: string;
-    question: string;
-    answer: string;
-}
+import UpgradeButton from '../../Common/Controls/UpgradeButton/UpgradeButton';
 
 const FAQPage: React.FC = () => {
-    const [openItems, setOpenItems] = useState<Set<string>>(new Set());
+    const [openId, setOpenId] = useState<string | null>(null);
 
     const toggleItem = (id: string) => {
-        const newOpenItems = new Set(openItems);
-        if (newOpenItems.has(id)) {
-            newOpenItems.delete(id);
-        } else {
-            newOpenItems.add(id);
-        }
-        setOpenItems(newOpenItems);
+        setOpenId(openId === id ? null : id);
     };
 
-    const faqData: FAQItem[] = [
+    const faqData = [
         {
             id: 'what-is-laterleaf',
             question: 'What is Later Leaf?',
@@ -37,6 +26,11 @@ const FAQPage: React.FC = () => {
             id: 'free-vs-pro',
             question: 'What\'s the difference between Free and Pro accounts?',
             answer: 'Free accounts include basic article saving, summarization, and organization features with a monthly limit on AI-generated summaries. Pro accounts offer unlimited summaries, advanced chat functionality to discuss articles with AI, priority support, and access to advanced search features.'
+        },
+        {
+            id: 'how-to-upgrade',
+            question: 'How do I upgrade to Pro?',
+            answer: 'Upgrading to Pro is easy! Just go to the "Account" section in Later Leaf, and you\'ll see an option to upgrade to Pro. Follow the prompts to enter your payment information and choose your subscription plan. Once upgraded, you\'ll instantly unlock all Pro features.'
         },
         {
             id: 'ai-summarization',
@@ -138,22 +132,24 @@ const FAQPage: React.FC = () => {
                                 {category.items.map((item) => (
                                     <div
                                         key={item.id}
-                                        className={`faq-item ${openItems.has(item.id) ? 'open' : ''}`}
+                                        className={`faq-item ${openId === item.id ? 'open' : ''}`}
                                     >
                                         <button
                                             className="faq-question"
                                             onClick={() => toggleItem(item.id)}
-                                            aria-expanded={openItems.has(item.id)}
+                                            aria-expanded={openId === item.id ? 'true' : 'false'}
                                         >
                                             <span>{item.question}</span>
                                             <FontAwesomeIcon
-                                                icon={openItems.has(item.id) ? faChevronUp : faChevronDown}
-                                                className="chevron-icon"
+                                                icon={faChevronDown}
+                                                className={`chevron-icon ${openId === item.id ? 'up' : ''}`}
                                             />
                                         </button>
-                                        <div className="faq-answer">
-                                            <p>{item.answer}</p>
-                                        </div>
+                                        {openId === item.id && (
+                                            <div className="faq-answer">
+                                                <p>{item.answer}</p>
+                                            </div>
+                                        )}
                                     </div>
                                 ))}
                             </div>
@@ -161,14 +157,20 @@ const FAQPage: React.FC = () => {
                     ))}
                 </div>
 
-                <section className="contact-section">
+                <div className="contact-section">
+                    <h2>Ready to Go Pro?</h2>
+                    <p>Unlock unlimited AI summaries, article chat, and advanced features.</p>
+                    <UpgradeButton />
+                </div>
+
+                <div className="contact-section">
                     <h2>Still have questions?</h2>
                     <p>
                         If you couldn't find the answer you were looking for, we're here to help!
                         Reach out to our support team and we'll get back to you as soon as possible.
                     </p>
                     <a href="/contact" className="contact-button">Contact Support</a>
-                </section>
+                </div>
             </div>
         </div>
     );

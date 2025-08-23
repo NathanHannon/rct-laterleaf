@@ -13,6 +13,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faInbox, faBookmark, faArchive, faGem, faFolderOpen, faFileExport } from '@fortawesome/free-solid-svg-icons';
 import { useSearch } from '../../hooks/searchHook';
 import { hasProAccess, extractUserTier } from '../../utils/tierUtils';
+import UpgradeButton from '../Common/Controls/Upgradebutton/UpgradeButton';
 
 const Header: React.FC = () => {
     const { searchTerm, setSearchTerm } = useSearch();
@@ -98,6 +99,7 @@ const Header: React.FC = () => {
                         <SignUpButton />
                     </SignedOut>
                     <SignedIn>
+                        {!userHasProAccess && <UpgradeButton />}
                         <UserButton />
                     </SignedIn>
                 </div>
