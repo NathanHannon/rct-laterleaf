@@ -1,109 +1,99 @@
-import React, { useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import {
-    SignedIn,
-    SignedOut,
-    SignInButton,
-    SignUpButton,
-    UserButton,
-    useUser,
-} from "@clerk/clerk-react";
+import { SignedIn, SignedOut, SignInButton, SignUpButton, UserButton, useUser } from "@clerk/clerk-react";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faInbox, faBookmark, faArchive, faGem, faFolderOpen, faFileExport } from '@fortawesome/free-solid-svg-icons';
+import { faInbox, faBookmark, faArchive, faGem, faFolderOpen, faFileExport, faCompass, faEllipsisH, faTimes } from '@fortawesome/free-solid-svg-icons';
 import { useSearch } from '../../hooks/searchHook';
-import { useUserStatus } from '../../context/UserStatusContext'; // Import the new hook
-import { hasProAccess, extractUserTier } from '../../utils/tierUtils';
-import UpgradeButton from '../Common/Controls/UpgradeButton/UpgradeButton';
+import { useUserStatus } from '../../context/userStatusContext';
+import { hasProAccess } from '../../utils/tierUtils';
 import './Header.scss';
 import logo from '../../assets/logo/icon-transparent.png';
 
 const Header: React.FC = () => {
     const { searchTerm, setSearchTerm } = useSearch();
-    const { user, isLoaded } = useUser();
-    const { isPro, isLoading } = useUserStatus(); // Use the hook to get status from your DB
-    const userHasProAccess = hasProAccess(user);
+    const { user } = useUser();
+    const { isPro } = useUserStatus();
+    const userHasProAccess = hasProAccess(user) || isPro;
+    const [showMoreMenu, setShowMoreMenu] = useState(false);
+    const moreMenuRef = useRef<HTMLDivElement>(null);
 
-    // Log user plan tier when user data becomes available
+    // Close dropdown when clicking outside
     useEffect(() => {
-        if (isLoaded && user) {
-            const tier = extractUserTier(user);
-            const features = (user.publicMetadata?.features as string[]) || [];
-            const role = user.publicMetadata?.role as string;
-
-            // Extract plan info from JWT if available
-            const userWithToken = user as typeof user & {
-                unsafeMetadata?: { _rawToken?: { pla?: string } };
-                __unstable__environment?: { jwt?: { pla?: string } };
-            };
-            const rawToken = userWithToken.unsafeMetadata?._rawToken ||
-                userWithToken.__unstable__environment?.jwt || {};
-            const plaField = rawToken.pla || 'unknown';
-
-            console.log('🎯 Frontend User Sign-In Detected:', {
-                userId: user.id.substring(0, 8) + '...',
-                email: user.primaryEmailAddress?.emailAddress || 'no email',
-                planTier: tier,
-                plaField,
-                features: features.length > 0 ? features : 'none',
-                role: role || 'none',
-                hasProAccess: userHasProAccess,
-                signInTime: new Date().toISOString()
-            });
-        }
-    }, [isLoaded, user, userHasProAccess]);
-
-    // Log pro status for debugging
-    console.log('🎨 Header: Pro access status:', userHasProAccess);
-
-    // A clearer placeholder for the free user
-    const freePlaceholder = "Search titles & excerpts...";
-
-    // A more powerful placeholder for the pro user
-    const proPlaceholder = "Search the full content of your entire library..."
-
-
-    const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setSearchTerm(event.target.value);
-    };
+        const handleClickOutside = (event: MouseEvent) => {
+            if (moreMenuRef.current && !moreMenuRef.current.contains(event.target as Node)) {
+                setShowMoreMenu(false);
+            }
+        };
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
 
     return (
-        <header className="header">
+        <header className="app-header">
             <div className="header-left">
                 <Link to="/" className="logo">
                     <img src={logo} alt="laterLeaf logo" />
                     <h2>Later Leaf</h2>
                 </Link>
                 <nav className="nav-links">
-                    <Link to="/articles"><FontAwesomeIcon icon={faInbox} /><span>Articles</span></Link>
-                    <Link to="/bookmarks"><FontAwesomeIcon icon={faBookmark} /><span>Bookmarks</span></Link>
-                    <Link to="/collections"><FontAwesomeIcon icon={faFolderOpen} /><span>Collections</span></Link>
-                    <Link to="/export"><FontAwesomeIcon icon={faFileExport} /><span>Export</span></Link>
-                    <Link to="/archive"><FontAwesomeIcon icon={faArchive} /><span>Archive</span></Link>
+                    <Link to="/discover" className="nav-item"><FontAwesomeIcon icon={faCompass} /><span>Discover</span></Link>
+                    <Link to="/articles" className="nav-item"><FontAwesomeIcon icon={faInbox} /><span>Articles</span></Link>
+                    <Link to="/bookmarks" className="nav-item"><FontAwesomeIcon icon={faBookmark} /><span>Bookmarks</span></Link>
+                    <Link to="/collections" className="nav-item"><FontAwesomeIcon icon={faFolderOpen} /><span>Collections</span></Link>
+
+                    <div className="nav-dropdown" ref={moreMenuRef}>
+                        <button onClick={() => setShowMoreMenu(!showMoreMenu)} className="nav-item nav-link-button">
+                            <FontAwesomeIcon icon={faEllipsisH} />
+                            <span>More</span>
+                        </button>
+                        {showMoreMenu && (
+                            <div className="dropdown-menu">
+                                <Link to="/export" onClick={() => setShowMoreMenu(false)}>
+                                    <FontAwesomeIcon icon={faFileExport} />
+                                    <span>Export</span>
+                                </Link>
+                                <Link to="/archive" onClick={() => setShowMoreMenu(false)}>
+                                    <FontAwesomeIcon icon={faArchive} />
+                                    <span>Archive</span>
+                                </Link>
+                            </div>
+                        )}
+                    </div>
                 </nav>
             </div>
+
             <div className="header-center">
-                <div className="search-bar">
+                <div className={`search-bar ${userHasProAccess ? 'full-width' : ''}`}>
                     <input
                         type="text"
-                        placeholder={userHasProAccess ? proPlaceholder : freePlaceholder}
+                        placeholder="Search your library..."
                         value={searchTerm}
-                        onChange={handleSearchChange}
+                        onChange={(e) => setSearchTerm(e.target.value)}
                     />
-                    {userHasProAccess && <FontAwesomeIcon icon={faGem} className="premium-icon" />}
+                    {searchTerm && (
+                        <button onClick={() => setSearchTerm('')} className="clear-search-button" aria-label="Clear search">
+                            <FontAwesomeIcon icon={faTimes} />
+                        </button>
+                    )}
                 </div>
             </div>
+
             <div className="header-right">
-                <div className="auth-container">
-                    <SignedOut>
-                        <SignInButton />
-                        <SignUpButton />
-                    </SignedOut>
-                    <SignedIn>
-                        {/* Show upgrade button only if status is loaded and user is not pro */}
-                        {!isLoading && !isPro && <UpgradeButton />}
-                        <UserButton />
-                    </SignedIn>
-                </div>
+                <SignedIn>
+                    {!userHasProAccess && (
+                        <button className="upgrade-button">
+                            <FontAwesomeIcon icon={faGem} />
+                            <span>Upgrade to Pro</span>
+                        </button>
+                    )}
+                    <UserButton />
+                </SignedIn>
+                <SignedOut>
+                    <div className="auth-buttons">
+                        <SignInButton mode="modal"><button className="sign-in-button">Sign In</button></SignInButton>
+                        <SignUpButton mode="modal"><button className="sign-up-button">Sign Up</button></SignUpButton>
+                    </div>
+                </SignedOut>
             </div>
         </header>
     );

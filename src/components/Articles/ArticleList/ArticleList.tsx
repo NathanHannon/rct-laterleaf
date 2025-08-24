@@ -13,7 +13,6 @@ import AddArticleForm from '../AddArticleForm/AddArticleForm';
 import { useSearch } from '../../../hooks/searchHook';
 import { hasProAccess } from '../../../utils/tierUtils';
 import { sortArticles } from '../../../utils/sortUtils';
-import RecommendationList from '../../Recommendations/RecommendationList';
 
 const ArticleList: React.FC = () => {
     const { getToken, isLoaded, isSignedIn } = useAuth();
@@ -83,14 +82,12 @@ const ArticleList: React.FC = () => {
                 }
 
                 const searchResults = await response.json();
-                console.log('Search response:', searchResults);
-                console.log('First search result:', searchResults[0]); // Check what fields are included
+                console.log('[SEARCH] Raw API Response:', searchResults);
 
                 const resultsArray = Array.isArray(searchResults) ? searchResults :
                     (searchResults.results && Array.isArray(searchResults.results)) ? searchResults.results : [];
 
-                console.log('Processed results array:', resultsArray);
-                console.log('First processed result:', resultsArray[0]);
+                console.log(`[SEARCH] Found ${resultsArray.length} articles.`, resultsArray);
 
                 setArticles(resultsArray);
             } catch (error) {
@@ -196,7 +193,6 @@ const ArticleList: React.FC = () => {
 
     return (
         <div className="article-list-container">
-            <RecommendationList />
             <AddArticleForm onArticleAdded={fetchArticles} />
             <div className="list-header">
                 <div className="header-left">

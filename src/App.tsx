@@ -12,11 +12,12 @@ import CollectionsList from './components/Collections/CollectionsList/Collection
 import CollectionView from './components/Collections/CollectionView/CollectionView';
 import { CollectionAnimationProvider } from './context/collectionAnimationContext';
 import { ToastProvider } from './context/toastContext';
-import AboutPage from './components/StaticPages/AboutPage/AboutPage';
-import ContactPage from './components/StaticPages/ContactPage/ContactPage';
-import PrivacyPage from './components/StaticPages/PrivacyPage/PrivacyPage';
-import FAQPage from './components/StaticPages/FAQPage/FAQPage';
-import ExportPage from './components/DataManagement/ExportPage/ExportPage';
+import AboutPage from './components/Pages/StaticPages/AboutPage/AboutPage';
+import ContactPage from './components/Pages/StaticPages/ContactPage/ContactPage';
+import PrivacyPage from './components/Pages/StaticPages/PrivacyPage/PrivacyPage';
+import FAQPage from './components/Pages/StaticPages/FAQPage/FAQPage';
+import ExportPage from './components/Pages/ExportPage/ExportPage';
+import DiscoverPage from './components/Pages/DiscoverPage/DiscoverPage';
 import BulkImporter from './components/Developer/BulkImporter/BulkImporter';
 
 function App() {
@@ -44,6 +45,7 @@ function App() {
                         <Route path="/privacy" element={<PrivacyPage />} />
                         <Route path="/faq" element={<FAQPage />} />
                         <Route path="/export" element={<ExportPage />} />
+                        <Route path="/discover" element={<DiscoverPage />} />
                         <Route path="/import" element={<BulkImporter />} />
                       </Routes>
                     </SignedIn>

@@ -1,164 +1,179 @@
-.header {
+.app-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 12px 40px;
-    border-bottom: 1px solid #ededed;
-    background-color: #fff;
+    padding: 0.5rem 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+    background-color: var(--background-primary);
+    height: 65px;
+    gap: 1rem;
 
     .header-left {
         display: flex;
         align-items: center;
-        gap: 32px;
-    }
+        gap: 1.5rem;
+        flex-shrink: 0;
 
-    .logo {
-        display: flex;
-        align-items: center;
-        gap: 16px;
-        color: #141414;
-
-        img {
-            width: 32px;
-            height: 32px;
-        }
-
-        h2 {
-            font-size: 18px;
-            font-weight: 700;
-            letter-spacing: -0.015em;
-            margin: 0;
-        }
-    }
-
-    .nav-links {
-        display: flex;
-        align-items: center;
-        gap: 36px;
-
-        a {
+        .logo {
             display: flex;
             align-items: center;
-            gap: 8px;
-            font-size: 14px;
-            font-weight: 500;
-            color: #141414;
+            gap: 0.5rem;
+            text-decoration: none;
+            color: var(--text-color);
+
+            img {
+                height: 32px;
+                width: 32px;
+            }
+
+            h2 {
+                font-size: 1.25rem;
+                font-weight: 600;
+                margin: 0;
+            }
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+
+            .nav-item {
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+                color: var(--text-color-secondary);
+                text-decoration: none;
+                padding: 0.5rem 0.75rem;
+                border-radius: 6px;
+                transition: background-color 0.2s, color 0.2s;
+                white-space: nowrap;
+
+                &:hover {
+                    background-color: var(--background-secondary);
+                    color: var(--text-color);
+                }
+            }
+
+            .nav-link-button {
+                background: none;
+                border: none;
+                cursor: pointer;
+                font-family: inherit;
+                font-size: inherit;
+            }
+        }
+
+        .nav-dropdown {
+            position: relative;
+
+            .dropdown-menu {
+                position: absolute;
+                top: 100%;
+                right: 0;
+                margin-top: 0.5rem;
+                background-color: var(--background-primary);
+                border: 1px solid var(--border-color);
+                border-radius: 8px;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+                padding: 0.5rem;
+                z-index: 100;
+                width: 180px;
+
+                a {
+                    display: flex;
+                    width: 100%;
+                    padding: 0.75rem;
+                    border-radius: 6px;
+                    color: var(--text-color-secondary);
+                    text-decoration: none;
+
+                    &:hover {
+                        background-color: var(--background-secondary);
+                        color: var(--text-color);
+                    }
+                }
+            }
+        }
+    }
+
+    .header-center {
+        flex-grow: 1;
+        display: flex;
+        justify-content: center;
+        min-width: 200px;
+
+        .search-bar {
+            position: relative; // Required for absolute positioning of the button
+            width: 100%;
+            max-width: 500px;
+            transition: max-width 0.3s ease-in-out;
+
+            &.full-width {
+                max-width: 700px;
+            }
+
+            input {
+                width: 100%;
+                padding: 0.6rem 2.5rem 0.6rem 1rem; // Increased right padding for the button
+                border-radius: 20px;
+                border: 2px solid var(--border-color);
+                background-color: var(--background-secondary);
+                color: var(--text-color);
+
+                &:focus {
+                    outline: none;
+                    border-color: var(--primary-color);
+                    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.2);
+                }
+            }
+
+            .clear-search-button {
+                position: absolute;
+                right: 12px;
+                top: 50%;
+                transform: translateY(-50%);
+                background: transparent;
+                border: none;
+                color: var(--text-color-secondary);
+                cursor: pointer;
+                padding: 0.25rem;
+                font-size: 1.1rem;
+
+                &:hover {
+                    color: var(--text-color);
+                }
+            }
         }
     }
 
     .header-right {
         display: flex;
         align-items: center;
-        gap: 32px;
-    }
+        gap: 1rem;
+        flex-shrink: 0;
 
-    .search-bar {
-        display: flex;
-        align-items: center;
-        background-color: #ededed;
-        border-radius: 8px;
-        padding: 0 16px;
-        height: 40px;
-        min-width: 160px;
-        max-width: 256px;
-
-        svg {
-            color: #a3a3a3; // neutral-500
-        }
-
-        input {
-            background: none;
+        .upgrade-button {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background-color: #ffc107;
+            color: #212529;
             border: none;
-            outline: none;
-            padding-left: 8px;
-            color: #141414;
-            font-size: 16px;
-
-            &::placeholder {
-                color: #a3a3a3; // neutral-500
-            }
-        }
-
-        .premium-icon {
-            // Diamond emoji color - bright cyan-blue
-            color: #00b4d8;
-
-            // Diamond sparkle effect with cyan glow
-            filter: drop-shadow(0 0 8px rgba(0, 180, 216, 0.6)) drop-shadow(0 0 12px rgba(0, 180, 216, 0.4)) drop-shadow(0 0 16px rgba(0, 180, 216, 0.2));
-
-            // Slight scale and animation
-            transform: scale(1.15);
-            animation: diamond-sparkle 3s ease-in-out infinite;
-
-            // Ensure it stands out
-            position: relative;
-            z-index: 10;
-        }
-
-        @keyframes diamond-sparkle {
-
-            0%,
-            100% {
-                filter: drop-shadow(0 0 8px rgba(0, 180, 216, 0.6)) drop-shadow(0 0 12px rgba(0, 180, 216, 0.4)) drop-shadow(0 0 16px rgba(0, 180, 216, 0.2));
-                transform: scale(1.15);
-            }
-
-            50% {
-                filter: drop-shadow(0 0 12px rgba(0, 180, 216, 0.8)) drop-shadow(0 0 18px rgba(0, 180, 216, 0.6)) drop-shadow(0 0 24px rgba(0, 180, 216, 0.4));
-                transform: scale(1.2);
-            }
-        }
-    }
-
-    .avatar {
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
-        background-size: cover;
-        background-position: center;
-    }
-
-    .auth-container {
-        display: flex;
-        align-items: center;
-        gap: 16px;
-
-        .cl-userButton-root {
-            .cl-userButton-avatarBox {
-                width: 40px;
-                height: 40px;
-            }
-        }
-
-        button {
-            border-radius: 8px;
-            font-size: 14px;
+            border-radius: 20px;
             font-weight: 600;
-            padding: 8px 16px;
-            transition: all 0.2s ease-in-out;
             cursor: pointer;
+            transition: background-color 0.2s;
 
-            &:first-of-type {
-                background-color: transparent;
-                color: #44E0A1;
-                border: 1px solid #44E0A1;
-
-                &:hover {
-                    background-color: #44E0A1;
-                    color: #fff;
-                }
+            &:hover {
+                background-color: #ffca2c;
             }
+        }
 
-            &:last-of-type {
-                background-color: #0B4F4A;
-                color: #fff;
-                border: 1px solid #0B4F4A;
-
-                &:hover {
-                    background-color: #0B4F4A;
-                    border-color: #0B4F4A;
-                }
-            }
+        .auth-buttons {
+            display: flex;
+            gap: 0.5rem;
         }
     }
 }
