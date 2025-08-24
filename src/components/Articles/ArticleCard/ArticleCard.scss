@@ -150,6 +150,36 @@
     transform: translateY(20px);
     transition: opacity 0.3s ease, transform 0.3s ease;
 
+    .button-add-to-library {
+        flex-grow: 1;
+        background-color: #4CAF50;
+        color: white;
+        border: none;
+        border-radius: 20px;
+        padding: 8px 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 0.9rem;
+
+        &:hover {
+            background-color: #45a049;
+            transform: scale(1.05);
+        }
+
+        svg {
+            transition: transform 0.3s ease;
+        }
+
+        &:hover svg {
+            transform: rotate(90deg);
+        }
+    }
+
     .button-favorite {
         background-color: #424242;
         color: white;

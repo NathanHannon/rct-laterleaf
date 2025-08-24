@@ -17,6 +17,7 @@ import ContactPage from './components/StaticPages/ContactPage/ContactPage';
 import PrivacyPage from './components/StaticPages/PrivacyPage/PrivacyPage';
 import FAQPage from './components/StaticPages/FAQPage/FAQPage';
 import ExportPage from './components/DataManagement/ExportPage/ExportPage';
+import BulkImporter from './components/Developer/BulkImporter/BulkImporter';
 
 function App() {
   return (
@@ -43,6 +44,7 @@ function App() {
                         <Route path="/privacy" element={<PrivacyPage />} />
                         <Route path="/faq" element={<FAQPage />} />
                         <Route path="/export" element={<ExportPage />} />
+                        <Route path="/import" element={<BulkImporter />} />
                       </Routes>
                     </SignedIn>
                     <SignedOut>

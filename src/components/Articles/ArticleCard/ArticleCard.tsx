@@ -2,21 +2,20 @@ import React, { useState, useEffect } from 'react';
 import './ArticleCard.scss';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
-import type { Article } from '../../../interfaces/article';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBookmark as faBookmarkSolid, faArchive, faTrash, faEllipsisV, faFolderPlus, faNewspaper } from '@fortawesome/free-solid-svg-icons';
+import { faBookmark as faBookmarkSolid, faArchive, faTrash, faEllipsisV, faFolderPlus, faNewspaper, faPlus } from '@fortawesome/free-solid-svg-icons';
 import { faBookmark as faBookmarkRegular } from '@fortawesome/free-regular-svg-icons';
 import CollectionSelector from '../../Collections/CollectionSelector/CollectionSelector';
 import { getGradientForString } from '../../../utils/colorUtils';
+import type { ArticleCardProps } from '../../../interfaces/props/article-card-props';
 
-interface ArticleCardProps {
-    article: Article;
-    onDelete: (id: string) => void;
-    onArchive: (id: string) => void;
-    onToggleBookmark: (id: string) => void;
-}
-
-const ArticleCard: React.FC<ArticleCardProps> = ({ article, onDelete, onArchive, onToggleBookmark }) => {
+const ArticleCard: React.FC<ArticleCardProps> = ({
+    article,
+    onDelete,
+    onArchive,
+    onToggleBookmark,
+    onAddToLibrary, // Destructure new prop
+}) => {
     // Reverted to `imageUrl` to match the actual data property for the hero image.
     const { id, imageUrl, title, excerpt, isBookmarked, isArchived } = article;
     const [isBookmarkAnimating, setIsBookmarkAnimating] = useState(false);
@@ -152,65 +151,77 @@ const ArticleCard: React.FC<ArticleCardProps> = ({ article, onDelete, onArchive,
 
                 {/* Updated Actions with Dropdown */}
                 <div className="article-card-actions" onClick={handleActionClick}>
-                    <motion.button
-                        onClick={handleBookmarkClick}
-                        className={`button-favorite ${currentBookmarkState ? 'favorited' : ''}`}
-                        whileTap={{ scale: 0.95 }}
-                        animate={isBookmarkAnimating ? {
-                            scale: [1, 1.1, 1],
-                            rotateZ: [0, 5, -5, 0]
-                        } : {}}
-                        transition={{ duration: 0.3 }}
-                    >
-                        <FontAwesomeIcon icon={currentBookmarkState ? faBookmarkSolid : faBookmarkRegular} />
-                    </motion.button>
-
-                    <div className="actions-dropdown">
+                    {onAddToLibrary ? (
                         <button
-                            onClick={() => setShowDropdown(!showDropdown)}
-                            className="dropdown-toggle"
+                            onClick={() => onAddToLibrary(id!)}
+                            className="button-add-to-library"
                         >
-                            <FontAwesomeIcon icon={faEllipsisV} />
+                            <FontAwesomeIcon icon={faPlus} />
+                            <span>Add to Library</span>
                         </button>
+                    ) : (
+                        <>
+                            <motion.button
+                                onClick={handleBookmarkClick}
+                                className={`button-favorite ${currentBookmarkState ? 'favorited' : ''}`}
+                                whileTap={{ scale: 0.95 }}
+                                animate={isBookmarkAnimating ? {
+                                    scale: [1, 1.1, 1],
+                                    rotateZ: [0, 5, -5, 0]
+                                } : {}}
+                                transition={{ duration: 0.3 }}
+                            >
+                                <FontAwesomeIcon icon={currentBookmarkState ? faBookmarkSolid : faBookmarkRegular} />
+                            </motion.button>
 
-                        <AnimatePresence>
-                            {showDropdown && (
-                                <motion.div
-                                    className="dropdown-menu"
-                                    initial={{ opacity: 0, scale: 0.95, y: -10 }}
-                                    animate={{ opacity: 1, scale: 1, y: 0 }}
-                                    exit={{ opacity: 0, scale: 0.95, y: -10 }}
-                                    transition={{ duration: 0.15 }}
+                            <div className="actions-dropdown">
+                                <button
+                                    onClick={() => setShowDropdown(!showDropdown)}
+                                    className="dropdown-toggle"
                                 >
-                                    <button
-                                        onClick={() => {
-                                            setShowCollectionSelector(true);
-                                            // Small delay to ensure modal opens before dropdown closes
-                                            setTimeout(() => setShowDropdown(false), 50);
-                                        }}
-                                        className="dropdown-item collection-item"
-                                    >
-                                        <FontAwesomeIcon icon={faFolderPlus} />
-                                        <span>Add to Collection</span>
-                                    </button>
-                                    <button
-                                        onClick={() => handleDropdownAction(() => id && onArchive(id))}
-                                        className="dropdown-item archive-item"
-                                    >
-                                        <FontAwesomeIcon icon={faArchive} />
-                                        <span>{isArchived ? 'Unarchive' : 'Archive'}</span>
-                                    </button>
-                                    <button
-                                        onClick={() => handleDropdownAction(() => id && onDelete(id))}
-                                        className="dropdown-item delete-item"
-                                    >
-                                        <FontAwesomeIcon icon={faTrash} />
-                                        <span>Delete</span>
-                                    </button>
-                                </motion.div>
-                            )}
-                        </AnimatePresence>
-                    </div>
+                                    <FontAwesomeIcon icon={faEllipsisV} />
+                                </button>
+
+                                <AnimatePresence>
+                                    {showDropdown && (
+                                        <motion.div
+                                            className="dropdown-menu"
+                                            initial={{ opacity: 0, scale: 0.95, y: -10 }}
+                                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                                            exit={{ opacity: 0, scale: 0.95, y: -10 }}
+                                            transition={{ duration: 0.15 }}
+                                        >
+                                            <button
+                                                onClick={() => {
+                                                    setShowCollectionSelector(true);
+                                                    // Small delay to ensure modal opens before dropdown closes
+                                                    setTimeout(() => setShowDropdown(false), 50);
+                                                }}
+                                                className="dropdown-item collection-item"
+                                            >
+                                                <FontAwesomeIcon icon={faFolderPlus} />
+                                                <span>Add to Collection</span>
+                                            </button>
+                                            <button
+                                                onClick={() => handleDropdownAction(() => id && onArchive(id))}
+                                                className="dropdown-item archive-item"
+                                            >
+                                                <FontAwesomeIcon icon={faArchive} />
+                                                <span>{isArchived ? 'Unarchive' : 'Archive'}</span>
+                                            </button>
+                                            <button
+                                                onClick={() => handleDropdownAction(() => id && onDelete(id))}
+                                                className="dropdown-item delete-item"
+                                            >
+                                                <FontAwesomeIcon icon={faTrash} />
+                                                <span>Delete</span>
+                                            </button>
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
+                            </div>
+                        </>
+                    )}
                 </div>
             </motion.div>
 

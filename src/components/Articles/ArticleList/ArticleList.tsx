@@ -13,6 +13,7 @@ import AddArticleForm from '../AddArticleForm/AddArticleForm';
 import { useSearch } from '../../../hooks/searchHook';
 import { hasProAccess } from '../../../utils/tierUtils';
 import { sortArticles } from '../../../utils/sortUtils';
+import RecommendationList from '../../Recommendations/RecommendationList';
 
 const ArticleList: React.FC = () => {
     const { getToken, isLoaded, isSignedIn } = useAuth();
@@ -195,6 +196,7 @@ const ArticleList: React.FC = () => {
 
     return (
         <div className="article-list-container">
+            <RecommendationList />
             <AddArticleForm onArticleAdded={fetchArticles} />
             <div className="list-header">
                 <div className="header-left">
