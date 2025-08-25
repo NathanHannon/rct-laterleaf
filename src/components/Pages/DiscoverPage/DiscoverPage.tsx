@@ -1,48 +1,65 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@clerk/clerk-react';
-import ArticleCard from '../../Articles/ArticleCard/ArticleCard';
+import RecommendationCard from '../../Articles/RecommendationCard/RecommendationCard';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faSpinner, faSync } from '@fortawesome/free-solid-svg-icons';
+import { faSpinner, faSync, faCheckCircle } from '@fortawesome/free-solid-svg-icons';
 import type { Article } from '../../../interfaces/article';
 import './DiscoverPage.scss';
 import { useToast } from '../../../context/toastContext';
-import { motion, type Variants } from 'framer-motion';
+import { motion, type Variants, AnimatePresence } from 'framer-motion';
 
 const DiscoverPage: React.FC = () => {
     const { getToken, isSignedIn } = useAuth();
     const { showSuccess, showError } = useToast();
     const [recommendations, setRecommendations] = useState<Article[]>([]);
-    const [recommendationType, setRecommendationType] = useState<'personalized' | 'popular'>('popular');
+    const [recommendationType, setRecommendationType] = useState<'personalized' | 'popular' | 'none'>('popular');
     const [isLoading, setIsLoading] = useState(true);
     const [isFetchingMore, setIsFetchingMore] = useState(false);
+    const [allRecommendationsLoaded, setAllRecommendationsLoaded] = useState(false);
 
-    const fetchRecommendations = useCallback(async () => {
-        if (!isSignedIn) return;
-        setIsFetchingMore(true); // Use this for both initial load and "load more"
+    const fetchRecommendations = useCallback(async (isInitialFetch = false) => {
+        if (!isSignedIn || isFetchingMore) return;
+
+        setIsFetchingMore(true);
+        if (isInitialFetch) {
+            setIsLoading(true);
+        }
+
         try {
             const token = await getToken();
+            const previouslyRecommendedIds = isInitialFetch ? [] : recommendations.map(a => a.id);
+
             const response = await fetch(`/api/recommendations`, {
-                headers: { 'Authorization': `Bearer ${token}` }
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ previouslyRecommendedIds }),
             });
+
             if (!response.ok) throw new Error(`Failed to fetch recommendations: ${response.statusText}`);
             const data = await response.json();
 
-            // On initial load, set recommendations. On "load more", append them.
-            setRecommendations(prev => [...prev, ...data.articles]);
-            setRecommendationType(data.type);
+            if (data.type === 'none' || data.articles.length === 0) {
+                setAllRecommendationsLoaded(true);
+            } else {
+                setRecommendations(prev => isInitialFetch ? data.articles : [...prev, ...data.articles]);
+                setRecommendationType(data.type);
+            }
         } catch {
             showError("Error", "Could not load recommendations.");
         } finally {
             setIsLoading(false);
             setIsFetchingMore(false);
         }
-    }, [getToken, isSignedIn, showError]);
+    }, [getToken, isSignedIn, showError, recommendations, isFetchingMore]);
 
     useEffect(() => {
-        // Initial fetch
-        setRecommendations([]); // Clear previous recommendations on mount
-        fetchRecommendations();
-    }, [fetchRecommendations]);
+        // Initial fetch on mount
+        fetchRecommendations(true);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []); // Run only once
 
     const handleAddToLibrary = async (articleId: string) => {
         const article = recommendations.find(rec => rec.id === articleId);
@@ -66,26 +83,11 @@ const DiscoverPage: React.FC = () => {
         }
     };
 
-    const containerVariants: Variants = {
-        hidden: { opacity: 0 },
-        visible: {
-            opacity: 1,
-            transition: {
-                staggerChildren: 0.07,
-            },
-        },
-    };
-
+    // We can simplify the variants. The container no longer needs to control staggering.
     const itemVariants: Variants = {
-        hidden: { y: 20, opacity: 0 },
-        visible: {
-            y: 0,
-            opacity: 1,
-            transition: {
-                duration: 0.4,
-                ease: 'easeOut',
-            },
-        },
+        initial: { opacity: 0, y: 20 },
+        animate: { opacity: 1, y: 0 },
+        exit: { opacity: 0, y: -20 },
     };
 
     const title = recommendationType === 'popular' ? 'Popular Articles' : 'Recommended for You';
@@ -110,28 +112,33 @@ const DiscoverPage: React.FC = () => {
             </div>
             {recommendations.length > 0 ? (
                 <>
-                    <motion.div
-                        className="discover-grid"
-                        variants={containerVariants}
-                        initial="hidden"
-                        animate="visible"
-                    >
-                        {recommendations.map(article => (
-                            <motion.div key={article.id} variants={itemVariants}>
-                                <ArticleCard
-                                    article={article}
-                                    onAddToLibrary={handleAddToLibrary}
-                                    onDelete={() => { }}
-                                    onArchive={() => { }}
-                                    onToggleBookmark={() => { }}
-                                />
-                            </motion.div>
-                        ))}
-                    </motion.div>
+                    <div className="discover-grid">
+                        {/* 2. Wrap the list with AnimatePresence */}
+                        <AnimatePresence>
+                            {recommendations.filter(article => article && article.id).map((article, index) => (
+                                // 3. Apply animation props directly to the motion.div
+                                <motion.div
+                                    key={article.id}
+                                    variants={itemVariants}
+                                    initial="initial"
+                                    animate="animate"
+                                    exit="exit"
+                                    transition={{ duration: 0.4, delay: (index % 12) * 0.07, ease: 'easeOut' }}
+                                >
+                                    <RecommendationCard
+                                        article={article}
+                                        onAddToLibrary={handleAddToLibrary}
+                                    />
+                                </motion.div>
+                            ))}
+                        </AnimatePresence>
+                    </div>
                     <div className="discover-footer">
-                        <button onClick={fetchRecommendations} disabled={isFetchingMore} className="load-more-button">
+                        <button onClick={() => fetchRecommendations()} disabled={isFetchingMore || allRecommendationsLoaded} className="load-more-button">
                             {isFetchingMore ? (
                                 <><FontAwesomeIcon icon={faSpinner} spin /> Loading...</>
+                            ) : allRecommendationsLoaded ? (
+                                <><FontAwesomeIcon icon={faCheckCircle} /> No More Articles</>
                             ) : (
                                 <><FontAwesomeIcon icon={faSync} /> Load More</>
                             )}
@@ -140,8 +147,8 @@ const DiscoverPage: React.FC = () => {
                 </>
             ) : (
                 <div className="discover-empty">
-                    <h3>No recommendations for you right now.</h3>
-                    <p>Start saving and reading articles to get personalized suggestions!</p>
+                    <h3>No new recommendations for you right now.</h3>
+                    <p>Check back later, or start saving and reading articles to get personalized suggestions!</p>
                 </div>
             )}
         </div>
