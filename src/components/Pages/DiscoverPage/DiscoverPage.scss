@@ -25,6 +25,40 @@
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     gap: 1.5rem;
+    padding: 0 1rem;
+    /* Add padding to the grid container */
+}
+
+.discover-footer {
+    text-align: center;
+    margin-top: 2.5rem;
+    padding-bottom: 2rem;
+
+    .load-more-button {
+        padding: 0.75rem 2rem;
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--text-color);
+        background-color: var(--background-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: 20px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+
+        &:hover:not(:disabled) {
+            background-color: var(--border-color);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        &:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+    }
 }
 
 .discover-page-loading,
