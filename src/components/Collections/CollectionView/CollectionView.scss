@@ -38,6 +38,7 @@
             font-size: 2.5rem;
             font-weight: 700;
             margin-bottom: 0.5rem;
+            color: var(--text-color); // Use theme text color
 
             .collection-emoji {
                 font-size: 2.75rem;
@@ -248,4 +249,13 @@
     align-items: center;
     min-height: 400px;
     color: #666;
+}
+
+// Ensure proper contrast for collection view headers in both themes
+[data-theme='light'] .collection-info h1 {
+    color: #0f766e; // Dark teal for light mode
+}
+
+[data-theme='dark'] .collection-info h1 {
+    color: #ffffff !important; // Force white text in dark mode
 }

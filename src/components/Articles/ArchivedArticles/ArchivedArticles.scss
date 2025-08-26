@@ -4,7 +4,7 @@
     .list-title {
         font-size: 2rem;
         margin-bottom: 1.5rem;
-        color: #333;
+        color: var(--text-color); // Use theme text color
     }
 
     .article-grid {
@@ -12,6 +12,15 @@
         grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
         gap: 1.5rem;
     }
+}
+
+// Ensure proper contrast in both themes
+[data-theme='light'] .article-list-container .list-title {
+    color: #0f766e; // Dark teal for light mode
+}
+
+[data-theme='dark'] .article-list-container .list-title {
+    color: #ffffff !important; // Force white text in dark mode
 }
 
 .loading-container {

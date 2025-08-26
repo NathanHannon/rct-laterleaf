@@ -88,6 +88,7 @@ const CollectionCard: React.FC<CollectionCardProps> = ({
                         <div className="collection-title-container">
                             {collection.emoji && <span className="collection-emoji">{collection.emoji}</span>}
                             <motion.h3
+                                className="card-title"
                                 layoutId={`collection-title-${collection.id}`}
                             >
                                 {collection.name}
