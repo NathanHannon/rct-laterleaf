@@ -3,7 +3,8 @@ import { createRoot } from 'react-dom/client'
 import { ClerkProvider } from '@clerk/clerk-react'
 import App from './App'
 import './index.scss'
-import { UserStatusProvider } from './context/UserStatusContext'
+import { UserStatusProvider } from './context/userStatusContext'
+import { ThemeProvider } from './context/themeContext'
 
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY
 
@@ -15,7 +16,9 @@ createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <ClerkProvider publishableKey={PUBLISHABLE_KEY}>
       <UserStatusProvider>
-        <App />
+        <ThemeProvider>
+          <App />
+        </ThemeProvider>
       </UserStatusProvider>
     </ClerkProvider>
   </StrictMode>,

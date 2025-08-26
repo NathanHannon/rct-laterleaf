@@ -1,6 +1,7 @@
 .article-reader {
     padding: 2rem;
-    background-color: #fff;
+    background-color: var(--card-bg);
+    color: var(--text-color);
     border-radius: 8px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     max-width: 800px;
@@ -13,14 +14,14 @@
 
     .article-author,
     .article-date {
-        color: #555;
+        color: var(--secondary-color);
         font-size: 0.9rem;
         margin-bottom: 1rem;
     }
 
     hr {
         border: 0;
-        border-top: 1px solid #eee;
+        border-top: 1px solid var(--card-border);
         margin: 2rem 0;
     }
 
@@ -33,7 +34,7 @@
         }
 
         a {
-            color: #007bff;
+            color: var(--link-color);
             text-decoration: none;
 
             &:hover {
@@ -49,6 +50,7 @@
         }
     }
 }
+
 
 .article-actions {
     display: flex;
@@ -297,11 +299,16 @@
 }
 
 .ai-summary-panel {
-    background: linear-gradient(135deg, #f8f4ff 0%, #f0f0ff 100%);
-    border: 2px solid #e1bee7;
+    background: linear-gradient(135deg, #f3e5f5 0%, #e8dff5 100%);
+    border: 2px solid #d1c4e9;
     border-radius: 12px;
     padding: 1.5rem;
     overflow: hidden;
+}
+
+[data-theme='dark'] .ai-summary-panel {
+    background: linear-gradient(135deg, #2a1a3d 0%, #3c2a4d 100%);
+    border-color: #4a2a6d;
 }
 
 .summary-header {
@@ -317,21 +324,21 @@
 
         h3 {
             margin: 0;
-            color: #7b1fa2;
+            color: var(--primary-color);
             font-size: 1.2rem;
             font-weight: 600;
         }
 
         small {
-            color: #666;
+            color: var(--secondary-color);
             font-style: italic;
         }
     }
 
     .refresh-summary-button {
         background: transparent;
-        border: 1px solid #7b1fa2;
-        color: #7b1fa2;
+        border: 1px solid var(--primary-color);
+        color: var(--primary-color);
         border-radius: 6px;
         padding: 0.5rem;
         cursor: pointer;
@@ -343,8 +350,8 @@
         transition: all 0.2s ease;
 
         &:hover:not(:disabled) {
-            background: #7b1fa2;
-            color: white;
+            background: var(--primary-color);
+            color: var(--button-text);
             transform: scale(1.05);
         }
 
@@ -359,7 +366,7 @@
     }
 
     .summary-content {
-        color: #333;
+        color: var(--text-color);
         line-height: 1.6;
         font-size: 1rem;
 
@@ -410,8 +417,8 @@
             justify-content: flex-end;
 
             .message-content {
-                background-color: #007bff;
-                color: white;
+                background-color: var(--primary-color);
+                color: var(--button-text);
                 padding: 0.75rem 1rem;
                 border-radius: 18px 18px 4px 18px;
                 max-width: 80%;
@@ -423,8 +430,8 @@
             justify-content: flex-start;
 
             .message-content {
-                background-color: #f1f3f4;
-                color: #333;
+                background-color: var(--card-bg);
+                color: var(--text-color);
                 padding: 0.75rem 1rem;
                 border-radius: 18px 18px 18px 4px;
                 max-width: 80%;
@@ -442,26 +449,28 @@
             .chat-input-field {
                 flex: 1;
                 padding: 0.75rem 1rem;
-                border: 1px solid #ddd;
+                border: 1px solid var(--card-border);
+                background-color: var(--background-color);
+                color: var(--text-color);
                 border-radius: 24px;
                 font-size: 0.9rem;
                 outline: none;
 
                 &:focus {
-                    border-color: #007bff;
-                    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+                    border-color: var(--primary-color);
+                    box-shadow: 0 0 0 2px var(--primary-color);
                 }
 
                 &:disabled {
-                    background-color: #f8f9fa;
-                    color: #6c757d;
+                    background-color: var(--secondary-color);
+                    color: var(--text-color);
                 }
             }
 
             .chat-send-button {
                 padding: 0.75rem 1.5rem;
-                background-color: #007bff;
-                color: white;
+                background-color: var(--primary-color);
+                color: var(--button-text);
                 border: none;
                 border-radius: 24px;
                 font-size: 0.9rem;
@@ -469,11 +478,11 @@
                 transition: background-color 0.2s;
 
                 &:hover:not(:disabled) {
-                    background-color: #0056b3;
+                    background-color: var(--primary-color);
                 }
 
                 &:disabled {
-                    background-color: #6c757d;
+                    background-color: var(--secondary-color);
                     cursor: not-allowed;
                 }
             }

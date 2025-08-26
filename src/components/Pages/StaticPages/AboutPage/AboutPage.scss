@@ -28,17 +28,17 @@
 }
 
 .intro {
-    background: var(--card-background);
+    background: var(--card-bg);
     padding: 2rem;
     border-radius: 12px;
     margin-bottom: 3rem;
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--card-border);
 }
 
 .intro p {
     font-size: 1.1rem;
     margin: 0;
-    color: var(--text-color);
+    color: var(--text-color-secondary);
 }
 
 .feature-grid {
@@ -49,10 +49,10 @@
 }
 
 .feature-item {
-    background: var(--card-background);
+    background: var(--card-bg);
     padding: 1.5rem;
     border-radius: 8px;
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--card-border);
     transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
@@ -73,24 +73,25 @@
 
 .mission p {
     font-size: 1.1rem;
-    background: var(--card-background);
+    background: var(--card-bg);
     padding: 1.5rem;
     border-radius: 8px;
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--card-border);
     margin: 0;
+    color: var(--text-color-secondary);
 }
 
 .values ul {
-    background: var(--card-background);
+    background: var(--card-bg);
     padding: 2rem;
     border-radius: 8px;
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--card-border);
     margin: 1rem 0 0 0;
 }
 
 .values li {
     margin-bottom: 1rem;
-    color: var(--text-color);
+    color: var(--text-color-secondary);
 }
 
 .values li:last-child {

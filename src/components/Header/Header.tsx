@@ -6,6 +6,7 @@ import { faInbox, faBookmark, faArchive, faGem, faFolderOpen, faFileExport, faCo
 import { useSearch } from '../../hooks/searchHook';
 import { useUserStatus } from '../../context/userStatusContext';
 import { hasProAccess } from '../../utils/tierUtils';
+import ThemeSwitcher from '../Common/ThemeSwitcher/ThemeSwitcher';
 import './Header.scss';
 import logo from '../../assets/logo/icon-transparent.png';
 
@@ -79,6 +80,7 @@ const Header: React.FC = () => {
             </div>
 
             <div className="header-right">
+                <ThemeSwitcher />
                 <SignedIn>
                     {!userHasProAccess && (
                         <button className="upgrade-button">

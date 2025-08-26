@@ -23,18 +23,18 @@
 }
 
 .intro {
-    background: var(--card-background);
+    background: var(--card-bg);
     padding: 2rem;
     border-radius: 12px;
     margin-bottom: 3rem;
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--card-border);
     text-align: center;
 }
 
 .intro p {
     font-size: 1.1rem;
     margin: 0;
-    color: var(--text-color);
+    color: var(--text-color-secondary);
 }
 
 .contact-methods {
@@ -45,10 +45,10 @@
 }
 
 .contact-card {
-    background: var(--card-background);
+    background: var(--card-bg);
     padding: 2rem;
     border-radius: 12px;
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--card-border);
     transition: transform 0.2s ease, box-shadow 0.2s ease;
     text-align: center;
 }
@@ -86,10 +86,10 @@
 }
 
 .response-time {
-    background: var(--card-background);
+    background: var(--card-bg);
     padding: 2rem;
     border-radius: 12px;
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--card-border);
     margin-bottom: 3rem;
 }
 

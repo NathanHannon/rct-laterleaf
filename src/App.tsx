@@ -19,14 +19,18 @@ import FAQPage from './components/Pages/StaticPages/FAQPage/FAQPage';
 import ExportPage from './components/Pages/ExportPage/ExportPage';
 import DiscoverPage from './components/Pages/DiscoverPage/DiscoverPage';
 import BulkImporter from './components/Developer/BulkImporter/BulkImporter';
+import { useTheme } from './context/themeContext';
+import HeroPage from './components/Pages/HeroPage/HeroPage';
+import FallingLeaves from './components/Common/FallingLeaves/FallingLeaves';
 
 function App() {
+  const { theme } = useTheme();
   return (
     <ToastProvider>
       <CollectionAnimationProvider>
         <SearchProvider>
           <BrowserRouter>
-            <div className="app">
+            <div className={`app ${theme}`}>
               <div className="layout-container">
                 <Header />
                 <main className="main-content">
@@ -50,16 +54,18 @@ function App() {
                       </Routes>
                     </SignedIn>
                     <SignedOut>
+                      <FallingLeaves />
                       <Routes>
                         <Route path="/about" element={<AboutPage />} />
                         <Route path="/contact" element={<ContactPage />} />
                         <Route path="/privacy" element={<PrivacyPage />} />
                         <Route path="/faq" element={<FAQPage />} />
                         <Route path="*" element={
-                          <div className="signed-out-message">
-                            <h2>Welcome to Later Leaf</h2>
-                            <p>Please sign in to view and save articles.</p>
-                          </div>
+                          // <div className="signed-out-message">
+                          //   <h2>Welcome to Later Leaf</h2>
+                          //   <p>Please sign in to view and save articles.</p>
+                          // </div>
+                          <HeroPage />
                         } />
                       </Routes>
                     </SignedOut>

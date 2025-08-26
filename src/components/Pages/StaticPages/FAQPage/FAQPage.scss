@@ -17,18 +17,18 @@
 }
 
 .intro {
-    background: var(--card-background);
+    background: var(--card-bg);
     padding: 2rem;
     border-radius: 12px;
     margin-bottom: 3rem;
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--card-border);
     text-align: center;
 }
 
 .intro p {
     font-size: 1.1rem;
     margin: 0;
-    color: var(--text-color);
+    color: var(--text-color-secondary);
 }
 
 .intro a {
@@ -63,8 +63,8 @@
 }
 
 .faq-item {
-    background: var(--card-background);
-    border: 1px solid var(--border-color);
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
     border-radius: 8px;
     overflow: hidden;
     transition: all 0.3s ease;
@@ -86,7 +86,7 @@
     align-items: center;
     font-size: 1.1rem;
     font-weight: 500;
-    color: var(--text-color);
+    color: var(--text-color-secondary);
     transition: background-color 0.2s ease;
 }
 
