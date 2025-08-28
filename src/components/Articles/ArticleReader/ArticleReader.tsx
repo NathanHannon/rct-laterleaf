@@ -11,6 +11,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBookmark as faBookmarkSolid, faArchive, faTrash, faMagicWandSparkles, faRotateRight, faComments, faFolderPlus, faEllipsisV, faGem } from '@fortawesome/free-solid-svg-icons';
 import { faBookmark as faBookmarkRegular } from '@fortawesome/free-regular-svg-icons';
 import { hasProAccess } from '../../../utils/tierUtils';
+import { ArticleAudioPlayer } from '../ArticleAudioPlayer/ArticleAudioPlayer';
 
 const ArticleReader = () => {
     const { articleId } = useParams<{ articleId: string }>();
@@ -504,6 +505,7 @@ const ArticleReader = () => {
                                 )}
                             </div>
                         </div>
+                        {/* <ArticleAudioPlayer articleId={article.id ?? ''} hasContent={!!article.content} /> */}
                         <div className="summary-content">
                             {/* Show pending message if status is pending */}
                             {summaryMetadata.status === 'pending' ? (
@@ -606,6 +608,9 @@ const ArticleReader = () => {
                 onConfirm={confirmDelete}
                 onCancel={() => setShowDeleteConfirm(false)}
             />
+
+            {/* The audio player is now independent of the summary */}
+            <ArticleAudioPlayer articleId={article.id ?? ''} hasContent={!!article.content} />
         </div>
     );
 };
