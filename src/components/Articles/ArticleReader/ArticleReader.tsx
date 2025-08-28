@@ -472,7 +472,7 @@ const ArticleReader = () => {
                             <div className="summary-actions">
                                 {!isChatMode && (
                                     <>
-                                        <button
+                                        {/* <button
                                             onClick={handleStartChat}
                                             className={`converse-button ${!userHasProAccess ? 'pro-only' : ''}`}
                                             title={userHasProAccess ? "Discuss this article" : "Chat is available for Pro users only"}
@@ -480,7 +480,7 @@ const ArticleReader = () => {
                                         >
                                             <FontAwesomeIcon icon={faComments} />
                                             {!userHasProAccess && <span className="pro-badge">PRO</span>}
-                                        </button>
+                                        </button> */}
                                         <button
                                             onClick={handleRefreshSummary}
                                             className="refresh-summary-button"
