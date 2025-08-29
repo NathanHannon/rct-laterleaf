@@ -8,7 +8,7 @@ import CollectionSelector from '../../Collections/CollectionSelector/CollectionS
 import ConfirmationDialog from '../../Common/ConfirmationDialog/ConfirmationDialog';
 import './ArticleReader.scss';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBookmark as faBookmarkSolid, faArchive, faTrash, faMagicWandSparkles, faRotateRight, faComments, faFolderPlus, faEllipsisV, faGem } from '@fortawesome/free-solid-svg-icons';
+import { faBookmark as faBookmarkSolid, faArchive, faTrash, faMagicWandSparkles, faRotateRight, faFolderPlus, faEllipsisV, faGem } from '@fortawesome/free-solid-svg-icons';
 import { faBookmark as faBookmarkRegular } from '@fortawesome/free-regular-svg-icons';
 import { hasProAccess } from '../../../utils/tierUtils';
 import { ArticleAudioPlayer } from '../ArticleAudioPlayer/ArticleAudioPlayer';
@@ -193,50 +193,50 @@ const ArticleReader = () => {
         setShowDropdown(false);
     };
 
-    const handleStartChat = async () => {
-        if (!article?.summary) return;
+    // const handleStartChat = async () => {
+    //     if (!article?.summary) return;
 
-        // Check if user has pro access for chat functionality
-        if (!userHasProAccess) {
-            alert('Chat functionality is available for Pro users only. Please upgrade to access this feature.');
-            return;
-        }
+    //     // Check if user has pro access for chat functionality
+    //     if (!userHasProAccess) {
+    //         alert('Chat functionality is available for Pro users only. Please upgrade to access this feature.');
+    //         return;
+    //     }
 
-        try {
-            // Load existing chat history from database
-            const token = await getToken();
-            const response = await fetch(`http://localhost:3000/articles/${articleId}/chat`, {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
+    //     try {
+    //         // Load existing chat history from database
+    //         const token = await getToken();
+    //         const response = await fetch(`http://localhost:3000/articles/${articleId}/chat`, {
+    //             headers: {
+    //                 'Authorization': `Bearer ${token}`
+    //             }
+    //         });
 
-            if (response.ok) {
-                const data = await response.json();
-                setChatMessages(data.chatHistory || []);
-            } else {
-                // If no history exists, start with summary context
-                setChatMessages([
-                    {
-                        role: 'assistant',
-                        content: `I've analyzed this article about "${article.title}". Here's my summary:\n\n${article.summary}\n\nWhat would you like to discuss about this article?`,
-                        timestamp: new Date().toISOString()
-                    }
-                ]);
-            }
-        } catch {
-            // Fallback to summary context if loading fails
-            setChatMessages([
-                {
-                    role: 'assistant',
-                    content: `I've analyzed this article about "${article.title}". Here's my summary:\n\n${article.summary}\n\nWhat would you like to discuss about this article?`,
-                    timestamp: new Date().toISOString()
-                }
-            ]);
-        }
+    //         if (response.ok) {
+    //             const data = await response.json();
+    //             setChatMessages(data.chatHistory || []);
+    //         } else {
+    //             // If no history exists, start with summary context
+    //             setChatMessages([
+    //                 {
+    //                     role: 'assistant',
+    //                     content: `I've analyzed this article about "${article.title}". Here's my summary:\n\n${article.summary}\n\nWhat would you like to discuss about this article?`,
+    //                     timestamp: new Date().toISOString()
+    //                 }
+    //             ]);
+    //         }
+    //     } catch {
+    //         // Fallback to summary context if loading fails
+    //         setChatMessages([
+    //             {
+    //                 role: 'assistant',
+    //                 content: `I've analyzed this article about "${article.title}". Here's my summary:\n\n${article.summary}\n\nWhat would you like to discuss about this article?`,
+    //                 timestamp: new Date().toISOString()
+    //             }
+    //         ]);
+    //     }
 
-        setIsChatMode(true);
-    };
+    //     setIsChatMode(true);
+    // };
 
     const handleSendMessage = async (message: string) => {
         if (!article || !message.trim()) return;
