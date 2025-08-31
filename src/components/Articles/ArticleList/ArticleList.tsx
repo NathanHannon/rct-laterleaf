@@ -1,41 +1,33 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth, useUser } from '@clerk/clerk-react';
-import { motion } from 'motion/react';
+import { useSearch } from '../../../hooks/searchHook';
+import { useDebounce } from '../../../hooks/useDebounce'; // Import the new hook
+import type { Article } from '../../../interfaces/article';
 import ArticleCard from '../ArticleCard/ArticleCard';
 import SortDropdown from '../SortDropdown/SortDropdown';
 import ConfirmationDialog from '../../Common/ConfirmationDialog/ConfirmationDialog';
 import type { SortOption } from '../../../interfaces/sort';
 import './ArticleList.scss';
-import type { Article } from '../../../interfaces/article';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSpinner, faGem } from '@fortawesome/free-solid-svg-icons';
 import AddArticleForm from '../AddArticleForm/AddArticleForm';
-import { useSearch } from '../../../hooks/searchHook';
 import { hasProAccess } from '../../../utils/tierUtils';
 import { sortArticles } from '../../../utils/sortUtils';
+import { motion } from 'motion/react';
 
-const ArticleList: React.FC = () => {
-    const { getToken, isLoaded, isSignedIn } = useAuth();
-    const { user, isLoaded: userLoaded } = useUser();
-    const { searchTerm } = useSearch();
-    const userHasProAccess = hasProAccess(user);
+const ArticleList = () => {
     const [articles, setArticles] = useState<Article[]>([]);
+    const { getToken } = useAuth();
+    const { searchTerm, searchMode } = useSearch();
+    const { isLoaded, isSignedIn, user } = useUser();
     const [isSearching, setIsSearching] = useState(false);
-    const [sortBy, setSortBy] = useState<SortOption>(() => {
-        // Load saved sort preference from localStorage, default to 'newest-first'
-        const saved = localStorage.getItem('articleSortPreference');
-        return (saved as SortOption) || 'newest-first';
-    });
-    const [isSortDropdownOpen, setIsSortDropdownOpen] = useState(false);
-    const [deleteConfirm, setDeleteConfirm] = useState<{ show: boolean; articleId: string | null }>({
-        show: false,
-        articleId: null
-    });
 
-    // Log pro status for debugging
-    console.log('📋 ArticleList: Pro access status:', userHasProAccess, '| User loaded:', userLoaded);
+    // Debounce the search term to prevent API calls on every keystroke
+    const debouncedSearchTerm = useDebounce(searchTerm, 400); // 400ms delay
 
     const fetchArticles = useCallback(async () => {
+        if (!isLoaded || !isSignedIn) return;
+
         try {
             const token = await getToken();
             const response = await fetch('/api/articles', {
@@ -58,55 +50,63 @@ const ArticleList: React.FC = () => {
             console.error("Failed to fetch articles:", error);
             setArticles([]);
         }
-    }, [getToken]);
+    }, [getToken, isLoaded, isSignedIn]);
 
-    // Separate effect for search
+    // Consolidated data fetching effect
     useEffect(() => {
-        const performSearch = async () => {
-            if (!isLoaded || !isSignedIn || !userLoaded) return;
+        if (!isLoaded || !isSignedIn || !user) {
+            return; // Wait for user to be loaded
+        }
 
-            if (!searchTerm) {
-                fetchArticles();
-                return;
-            }
+        const trimmedSearch = debouncedSearchTerm.trim();
 
-            setIsSearching(true);
-            try {
-                const token = await getToken();
-                const response = await fetch(`/api/search?q=${encodeURIComponent(searchTerm)}`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-
-                if (!response.ok) {
-                    throw new Error('Search failed');
+        // Case 1: Search term is present and long enough (2+ chars)
+        if (trimmedSearch.length >= 2) {
+            const performSearch = async () => {
+                setIsSearching(true);
+                try {
+                    const token = await getToken();
+                    const response = await fetch(`/api/search?q=${encodeURIComponent(trimmedSearch)}&mode=${searchMode}`, {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    if (!response.ok) throw new Error('Search failed');
+                    const searchResults = await response.json();
+                    const resultsArray = (searchResults?.results && Array.isArray(searchResults.results)) ? searchResults.results : [];
+                    setArticles(resultsArray);
+                } catch (error) {
+                    console.error("Failed to perform search:", error);
+                    setArticles([]);
+                } finally {
+                    setIsSearching(false);
                 }
-
-                const searchResults = await response.json();
-                console.log('[SEARCH] Raw API Response:', searchResults);
-
-                const resultsArray = Array.isArray(searchResults) ? searchResults :
-                    (searchResults.results && Array.isArray(searchResults.results)) ? searchResults.results : [];
-
-                console.log(`[SEARCH] Found ${resultsArray.length} articles.`, resultsArray);
-
-                setArticles(resultsArray);
-            } catch (error) {
-                console.error("Failed to perform search:", error);
-                fetchArticles();
-            } finally {
-                setIsSearching(false);
-            }
-        };
-
-        performSearch();
-    }, [searchTerm, isLoaded, isSignedIn, userLoaded, fetchArticles, getToken]);
-
-    // Initial fetch - only run once when component mounts and user is ready
-    useEffect(() => {
-        if (isLoaded && isSignedIn && userLoaded && !searchTerm) {
+            };
+            performSearch();
+        }
+        // Case 2: Search term is empty, fetch the default list
+        else if (trimmedSearch.length === 0) {
+            setIsSearching(false);
             fetchArticles();
         }
-    }, [isLoaded, isSignedIn, userLoaded, fetchArticles, searchTerm]);
+        // Case 3: Search term is too short (1 char), clear the list
+        else {
+            setIsSearching(false);
+            setArticles([]);
+        }
+    }, [debouncedSearchTerm, searchMode, isLoaded, isSignedIn, user, getToken, fetchArticles]);
+
+    const [sortBy, setSortBy] = useState<SortOption>(() => {
+        // Load saved sort preference from localStorage, default to 'newest-first'
+        const saved = localStorage.getItem('articleSortPreference');
+        return (saved as SortOption) || 'newest-first';
+    });
+    const [isSortDropdownOpen, setIsSortDropdownOpen] = useState(false);
+    const [deleteConfirm, setDeleteConfirm] = useState<{ show: boolean; articleId: string | null }>({
+        show: false,
+        articleId: null
+    });
+
+    // Log pro status for debugging
+    console.log('📋 ArticleList: Pro access status:', hasProAccess(user), '| User loaded:', isLoaded);
 
     // Close sort dropdown when clicking outside
     useEffect(() => {
@@ -170,7 +170,7 @@ const ArticleList: React.FC = () => {
         }
     };
 
-    if (!isLoaded || !userLoaded) {
+    if (!isLoaded || !user) {
         return <div className="loading-container"><FontAwesomeIcon icon={faSpinner} spin size="3x" /> Loading...</div>;
     }
 
@@ -197,7 +197,7 @@ const ArticleList: React.FC = () => {
             <div className="list-header">
                 <div className="header-left">
                     <h2 className="list-title">My List</h2>
-                    {userHasProAccess && <span className="premium-badge">Pro Search Enabled <FontAwesomeIcon icon={faGem} className="premium-icon" /></span>}
+                    {hasProAccess(user) && <span className="premium-badge">Pro Search Enabled <FontAwesomeIcon icon={faGem} className="premium-icon" /></span>}
                     {isSearching && <><FontAwesomeIcon icon={faSpinner} spin /> Searching...</>}
                 </div>
                 <div className="header-right">

@@ -25,11 +25,10 @@ const AdminPage: React.FC = () => {
         notes: ''
     });
 
-    const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
-
     const fetchWithAuth = async (endpoint: string, options: RequestInit = {}) => {
         const token = await getToken();
-        return fetch(`${API_BASE}${endpoint}`, {
+        // Use relative path for the proxy
+        return fetch(`/api${endpoint}`, {
             ...options,
             headers: {
                 'Authorization': `Bearer ${token}`,

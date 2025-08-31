@@ -1,0 +1,31 @@
+.search-mode-toggle {
+    display: flex;
+    background-color: var(--background-secondary);
+    border-radius: 18px;
+    padding: 4px;
+    border: 1px solid var(--border-color);
+    overflow: hidden;
+
+    .toggle-option {
+        padding: 6px 14px;
+        border: none;
+        background-color: transparent;
+        color: var(--text-color-secondary);
+        cursor: pointer;
+        font-size: 0.85rem;
+        font-weight: 500;
+        transition: all 0.2s ease-in-out;
+        border-radius: 14px;
+        white-space: nowrap;
+
+        &.active {
+            background-color: var(--primary-color);
+            color: #fff;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        &:not(.active):hover {
+            background-color: var(--background-tertiary);
+        }
+    }
+}

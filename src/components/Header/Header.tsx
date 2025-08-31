@@ -4,17 +4,16 @@ import { SignedIn, SignedOut, SignInButton, SignUpButton, UserButton, useUser } 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faInbox, faBookmark, faArchive, faGem, faFolderOpen, faFileExport, faCompass, faEllipsisH, faTimes } from '@fortawesome/free-solid-svg-icons';
 import { useSearch } from '../../hooks/searchHook';
-import { useUserStatus } from '../../context/userStatusContext';
 import { hasProAccess } from '../../utils/tierUtils';
+import SearchModeToggle from '../Search/SearchModeToggle/SearchModeToggle';
 import ThemeSwitcher from '../Common/ThemeSwitcher/ThemeSwitcher';
 import './Header.scss';
 import logo from '../../assets/logo/icon-transparent.png';
 
 const Header: React.FC = () => {
     const { searchTerm, setSearchTerm } = useSearch();
-    const { user } = useUser();
-    const { isPro } = useUserStatus();
-    const userHasProAccess = hasProAccess(user) || isPro;
+    const { isSignedIn, user } = useUser();
+    const userHasProAccess = hasProAccess(user);
     const [showMoreMenu, setShowMoreMenu] = useState(false);
     const moreMenuRef = useRef<HTMLDivElement>(null);
 
@@ -64,7 +63,7 @@ const Header: React.FC = () => {
             </div>
 
             <div className="header-center">
-                <div className={`search-bar ${userHasProAccess ? 'full-width' : ''}`}>
+                <div className="search-container">
                     <input
                         type="text"
                         placeholder="Search your library..."
@@ -76,6 +75,7 @@ const Header: React.FC = () => {
                             <FontAwesomeIcon icon={faTimes} />
                         </button>
                     )}
+                    {isSignedIn && userHasProAccess && <SearchModeToggle />}
                 </div>
             </div>
 

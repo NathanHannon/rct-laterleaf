@@ -11,7 +11,6 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBookmark as faBookmarkSolid, faArchive, faTrash, faMagicWandSparkles, faRotateRight, faFolderPlus, faEllipsisV, faGem } from '@fortawesome/free-solid-svg-icons';
 import { faBookmark as faBookmarkRegular } from '@fortawesome/free-regular-svg-icons';
 import { hasProAccess } from '../../../utils/tierUtils';
-import { ArticleAudioPlayer } from '../ArticleAudioPlayer/ArticleAudioPlayer';
 
 const ArticleReader = () => {
     const { articleId } = useParams<{ articleId: string }>();
@@ -205,7 +204,7 @@ const ArticleReader = () => {
     //     try {
     //         // Load existing chat history from database
     //         const token = await getToken();
-    //         const response = await fetch(`http://localhost:3000/articles/${articleId}/chat`, {
+    //         const response = await fetch(`/api/articles/${articleId}/chat`, {
     //             headers: {
     //                 'Authorization': `Bearer ${token}`
     //             }
@@ -251,7 +250,7 @@ const ArticleReader = () => {
 
         try {
             const token = await getToken();
-            const response = await fetch(`http://localhost:3000/articles/${articleId}/chat`, {
+            const response = await fetch(`/api/articles/${articleId}/chat`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -610,7 +609,7 @@ const ArticleReader = () => {
             />
 
             {/* The audio player is now independent of the summary */}
-            <ArticleAudioPlayer articleId={article.id ?? ''} hasContent={!!article.content} />
+            {/* <ArticleAudioPlayer articleId={article.id ?? ''} hasContent={!!article.content} /> */}
         </div>
     );
 };

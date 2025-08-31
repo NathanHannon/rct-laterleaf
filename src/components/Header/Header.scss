@@ -101,44 +101,41 @@
         flex-grow: 1;
         display: flex;
         justify-content: center;
-        min-width: 200px;
+        padding: 0 20px;
 
-        .search-bar {
-            position: relative; // Required for absolute positioning of the button
+        .search-container {
+            display: flex;
+            align-items: center;
             width: 100%;
-            max-width: 500px;
-            transition: max-width 0.3s ease-in-out;
+            max-width: 600px;
+            background-color: var(--background-secondary);
+            border-radius: 24px;
+            border: 1px solid var(--border-color);
+            padding: 0 8px 0 16px;
+            transition: border-color 0.2s, box-shadow 0.2s;
 
-            &.full-width {
-                max-width: 700px;
+            &:focus-within {
+                border-color: var(--primary-color);
+                box-shadow: 0 0 0 2px rgba(var(--primary-color-rgb), 0.2);
             }
 
             input {
-                width: 100%;
-                padding: 0.6rem 2.5rem 0.6rem 1rem; // Increased right padding for the button
-                border-radius: 20px;
-                border: 2px solid var(--border-color);
-                background-color: var(--background-secondary);
+                flex-grow: 1;
+                border: none;
+                background: transparent;
+                padding: 10px 0;
                 color: var(--text-color);
-
-                &:focus {
-                    outline: none;
-                    border-color: var(--primary-color);
-                    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.2);
-                }
+                font-size: 1rem;
+                outline: none;
             }
 
             .clear-search-button {
-                position: absolute;
-                right: 12px;
-                top: 50%;
-                transform: translateY(-50%);
-                background: transparent;
+                background: none;
                 border: none;
                 color: var(--text-color-secondary);
                 cursor: pointer;
-                padding: 0.25rem;
-                font-size: 1.1rem;
+                padding: 0 8px;
+                font-size: 0.9rem;
 
                 &:hover {
                     color: var(--text-color);
