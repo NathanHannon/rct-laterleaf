@@ -1,4 +1,4 @@
-import React, { useState, useEffect, type FormEvent } from 'react';
+import React, { useState, useEffect, type FormEvent, useCallback } from 'react';
 import { useAuth } from '@clerk/clerk-react';
 import './TagsManager.scss';
 
@@ -13,44 +13,49 @@ interface TagsManagerProps {
 
 const TagsManager: React.FC<TagsManagerProps> = ({ userArticleId }) => {
     const [tags, setTags] = useState<Tag[]>([]);
+    const [suggestedTags, setSuggestedTags] = useState<Tag[]>([]);
     const [newTagName, setNewTagName] = useState('');
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const { getToken } = useAuth();
 
-    const fetchTags = async () => {
+    const fetchAllTags = useCallback(async () => {
         if (!userArticleId) return;
         setIsLoading(true);
         try {
             const token = await getToken();
-            const response = await fetch(`/api/user-articles/${userArticleId}/tags`, {
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                },
-            });
+            // Fetch existing and suggested tags in parallel
+            const [tagsResponse, suggestedTagsResponse] = await Promise.all([
+                fetch(`/api/user-articles/${userArticleId}/tags`, {
+                    headers: { 'Authorization': `Bearer ${token}` },
+                }),
+                fetch(`/api/tags/suggest/${userArticleId}`, {
+                    headers: { 'Authorization': `Bearer ${token}` },
+                }),
+            ]);
 
-            if (!response.ok) {
-                throw new Error('Failed to fetch tags.');
-            }
+            if (!tagsResponse.ok) throw new Error('Failed to fetch tags.');
+            if (!suggestedTagsResponse.ok) throw new Error('Failed to fetch suggestions.');
 
-            const data: Tag[] = await response.json();
-            setTags(data);
+            const tagsData: Tag[] = await tagsResponse.json();
+            const suggestedTagsData: Tag[] = await suggestedTagsResponse.json();
+
+            setTags(tagsData);
+            setSuggestedTags(suggestedTagsData);
             setError(null);
         } catch (err) {
             setError(err instanceof Error ? err.message : 'An unknown error occurred.');
-            console.error(err);
         } finally {
             setIsLoading(false);
         }
-    };
+    }, [userArticleId, getToken]);
 
     useEffect(() => {
-        fetchTags();
-    }, [userArticleId]);
+        fetchAllTags();
+    }, [fetchAllTags]);
 
-    const handleAddTag = async (e: FormEvent) => {
-        e.preventDefault();
-        if (!newTagName.trim()) return;
+    const addTag = async (tagName: string) => {
+        if (!tagName.trim()) return;
 
         try {
             const token = await getToken();
@@ -61,8 +66,8 @@ const TagsManager: React.FC<TagsManagerProps> = ({ userArticleId }) => {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    name: newTagName.trim(),
-                    userArticleId: userArticleId
+                    name: tagName.trim(),
+                    userArticleId: userArticleId,
                 }),
             });
 
@@ -70,39 +75,43 @@ const TagsManager: React.FC<TagsManagerProps> = ({ userArticleId }) => {
                 throw new Error('Failed to add tag.');
             }
 
-            setNewTagName('');
-            await fetchTags(); // Re-fetch to get the updated list
+            await fetchAllTags();
         } catch (err) {
             setError(err instanceof Error ? err.message : 'An unknown error occurred.');
-            console.error(err);
         }
+    };
+
+    const handleAddTagFromInput = async (e: FormEvent) => {
+        e.preventDefault();
+        await addTag(newTagName);
+        setNewTagName('');
+    };
+
+    const handleAddSuggestedTag = async (tagName: string) => {
+        await addTag(tagName);
     };
 
     const handleRemoveTag = async (tagId: string) => {
         try {
             const token = await getToken();
-            // The backend expects a 'where' clause to identify which tag link to remove.
             const where = JSON.stringify({ id: tagId });
             const response = await fetch(`/api/user-articles/${userArticleId}/tags?where=${encodeURIComponent(where)}`, {
                 method: 'DELETE',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                },
+                headers: { 'Authorization': `Bearer ${token}` },
             });
 
             if (!response.ok) {
                 throw new Error('Failed to remove tag.');
             }
 
-            await fetchTags(); // Re-fetch to update the list
+            await fetchAllTags();
         } catch (err) {
             setError(err instanceof Error ? err.message : 'An unknown error occurred.');
-            console.error(err);
         }
     };
 
     return (
-        <div className="tags-manager">
+        <div className="tags-manager" data-version="1.0.1">
             <h4 className="tags-manager__title">Tags</h4>
             {error && <p className="tags-manager__error">{error}</p>}
             <div className="tags-manager__list">
@@ -120,7 +129,7 @@ const TagsManager: React.FC<TagsManagerProps> = ({ userArticleId }) => {
                 )}
                 {!isLoading && tags.length === 0 && <p className="tags-manager__no-tags">No tags yet.</p>}
             </div>
-            <form onSubmit={handleAddTag} className="tags-manager__form">
+            <form onSubmit={handleAddTagFromInput} className="tags-manager__form">
                 <input
                     type="text"
                     value={newTagName}
@@ -130,6 +139,23 @@ const TagsManager: React.FC<TagsManagerProps> = ({ userArticleId }) => {
                 />
                 <button type="submit" className="tags-manager__add-btn">Add</button>
             </form>
+
+            {suggestedTags.length > 0 && (
+                <div className="tags-manager__suggestions">
+                    <h5 className="suggestions__title">Suggestions</h5>
+                    <div className="suggestions__list">
+                        {suggestedTags.map(tag => (
+                            <button
+                                key={tag.id}
+                                className="suggestion-item"
+                                onClick={() => handleAddSuggestedTag(tag.name)}
+                            >
+                                + {tag.name}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

@@ -6,6 +6,7 @@ import ReactMarkdown from 'react-markdown';
 import type { Article } from '../../../interfaces/article';
 import CollectionSelector from '../../Collections/CollectionSelector/CollectionSelector';
 import ConfirmationDialog from '../../Common/ConfirmationDialog/ConfirmationDialog';
+import TagsManager from '../../TagsManager/TagsManager';
 import './ArticleReader.scss';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBookmark as faBookmarkSolid, faArchive, faTrash, faMagicWandSparkles, faRotateRight, faFolderPlus, faEllipsisV, faGem } from '@fortawesome/free-solid-svg-icons';
@@ -27,7 +28,6 @@ const ArticleReader = () => {
     const [chatMessages, setChatMessages] = useState<{ role: 'user' | 'assistant', content: string, timestamp?: string }[]>([]);
     const [isGeneratingChat, setIsGeneratingChat] = useState(false);
     const [chatInput, setChatInput] = useState('');
-    const [hasAutoShownSummary, setHasAutoShownSummary] = useState(false);
     const [showCollectionSelector, setShowCollectionSelector] = useState(false);
     const [showDropdown, setShowDropdown] = useState(false);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -98,7 +98,6 @@ const ArticleReader = () => {
                 status: data.status
             });
             setShowSummary(true);
-            setHasAutoShownSummary(true);
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Failed to generate summary');
         } finally {
@@ -133,7 +132,6 @@ const ArticleReader = () => {
                 status: data.status
             });
             setShowSummary(true);
-            setHasAutoShownSummary(true);
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Failed to regenerate summary');
         } finally {
@@ -305,8 +303,6 @@ const ArticleReader = () => {
                 //     isArchived: data.isArchived
                 // });
                 setArticle(data);
-                // Reset auto-show flag when loading new article
-                setHasAutoShownSummary(false);
             } catch (err) {
                 setError(err instanceof Error ? err.message : 'An unknown error occurred');
             } finally {
@@ -317,13 +313,8 @@ const ArticleReader = () => {
         fetchArticle();
     }, [articleId, getToken]);
 
-    // Auto-show summary if it exists (only once)
-    useEffect(() => {
-        if (article?.summary && !hasAutoShownSummary) {
-            setShowSummary(true);
-            setHasAutoShownSummary(true);
-        }
-    }, [article?.summary, hasAutoShownSummary]);
+    // The useEffect hook for auto-showing the summary has been removed.
+    // The summary will now only appear when the user clicks the "Show Summary" button.
 
     if (loading) {
         return <div>Loading article...</div>;
@@ -430,6 +421,8 @@ const ArticleReader = () => {
                     </AnimatePresence>
                 </div>
             </div>
+
+            {article.userArticleId && <TagsManager userArticleId={article.userArticleId} />}
 
             <h1>{article.title}</h1>
             <div className="article-author">By {article.author || 'Unknown author'}</div>
