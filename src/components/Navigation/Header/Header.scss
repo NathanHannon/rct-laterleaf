@@ -10,13 +10,14 @@
     z-index: 100;
     height: 70px;
     box-sizing: border-box;
-    backdrop-filter: blur(10px);
+    backdrop-filter: blur(12px) saturate(1.2); // Enhanced blur with slight saturation boost
     transition: all 0.3s ease;
 
     &.scrolled {
         box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
-        background-color: rgba(var(--card-bg-rgb), 0.95);
+        background-color: rgba(var(--card-bg-rgb), 0.90); // Slightly more transparent for better glass effect
         border-bottom-color: var(--primary-color);
+        backdrop-filter: blur(15px) saturate(1.3); // Even more blur when scrolled
     }
 
     .header-left {

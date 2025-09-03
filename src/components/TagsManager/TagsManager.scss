@@ -63,6 +63,21 @@
 
         &:hover {
             background-color: var(--primary-color-dark);
+            color: white; // Ensure text stays white on hover
+        }
+
+        // Alternative approach with better contrast for both themes
+        &:hover {
+            background-color: var(--primary-color-dark);
+            color: var(--button-text); // Use theme-aware button text color
+        }
+
+        // Or if you want a more subtle hover effect
+        &:hover {
+            background-color: var(--primary-color);
+            opacity: 0.9;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(var(--primary-color-rgb), 0.3);
         }
     }
 
