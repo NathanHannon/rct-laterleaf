@@ -59,20 +59,8 @@
         color: white;
         font-weight: 500;
         cursor: pointer;
-        transition: background-color 0.2s ease;
+        transition: all 0.2s ease; // Changed to 'all' for the transform/shadow
 
-        &:hover {
-            background-color: var(--primary-color-dark);
-            color: white; // Ensure text stays white on hover
-        }
-
-        // Alternative approach with better contrast for both themes
-        &:hover {
-            background-color: var(--primary-color-dark);
-            color: var(--button-text); // Use theme-aware button text color
-        }
-
-        // Or if you want a more subtle hover effect
         &:hover {
             background-color: var(--primary-color);
             opacity: 0.9;
