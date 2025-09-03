@@ -253,3 +253,67 @@
     min-height: 400px;
     color: #666;
 }
+
+// Mobile responsive design
+@media (max-width: 768px) {
+    .collections-container {
+        padding: 1rem;
+    }
+
+    .collections-header {
+        flex-direction: column;
+        gap: 1rem;
+        text-align: center;
+
+        h1 {
+            font-size: 1.8rem;
+        }
+
+        .create-collection-btn {
+            align-self: center;
+            padding: 0.75rem 1rem;
+            font-size: 0.9rem;
+        }
+    }
+
+    .collections-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .collection-card {
+        padding: 1rem;
+    }
+
+    .modal-content {
+        padding: 1.5rem;
+        margin: 1rem;
+    }
+
+    .modal-actions {
+        flex-direction: column;
+
+        button {
+            width: 100%;
+        }
+    }
+}
+
+@media (max-width: 480px) {
+    .collections-container {
+        padding: 0.75rem;
+    }
+
+    .collections-header h1 {
+        font-size: 1.5rem;
+    }
+
+    .collection-header {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .collection-actions {
+        align-self: flex-end;
+    }
+}

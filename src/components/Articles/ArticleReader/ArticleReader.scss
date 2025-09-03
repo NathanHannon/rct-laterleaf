@@ -322,13 +322,15 @@
 .summary-header {
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    align-items: flex-start;
+    gap: 1rem;
     margin-bottom: 1rem;
 
     .summary-title {
         display: flex;
         flex-direction: column;
         gap: 0.25rem;
+        flex-grow: 1;
 
         h3 {
             margin: 0;
@@ -336,12 +338,13 @@
             font-size: 1.2rem;
             font-weight: 600;
         }
-
-        small {
-            color: var(--secondary-color);
-            font-style: italic;
-        }
     }
+}
+
+.summary-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-shrink: 0;
 
     .refresh-summary-button {
         background: transparent;
@@ -372,18 +375,18 @@
             animation: spin 1s linear infinite;
         }
     }
+}
 
-    .summary-content {
-        color: var(--text-color);
-        line-height: 1.6;
-        font-size: 1rem;
+.summary-content {
+    color: var(--text-color);
+    line-height: 1.6;
+    font-size: 1rem;
 
-        p {
-            margin-bottom: 0.8rem;
+    p {
+        margin-bottom: 0.8rem;
 
-            &:last-child {
-                margin-bottom: 0;
-            }
+        &:last-child {
+            margin-bottom: 0;
         }
     }
 }
@@ -609,80 +612,7 @@
     }
 }
 
-// Enhanced summary header with actions
-.summary-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 1rem;
-
-    .summary-actions {
-        display: flex;
-        gap: 0.5rem;
-
-        .summary-action-buttons {
-            display: flex;
-            gap: 0.5rem;
-        }
-
-        .converse-button {
-            background: #28a745;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            padding: 0.5rem;
-            cursor: pointer;
-            transition: background-color 0.2s;
-            font-size: 0.9rem;
-            position: relative;
-
-            &:hover {
-                background: #218838;
-            }
-
-            &.pro-only {
-                background: #6c757d;
-                cursor: not-allowed;
-                opacity: 0.7;
-
-                &:hover {
-                    background: #6c757d;
-                }
-            }
-
-            .pro-badge {
-                position: absolute;
-                top: -5px;
-                right: -5px;
-                background: #ffd700;
-                color: #000;
-                font-size: 0.6rem;
-                font-weight: bold;
-                padding: 2px 4px;
-                border-radius: 3px;
-                text-transform: uppercase;
-            }
-        }
-
-        .exit-chat-button {
-            background: #dc3545;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            padding: 0.5rem 0.75rem;
-            cursor: pointer;
-            transition: background-color 0.2s;
-            font-size: 1rem;
-
-            &:hover {
-                background: #c82333;
-            }
-        }
-    }
-
-}
-
-/* --- Mobile Responsive Styles --- */
+// --- Media Queries --- //
 @media (max-width: 768px) {
     .article-reader {
         padding: 1rem; // Reduce padding on mobile
@@ -701,14 +631,54 @@
         .ai-summary-panel {
             .summary-header {
                 flex-direction: column; // Stack header content vertically
-                align-items: flex-start;
+                align-items: stretch;
                 gap: 0.75rem;
             }
         }
 
         .article-content {
             font-size: 1rem; // Ensure base font size is readable
-            line-height: 1.6;
+            line-height: 1.5; // Slightly increase line height for readability
+        }
+    }
+
+    .chat-interface {
+        .chat-messages {
+            max-height: 300px; // Reduce max height on mobile
+        }
+
+        .chat-message {
+            margin-bottom: 0.75rem; // Reduce margin between messages
+
+            &.user-message {
+                .message-content {
+                    padding: 0.5rem 0.75rem; // Reduce padding in message bubbles
+                    border-radius: 16px 16px 4px 16px; // Adjust border radius
+                }
+            }
+
+            &.assistant-message {
+                .message-content {
+                    padding: 0.5rem 0.75rem; // Reduce padding in message bubbles
+                    border-radius: 16px 16px 16px 4px; // Adjust border radius
+                }
+            }
+        }
+
+        .chat-input {
+            form {
+                .chat-input-field {
+                    padding: 0.5rem 0.75rem; // Reduce padding in input field
+                    border-radius: 20px; // Adjust border radius
+                    font-size: 0.85rem; // Slightly smaller font size
+                }
+
+                .chat-send-button {
+                    padding: 0.5rem 1rem; // Reduce padding in button
+                    border-radius: 20px; // Adjust border radius
+                    font-size: 0.85rem; // Slightly smaller font size
+                }
+            }
         }
     }
 }

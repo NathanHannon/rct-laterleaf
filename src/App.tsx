@@ -1,5 +1,5 @@
 import './App.scss';
-import Header from './components/Header/Header';
+import Header from './components/Navigation/Header/Header';
 import Footer from './components/Footer/Footer';
 import ArticleList from './components/Articles/ArticleList/ArticleList';
 import { SignedIn, SignedOut } from '@clerk/clerk-react';
