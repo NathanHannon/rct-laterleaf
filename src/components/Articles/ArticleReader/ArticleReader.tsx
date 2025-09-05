@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth, useUser } from "@clerk/clerk-react";
 import { motion, AnimatePresence } from 'motion/react';
@@ -9,7 +9,7 @@ import ConfirmationDialog from '../../Common/ConfirmationDialog/ConfirmationDial
 import TagsManager from '../../TagsManager/TagsManager';
 import './ArticleReader.scss';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBookmark as faBookmarkSolid, faArchive, faTrash, faMagicWandSparkles, faRotateRight, faFolderPlus, faEllipsisV, faGem } from '@fortawesome/free-solid-svg-icons';
+import { faBookmark as faBookmarkSolid, faArchive, faTrash, faMagicWandSparkles, faRotateRight, faFolderPlus, faEllipsisV, faGem, faClock } from '@fortawesome/free-solid-svg-icons';
 import { faBookmark as faBookmarkRegular } from '@fortawesome/free-regular-svg-icons';
 import { hasProAccess } from '../../../utils/tierUtils';
 
@@ -31,15 +31,58 @@ const ArticleReader = () => {
     const [showCollectionSelector, setShowCollectionSelector] = useState(false);
     const [showDropdown, setShowDropdown] = useState(false);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-    const [useProSummary, setUseProSummary] = useState(false); // State for Pro summary toggle
+    const [useProSummary, setUseProSummary] = useState(false);
     const [summaryMetadata, setSummaryMetadata] = useState<{
         model?: string;
         fallbackUsed?: boolean;
         status?: 'completed' | 'pending';
     }>({});
 
+    // New states for reading progress and time estimation
+    const [readingProgress, setReadingProgress] = useState(0);
+    const [estimatedReadingTime, setEstimatedReadingTime] = useState(0);
+    const contentRef = useRef<HTMLDivElement>(null);
+
     // Check if user has pro access for chat functionality
     const userHasProAccess = hasProAccess(user);
+
+    // Calculate estimated reading time (average 200 words per minute)
+    const calculateReadingTime = (content: string) => {
+        const plainText = content.replace(/<[^>]*>/g, ''); // Remove HTML tags
+        const wordCount = plainText.split(/\s+/).filter(word => word.length > 0).length;
+        return Math.ceil(wordCount / 200); // 200 words per minute average
+    };
+
+    // Handle scroll for reading progress
+    useEffect(() => {
+        const handleScroll = () => {
+            if (!contentRef.current) return;
+
+            const contentElement = contentRef.current;
+            const scrollTop = window.scrollY;
+            const contentTop = contentElement.offsetTop;
+            const contentHeight = contentElement.scrollHeight;
+            const windowHeight = window.innerHeight;
+
+            // Calculate progress based on how much of the content has been scrolled past
+            const scrollableDistance = contentHeight - windowHeight;
+            const scrollProgress = Math.max(0, scrollTop - contentTop);
+            const progress = scrollableDistance > 0 ? Math.min(100, (scrollProgress / scrollableDistance) * 100) : 0;
+
+            setReadingProgress(progress);
+        };
+
+        window.addEventListener('scroll', handleScroll);
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, [article]);
+
+    // Calculate reading time when article loads
+    useEffect(() => {
+        if (article?.content) {
+            const readingTime = calculateReadingTime(article.content);
+            setEstimatedReadingTime(readingTime);
+        }
+    }, [article]);
 
     const handleFavorite = async () => {
         if (!articleId || !article) return;
@@ -190,51 +233,6 @@ const ArticleReader = () => {
         setShowDropdown(false);
     };
 
-    // const handleStartChat = async () => {
-    //     if (!article?.summary) return;
-
-    //     // Check if user has pro access for chat functionality
-    //     if (!userHasProAccess) {
-    //         alert('Chat functionality is available for Pro users only. Please upgrade to access this feature.');
-    //         return;
-    //     }
-
-    //     try {
-    //         // Load existing chat history from database
-    //         const token = await getToken();
-    //         const response = await fetch(`/api/articles/${articleId}/chat`, {
-    //             headers: {
-    //                 'Authorization': `Bearer ${token}`
-    //             }
-    //         });
-
-    //         if (response.ok) {
-    //             const data = await response.json();
-    //             setChatMessages(data.chatHistory || []);
-    //         } else {
-    //             // If no history exists, start with summary context
-    //             setChatMessages([
-    //                 {
-    //                     role: 'assistant',
-    //                     content: `I've analyzed this article about "${article.title}". Here's my summary:\n\n${article.summary}\n\nWhat would you like to discuss about this article?`,
-    //                     timestamp: new Date().toISOString()
-    //                 }
-    //             ]);
-    //         }
-    //     } catch {
-    //         // Fallback to summary context if loading fails
-    //         setChatMessages([
-    //             {
-    //                 role: 'assistant',
-    //                 content: `I've analyzed this article about "${article.title}". Here's my summary:\n\n${article.summary}\n\nWhat would you like to discuss about this article?`,
-    //                 timestamp: new Date().toISOString()
-    //             }
-    //         ]);
-    //     }
-
-    //     setIsChatMode(true);
-    // };
-
     const handleSendMessage = async (message: string) => {
         if (!article || !message.trim()) return;
 
@@ -296,12 +294,6 @@ const ArticleReader = () => {
                 }
 
                 const data: Article = await response.json();
-                // console.log('ArticleReader received data:', {
-                //     articleId: data.id,
-                //     title: data.title,
-                //     isBookmarked: data.isBookmarked,
-                //     isArchived: data.isArchived
-                // });
                 setArticle(data);
             } catch (err) {
                 setError(err instanceof Error ? err.message : 'An unknown error occurred');
@@ -312,9 +304,6 @@ const ArticleReader = () => {
 
         fetchArticle();
     }, [articleId, getToken]);
-
-    // The useEffect hook for auto-showing the summary has been removed.
-    // The summary will now only appear when the user clicks the "Show Summary" button.
 
     if (loading) {
         return <div>Loading article...</div>;
@@ -330,6 +319,14 @@ const ArticleReader = () => {
 
     return (
         <div className="article-reader">
+            {/* Reading Progress Bar */}
+            <div className="reading-progress-bar">
+                <div
+                    className="reading-progress-fill"
+                    style={{ width: `${readingProgress}%` }}
+                />
+            </div>
+
             <div className="article-actions">
                 <motion.button
                     onClick={handleFavorite}
@@ -424,9 +421,19 @@ const ArticleReader = () => {
 
             {article.userArticleId && <TagsManager userArticleId={article.userArticleId} />}
 
-            <h1>{article.title}</h1>
-            <div className="article-author">By {article.author || 'Unknown author'}</div>
-            {article.publishedAt && <div className="article-date">Published on: {new Date(article.publishedAt).toLocaleDateString()}</div>}
+            <div className="article-header">
+                <h1>{article.title}</h1>
+                <div className="article-meta">
+                    <div className="article-author">By {article.author || 'Unknown author'}</div>
+                    {article.publishedAt && <div className="article-date">Published on: {new Date(article.publishedAt).toLocaleDateString()}</div>}
+                    {estimatedReadingTime > 0 && (
+                        <div className="reading-time">
+                            <FontAwesomeIcon icon={faClock} />
+                            <span>{estimatedReadingTime} min read</span>
+                        </div>
+                    )}
+                </div>
+            </div>
 
             {/* AI Summary Panel */}
             <AnimatePresence>
@@ -464,15 +471,6 @@ const ArticleReader = () => {
                             <div className="summary-actions">
                                 {!isChatMode && (
                                     <>
-                                        {/* <button
-                                            onClick={handleStartChat}
-                                            className={`converse-button ${!userHasProAccess ? 'pro-only' : ''}`}
-                                            title={userHasProAccess ? "Discuss this article" : "Chat is available for Pro users only"}
-                                            disabled={!userHasProAccess}
-                                        >
-                                            <FontAwesomeIcon icon={faComments} />
-                                            {!userHasProAccess && <span className="pro-badge">PRO</span>}
-                                        </button> */}
                                         <button
                                             onClick={handleRefreshSummary}
                                             className="refresh-summary-button"
@@ -497,7 +495,6 @@ const ArticleReader = () => {
                                 )}
                             </div>
                         </div>
-                        {/* <ArticleAudioPlayer articleId={article.id ?? ''} hasContent={!!article.content} /> */}
                         <div className="summary-content">
                             {/* Show pending message if status is pending */}
                             {summaryMetadata.status === 'pending' ? (
@@ -582,7 +579,11 @@ const ArticleReader = () => {
                 <p>This content is republished from <a href={article.url} target="_blank" rel="noopener noreferrer">the original source</a> for personal use. All rights belong to the original author and publisher.</p>
             </div>
             <hr />
-            <div className="article-content" dangerouslySetInnerHTML={{ __html: article.content || '' }}></div>
+            <div
+                ref={contentRef}
+                className="article-content"
+                dangerouslySetInnerHTML={{ __html: article.content || '' }}
+            />
 
             <CollectionSelector
                 isOpen={showCollectionSelector}
@@ -600,9 +601,6 @@ const ArticleReader = () => {
                 onConfirm={confirmDelete}
                 onCancel={() => setShowDeleteConfirm(false)}
             />
-
-            {/* The audio player is now independent of the summary */}
-            {/* <ArticleAudioPlayer articleId={article.id ?? ''} hasContent={!!article.content} /> */}
         </div>
     );
 };
