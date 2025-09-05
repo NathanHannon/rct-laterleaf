@@ -234,7 +234,7 @@ const ArticleReader = () => {
     };
 
     // Use contentHtml for display, contentText for AI processing
-    const displayContent = article.contentHtml || article.content || '';
+    const displayContent = article && article.content ? article.content : '';
 
     const handleSendMessage = async (message: string) => {
         if (!article || !message.trim()) return;
