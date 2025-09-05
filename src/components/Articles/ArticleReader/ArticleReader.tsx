@@ -233,8 +233,8 @@ const ArticleReader = () => {
         setShowDropdown(false);
     };
 
-    // Use contentHtml for display, contentText for AI processing
-    const displayContent = article && article.content ? article.content : '';
+   // Use contentHtml for display, falling back to content if it doesn't exist
+const displayContent = article?.content_html || article?.content || '';
 
     const handleSendMessage = async (message: string) => {
         if (!article || !message.trim()) return;
