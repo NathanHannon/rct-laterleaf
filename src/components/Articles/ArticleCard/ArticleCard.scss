@@ -171,15 +171,15 @@
     transform: translateY(20px);
     transition: opacity 0.3s ease, transform 0.3s ease;
 
-    // Always show actions on mobile (no hover needed)
+    // Always show actions on mobile (no hover needed) and remove the gradient.
     @media (max-width: 768px) {
         opacity: 1;
         transform: translateY(0);
-        background: linear-gradient(to top, rgba(0, 0, 0, 0.8) 0%, rgba(0, 0, 0, 0.1) 100%);
+        background: none;
     }
 
-    // Also show on touch devices regardless of screen size
-    @media (hover: none) and (pointer: coarse) {
+    // On larger touch devices (tablets), show actions and the gradient, but not on small mobile screens.
+    @media (hover: none) and (pointer: coarse) and (min-width: 769px) {
         opacity: 1;
         transform: translateY(0);
         background: linear-gradient(to top, rgba(0, 0, 0, 0.8) 0%, rgba(0, 0, 0, 0.1) 100%);
