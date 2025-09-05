@@ -234,7 +234,7 @@ const ArticleReader = () => {
     };
 
    // Use contentHtml for display, falling back to content if it doesn't exist
-const displayContent = article?.content_html || article?.content || '';
+const displayContent = article?.contentHtml || article?.content || '';
 
     const handleSendMessage = async (message: string) => {
         if (!article || !message.trim()) return;
