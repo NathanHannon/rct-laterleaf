@@ -46,6 +46,9 @@ const ArticleReader = () => {
     // Check if user has pro access for chat functionality
     const userHasProAccess = hasProAccess(user);
 
+    // Use contentHtml for display, falling back to content if it doesn't exist
+    const displayContent = article?.contentHtml || article?.content || '';
+
     // Calculate estimated reading time (average 200 words per minute)
     const calculateReadingTime = (content: string) => {
         const plainText = content.replace(/<[^>]*>/g, ''); // Remove HTML tags
@@ -233,8 +236,7 @@ const ArticleReader = () => {
         setShowDropdown(false);
     };
 
-   // Use contentHtml for display, falling back to content if it doesn't exist
-const displayContent = article?.contentHtml || article?.content || '';
+    // Use contentHtml for display, falling back to content if it doesn't exist
 
     const handleSendMessage = async (message: string) => {
         if (!article || !message.trim()) return;

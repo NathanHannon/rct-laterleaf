@@ -1,26 +1,40 @@
 .add-article-form {
-    margin-bottom: 30px;
+    display: flex;
+    gap: 10px;
+    margin-bottom: 2rem;
+    background-color: var(--card-bg);
+    padding: 1rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 
     .input-wrapper {
         position: relative;
-        border-bottom: 2px solid #e0e0e0; // Light grey line for the "link" look
+        flex-grow: 1; // Allow the wrapper to expand
+        display: flex; // Make this a flex container for the input inside
+        align-items: center;
+        border-bottom: 2px solid var(--card-border); // Use theme variable
         transition: border-color 0.3s ease;
 
         &:focus-within {
-            border-color: #333; // Darker line on focus
+            border-color: var(--text-color); // Darker line on focus
         }
 
         input[type="text"] {
-            width: 100%;
-            border: none;
-            outline: none;
-            padding: 10px 100px 10px 0; // Make space for the button
-            font-size: 16px;
-            background-color: transparent;
-            color: #333;
+            width: 100%; // Make the input fill the wrapper
+            padding: 10px 15px;
+            border: none; // Remove the input's own border
+            border-radius: 0;
+            font-size: 1rem;
+            background-color: transparent; // Make background transparent
+            color: var(--text-color); // Use theme variable for text color
 
             &::placeholder {
-                color: #aaa;
+                color: var(--text-color-secondary);
+            }
+
+            &:focus {
+                outline: none;
+                box-shadow: none; // Remove the focus box-shadow
             }
         }
 
@@ -31,7 +45,7 @@
             transform: translateY(-50%);
             background: none;
             border: none;
-            color: #333;
+            color: var(--text-color); // Use theme variable
             cursor: pointer;
             font-size: 16px;
             display: flex;
@@ -41,13 +55,34 @@
             transition: color 0.3s ease;
 
             &:hover:not(:disabled) {
-                color: #007bff; // Highlight on hover
+                color: var(--primary-color); // Highlight on hover
             }
 
             &:disabled {
-                color: #ccc;
+                color: var(--secondary-color);
                 cursor: not-allowed;
             }
+        }
+    }
+
+    button {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 6px;
+        background-color: var(--primary-color);
+        color: var(--button-text-color); // Use theme variable for button text
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+
+        &:hover {
+            background-color: var(--primary-color-dark);
+        }
+
+        &:disabled {
+            background-color: var(--secondary-color);
+            cursor: not-allowed;
         }
     }
 
