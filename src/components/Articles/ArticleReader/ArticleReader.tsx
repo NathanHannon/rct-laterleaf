@@ -233,6 +233,9 @@ const ArticleReader = () => {
         setShowDropdown(false);
     };
 
+    // Use contentHtml for display, contentText for AI processing
+    const displayContent = article.contentHtml || article.content || '';
+
     const handleSendMessage = async (message: string) => {
         if (!article || !message.trim()) return;
 
@@ -582,7 +585,7 @@ const ArticleReader = () => {
             <div
                 ref={contentRef}
                 className="article-content"
-                dangerouslySetInnerHTML={{ __html: article.content || '' }}
+                dangerouslySetInnerHTML={{ __html: displayContent }}
             />
 
             <CollectionSelector
