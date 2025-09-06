@@ -430,7 +430,7 @@ const ArticleReader = () => {
                 <h1>{article.title}</h1>
                 <div className="article-meta">
                     <div className="article-author">By {article.author || 'Unknown author'}</div>
-                    {article.publishedAt && <div className="article-date">Published on: {new Date(article.publishedAt).toLocaleDateString()}</div>}
+                    {article.publishDate && <div className="article-date">Published on: {new Date(article.publishDate).toLocaleDateString()}</div>}
                     {estimatedReadingTime > 0 && (
                         <div className="reading-time">
                             <FontAwesomeIcon icon={faClock} />

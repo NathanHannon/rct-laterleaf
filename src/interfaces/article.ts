@@ -7,7 +7,7 @@ export interface Article {
     contentHtml?: string;
     excerpt?: string;
     author?: string;
-    publishedAt?: string;
+    publishDate?: string;
     isBookmarked: boolean;
     isArchived: boolean;
     summary?: string;
