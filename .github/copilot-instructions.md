@@ -4,8 +4,8 @@ Purpose: Give AI agents the minimum, project-specific context (NOT generic advic
 
 ### 1. Big Picture: Monorepo Architecture
 
--   **Frontend (`rct-laterleaf`)**: A React + Vite + TypeScript SPA. It handles all user-facing views and authentication via Clerk. It communicates with the backend via a proxy configured in `vite.config.ts`.
--   **Backend (`lb-laterleaf`)**: A LoopBack 4 API that manages data, business logic, and communication with external services (Clerk for auth validation, Google Gemini for AI, PostgreSQL for data storage).
+-   **Frontend (`rct-laterleaf`)**: A React + Vite + TypeScript PWA. It handles all user-facing views and authentication via Clerk. It communicates with the backend via a proxy configured in `vite.config.ts`.
+-   **Backend (`lb-laterleaf`)**: A LoopBack 4 API that manages data, business logic, and communication with external services (Clerk for auth validation, Google Gemini for AI, PostgreSQL with pgvector for semantic search).
 -   **Authentication Flow**:
     1.  Frontend uses `@clerk/clerk-react` to sign users in and get a JWT.
     2.  Every API request from the frontend includes an `Authorization: Bearer <token>` header.
@@ -14,11 +14,12 @@ Purpose: Give AI agents the minimum, project-specific context (NOT generic advic
 
 ### 2. Core Domain Model (Key Files in `lb-laterleaf/src/models`)
 
--   `User`: Stores user profile info. Linked to Clerk users by `clerkId`.
--   `Article`: Stores the canonical, user-agnostic content of a saved article.
--   `UserArticle`: A critical **junction model** that links a `User` to an `Article`. It stores user-specific metadata like `isBookmarked`, `isArchived`, `summary`, etc. **Most status updates should modify this model, not the canonical `Article`.**
+-   `User`: Stores user profile info. Linked to Clerk users by `clerkId`. Contains subscription tier info (`hasProAccess`).
+-   `Article`: Stores the canonical, user-agnostic content of a saved article. Contains embeddings for semantic search.
+-   `UserArticle`: A critical **junction model** that links a `User` to an `Article`. It stores user-specific metadata like `isBookmarked`, `isArchived`, `summary`, `status`, and `chatHistory` (JSONB field). **Most status updates should modify this model, not the canonical `Article`.**
 -   `Collection` & `ArticleCollection`: Manages user-created collections of articles.
 -   `UserTag` & `UserArticleTag`: Manages user-specific tags for articles.
+-   **Status Pattern**: Articles have states managed via `UserArticle.status` ('unread', 'read', 'archived'). Use this instead of separate boolean flags.
 
 ### 3. Backend (LoopBack 4) Workflows & Conventions
 
@@ -40,9 +41,11 @@ Purpose: Give AI agents the minimum, project-specific context (NOT generic advic
 -   **State Management**:
     -   Global state is managed via React Context and custom hooks (e.g., `UserStatusProvider`, `ThemeProvider`).
     -   Server state is fetched using standard `fetch` calls within `useEffect` or event handlers, often using the `useAuth` hook to get a token.
+    -   **User Status Pattern**: Use `UserStatusProvider` to access `isPro` and `isLoading` throughout the app.
 -   **Styling (`src/styles`)**:
     -   Theming is controlled by CSS variables in `theme.scss` on the `[data-theme='light|dark']` selector.
     -   Components should use `var(--primary-color)`, `var(--card-bg)`, etc., and **never define new theme colors locally**.
+-   **Analytics Pattern**: PostHog integration requires API keys from `.env`. Use consistent naming for feature flags and custom properties (see `.cursor/rules/posthog-integration.mdc`).
 -   **TTS Audio (`ArticleAudioPlayer.tsx`)**:
     -   The audio player reads the **full article content**, not the summary.
     -   It is enabled as long as `article.content` exists.
@@ -54,6 +57,7 @@ Purpose: Give AI agents the minimum, project-specific context (NOT generic advic
     -   Summary generation (`generateSummary`).
     -   Text-to-speech audio generation (`generateSpeech`) using tier-specific models (`gemini-2.5-pro-preview-tts` for Pro, `gemini-2.5-flash-preview-tts` for Free).
 -   **`ContentModerationService`**: Uses **OpenAI's** moderation endpoint (`omni-moderation-latest`) to check content before it's recommended to users. This is a deliberate choice to use a best-in-class specialized model for safety.
+-   **`RecommendationService`**: Generates personalized recommendations by averaging user article embeddings into an "interest vector", then using `findSimilarWeighted` for recommendations.
 
 ### 6. Common Pitfalls & Key Reminders
 
