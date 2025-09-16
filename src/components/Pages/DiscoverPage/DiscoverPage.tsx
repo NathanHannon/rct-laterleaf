@@ -7,11 +7,13 @@ import type { Article } from '../../../interfaces/article';
 import './DiscoverPage.scss';
 import { useToast } from '../../../context/toastContext';
 import { motion, type Variants, AnimatePresence } from 'framer-motion';
+import RecommendationCarousel from '../../Recommendations/RecommendationCarousel/RecommendationCarousel';
 
 const DiscoverPage: React.FC = () => {
     const { getToken, isSignedIn } = useAuth();
     const { showSuccess, showError } = useToast();
     const [recommendations, setRecommendations] = useState<Article[]>([]);
+    const [discoveredArticles, setDiscoveredArticles] = useState<Article[]>([]);
     const [recommendationType, setRecommendationType] = useState<'personalized' | 'popular' | 'none'>('popular');
     const [isLoading, setIsLoading] = useState(true);
     const [isFetchingMore, setIsFetchingMore] = useState(false);
@@ -58,11 +60,27 @@ const DiscoverPage: React.FC = () => {
     useEffect(() => {
         // Initial fetch on mount
         fetchRecommendations(true);
+        fetchDiscoveredArticles();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []); // Run only once
 
+    const fetchDiscoveredArticles = async () => {
+        try {
+            // This is a public endpoint, no token needed
+            const response = await fetch('/api/discovered-articles?limit=12');
+            if (!response.ok) {
+                throw new Error('Failed to fetch discovered articles');
+            }
+            const data = await response.json();
+            setDiscoveredArticles(data);
+        } catch (error) {
+            console.error("Error fetching discovered articles:", error);
+            // Silently fail, this section is not critical
+        }
+    };
+
     const handleAddToLibrary = async (articleId: string) => {
-        const article = recommendations.find(rec => rec.id === articleId);
+        const article = [...recommendations, ...discoveredArticles].find(rec => rec.id === articleId);
         if (!article || !article.url) {
             showError("Could not add article", "Article data is missing.");
             return;
@@ -78,6 +96,7 @@ const DiscoverPage: React.FC = () => {
             if (!response.ok) throw new Error('Failed to add article to library');
             showSuccess('Article Added!', `"${article.title}" has been saved to your library.`);
             setRecommendations(prev => prev.filter(rec => rec.id !== articleId));
+            setDiscoveredArticles(prev => prev.filter(rec => rec.id !== articleId));
         } catch {
             showError("Error", "Could not add article to your library.");
         }
@@ -107,11 +126,22 @@ const DiscoverPage: React.FC = () => {
     return (
         <div className="discover-page">
             <div className="discover-header">
-                <h1>{title}</h1>
-                <p>{subtitle}</p>
+                <h1>Discover New Articles</h1>
+                <p>Find your next favorite read from the web and our community.</p>
             </div>
+
+            <RecommendationCarousel
+                title="New from Around the Web"
+                articles={discoveredArticles}
+                onAddToLibrary={handleAddToLibrary}
+            />
+
             {recommendations.length > 0 ? (
                 <>
+                    <div className="discover-grid-header">
+                        <h2>{title}</h2>
+                        <p>{subtitle}</p>
+                    </div>
                     <div className="discover-grid">
                         {/* 2. Wrap the list with AnimatePresence */}
                         <AnimatePresence>
