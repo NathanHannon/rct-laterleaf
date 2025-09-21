@@ -22,6 +22,7 @@ import BulkImporter from './components/Developer/BulkImporter/BulkImporter';
 import { useTheme } from './context/themeContext';
 import HeroPage from './components/Pages/HeroPage/HeroPage';
 import FallingLeaves from './components/Common/FallingLeaves/FallingLeaves';
+import PricingPage from './components/Pages/PricingPage/PricingPage';
 
 function App() {
   const { theme } = useTheme();
@@ -51,6 +52,7 @@ function App() {
                         <Route path="/export" element={<ExportPage />} />
                         <Route path="/discover" element={<DiscoverPage />} />
                         <Route path="/import" element={<BulkImporter />} />
+                        <Route path="/pricing" element={<PricingPage />} />
                       </Routes>
                     </SignedIn>
                     <SignedOut>

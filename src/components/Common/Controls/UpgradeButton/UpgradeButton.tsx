@@ -1,23 +1,39 @@
 import React from 'react';
-import { useClerk } from '@clerk/clerk-react';
+import { useUser } from '@clerk/clerk-react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faGem } from '@fortawesome/free-solid-svg-icons';
 import './UpgradeButton.scss';
+import { useNavigate } from 'react-router-dom';
 
 const UpgradeButton: React.FC = () => {
-    const { openUserProfile } = useClerk();
+    const { isSignedIn, isLoaded } = useUser();
+    const navigate = useNavigate();
 
     const handleUpgrade = () => {
-        // This opens the Clerk User Profile component, which has a "Manage Account"
-        // section that can link to your billing portal (configured in Clerk dashboard).
-        // For a direct link, you would use window.location.href = 'YOUR_CLERK_BILLING_URL';
-        openUserProfile();
+        // This logic is now much simpler.
+        // The PricingPage will handle the redirect to the sign-up page or the paywall.
+        console.log('🚀 Upgrade button clicked, navigating to pricing page...');
+        navigate('/pricing');
     };
 
+    // If Clerk hasn't loaded yet, show a generic disabled state.
+    if (!isLoaded) {
+        return (
+            <button className="upgrade-button" disabled>
+                <FontAwesomeIcon icon={faGem} />
+                <span>Loading...</span>
+            </button>
+        );
+    }
+
     return (
-        <button className="upgrade-button" onClick={handleUpgrade}>
+        <button
+            className="upgrade-button"
+            onClick={handleUpgrade}
+        // The button is always active now; the pricing page handles the auth check.
+        >
             <FontAwesomeIcon icon={faGem} />
-            <span>Upgrade to Pro</span>
+            <span>{isSignedIn ? 'Upgrade to Pro' : 'View Plans'}</span>
         </button>
     );
 };

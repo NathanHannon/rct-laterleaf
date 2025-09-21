@@ -1,13 +1,15 @@
 import { forwardRef } from 'react';
 import { NavLink } from 'react-router-dom';
-import { SignedIn, useUser } from "@clerk/clerk-react";
+import { SignedIn } from "@clerk/clerk-react";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faInbox, faBookmark, faArchive, faGem, faFolderOpen, faFileExport, faCompass, faTimes, faSearch } from '@fortawesome/free-solid-svg-icons';
+import { faInbox, faBookmark, faArchive, faFolderOpen, faFileExport, faCompass, faTimes, faSearch } from '@fortawesome/free-solid-svg-icons';
 import { useSearch } from '../../../hooks/searchHook';
 import { hasProAccess } from '../../../utils/tierUtils';
 import SearchModeToggle from '../../Search/SearchModeToggle/SearchModeToggle';
 import './Sidebar.scss';
 import logo from '../../../assets/logo/icon-transparent.png';
+import { useUserStatus } from '../../../context/userStatusContext';
+import UpgradeButton from '../../Common/Controls/UpgradeButton/UpgradeButton';
 
 interface SidebarProps {
     isOpen: boolean;
@@ -16,8 +18,11 @@ interface SidebarProps {
 
 const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(({ isOpen, onClose }, ref) => {
     const { searchTerm, setSearchTerm } = useSearch();
-    const { isSignedIn, user } = useUser();
-    const userHasProAccess = hasProAccess(user);
+    // Use the UserStatusProvider for pro status
+    const { isPro, isLoading } = useUserStatus();
+
+    // The hasProAccess utility now correctly receives a boolean
+    const userHasProAccess = hasProAccess(isPro);
 
     return (
         <div className={`sidebar ${isOpen ? 'sidebar--open' : ''}`} ref={ref}>
@@ -56,11 +61,14 @@ const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(({ isOpen, onClose }, r
                             </button>
                         )}
                     </div>
-                    {isSignedIn && userHasProAccess && (
-                        <div className="search-mode-container">
-                            <SearchModeToggle />
-                        </div>
-                    )}
+                    {/* Only show search mode toggle if user is signed in and pro */}
+                    <SignedIn>
+                        {userHasProAccess && (
+                            <div className="search-mode-container">
+                                <SearchModeToggle />
+                            </div>
+                        )}
+                    </SignedIn>
                 </div>
 
                 {/* Navigation Links */}
@@ -100,12 +108,10 @@ const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(({ isOpen, onClose }, r
 
                 {/* Pro Upgrade Section */}
                 <SignedIn>
-                    {!userHasProAccess && (
+                    {/* Use a loading check to avoid showing the button prematurely */}
+                    {!isLoading && !userHasProAccess && (
                         <div className="sidebar__upgrade">
-                            <button className="upgrade-button" onClick={onClose}>
-                                <FontAwesomeIcon icon={faGem} />
-                                <span>Upgrade to Pro</span>
-                            </button>
+                            <UpgradeButton />
                         </div>
                     )}
                 </SignedIn>

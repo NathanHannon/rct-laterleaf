@@ -30,15 +30,12 @@ export const extractUserTier = (user: UserResource | null | undefined): 'pro' | 
 };
 
 /**
- * Check if user has pro access. Prefers the synced `isPro` flag from public metadata.
- * @param user - Clerk user object
+ * Check if user has pro access. This function now takes a boolean.
+ * @param isPro - The pro status boolean from the UserStatusContext.
  * @returns boolean
  */
-export const hasProAccess = (user: UserResource | null | undefined): boolean => {
-    if (!user) return false;
-    // The primary source of truth is the `isPro` flag synced from our database.
-    // The admin role is a permanent override.
-    return user.publicMetadata?.isPro === true || user.publicMetadata?.role === 'admin';
+export const hasProAccess = (isPro: boolean): boolean => {
+    return isPro;
 };
 
 /**

@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useAuth, useUser } from '@clerk/clerk-react';
+import { useAuth } from '@clerk/clerk-react';
 import { useSearch } from '../../../hooks/searchHook';
 import { useDebounce } from '../../../hooks/useDebounce'; // Import the new hook
 import type { Article } from '../../../interfaces/article';
@@ -14,12 +14,14 @@ import AddArticleForm from '../AddArticleForm/AddArticleForm';
 import { hasProAccess } from '../../../utils/tierUtils';
 import { sortArticles } from '../../../utils/sortUtils';
 import { motion } from 'motion/react';
+import { useUserStatus } from '../../../context/userStatusContext';
 
 const ArticleList = () => {
     const [articles, setArticles] = useState<Article[]>([]);
     const { getToken } = useAuth();
     const { searchTerm, searchMode } = useSearch();
-    const { isLoaded, isSignedIn, user } = useUser();
+    const { isLoaded, isSignedIn } = useAuth();
+    const { isPro } = useUserStatus(); // Use the context for pro status
     const [isSearching, setIsSearching] = useState(false);
 
     // Debounce the search term to prevent API calls on every keystroke
@@ -54,7 +56,7 @@ const ArticleList = () => {
 
     // Consolidated data fetching effect
     useEffect(() => {
-        if (!isLoaded || !isSignedIn || !user) {
+        if (!isLoaded || !isSignedIn) {
             return; // Wait for user to be loaded
         }
 
@@ -92,7 +94,7 @@ const ArticleList = () => {
             setIsSearching(false);
             setArticles([]);
         }
-    }, [debouncedSearchTerm, searchMode, isLoaded, isSignedIn, user, getToken, fetchArticles]);
+    }, [debouncedSearchTerm, searchMode, isLoaded, isSignedIn, getToken, fetchArticles]);
 
     const [sortBy, setSortBy] = useState<SortOption>(() => {
         // Load saved sort preference from localStorage, default to 'newest-first'
@@ -106,7 +108,7 @@ const ArticleList = () => {
     });
 
     // Log pro status for debugging
-    console.log('📋 ArticleList: Pro access status:', hasProAccess(user), '| User loaded:', isLoaded);
+    console.log('📋 ArticleList: Pro access status:', isPro, '| User loaded:', isLoaded);
 
     // Close sort dropdown when clicking outside
     useEffect(() => {
@@ -170,7 +172,7 @@ const ArticleList = () => {
         }
     };
 
-    if (!isLoaded || !user) {
+    if (!isLoaded) {
         return <div className="loading-container"><FontAwesomeIcon icon={faSpinner} spin size="3x" /> Loading...</div>;
     }
 
@@ -197,7 +199,7 @@ const ArticleList = () => {
             <div className="list-header">
                 <div className="header-left">
                     <h2 className="list-title">My List</h2>
-                    {hasProAccess(user) && <span className="premium-badge">Pro Search Enabled <FontAwesomeIcon icon={faGem} className="premium-icon" /></span>}
+                    {hasProAccess(isPro) && <span className="premium-badge">Pro Search Enabled <FontAwesomeIcon icon={faGem} className="premium-icon" /></span>}
                     {isSearching && <><FontAwesomeIcon icon={faSpinner} spin /> Searching...</>}
                 </div>
                 <div className="header-right">
