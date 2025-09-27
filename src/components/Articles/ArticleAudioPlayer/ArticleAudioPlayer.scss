@@ -12,11 +12,7 @@
     align-items: center;
     justify-content: space-between;
     z-index: 1000;
-    transition: transform 0.3s ease-in-out;
-
-    &.hidden {
-        transform: translateY(100%);
-    }
+    box-shadow: 0 -2px 15px rgba(0, 0, 0, 0.1);
 }
 
 .audio-controls {
@@ -37,8 +33,10 @@
     justify-content: center;
     border-radius: 50%;
     transition: background-color 0.2s ease;
+    width: 44px;
+    height: 44px;
 
-    &:hover {
+    &:hover:not(:disabled) {
         background-color: var(--hover-bg);
     }
 
@@ -85,7 +83,6 @@
         border-radius: 50%;
         cursor: pointer;
         border: none;
-        transition: background 0.2s ease;
     }
 
     &:hover::-webkit-slider-thumb {
@@ -100,31 +97,39 @@
 .time-display {
     font-size: 0.875rem;
     color: var(--text-muted);
-    min-width: 85px;
+    min-width: 40px;
     text-align: center;
 }
 
 .settings-controls {
     display: flex;
     align-items: center;
-    gap: 1rem;
+    gap: 1.5rem;
 }
 
 .select-wrapper {
     position: relative;
+    display: flex;
+    align-items: center;
+
+    .select-icon {
+        position: absolute;
+        left: 0.6rem;
+        color: var(--text-muted);
+        pointer-events: none;
+    }
 
     select {
         background-color: var(--input-bg);
         color: var(--text-color);
         border: 1px solid var(--border-color);
-        border-radius: 4px;
-        padding: 0.4rem 0.6rem;
+        border-radius: 6px;
+        padding: 0.4rem 0.6rem 0.4rem 2rem;
         font-size: 0.875rem;
         cursor: pointer;
         -webkit-appearance: none;
         -moz-appearance: none;
         appearance: none;
-        padding-right: 1.5rem;
 
         &:focus {
             outline: none;
@@ -132,14 +137,21 @@
             box-shadow: 0 0 0 2px rgba(var(--primary-color-rgb), 0.2);
         }
     }
+}
 
-    .select-arrow {
-        position: absolute;
-        right: 0.5rem;
-        top: 50%;
-        transform: translateY(-50%);
+.speed-control {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+
+    span {
+        font-size: 0.875rem;
         color: var(--text-muted);
-        pointer-events: none;
+        min-width: 30px;
+    }
+
+    input[type="range"] {
+        width: 80px;
     }
 }
 
@@ -155,6 +167,7 @@
     justify-content: center;
     border-radius: 50%;
     transition: background-color 0.2s ease, color 0.2s ease;
+    margin-left: 1rem;
 
     &:hover {
         background-color: var(--hover-bg);

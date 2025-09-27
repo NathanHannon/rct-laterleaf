@@ -21,7 +21,6 @@ import DiscoverPage from './components/Pages/DiscoverPage/DiscoverPage';
 import BulkImporter from './components/Developer/BulkImporter/BulkImporter';
 import { useTheme } from './context/themeContext';
 import HeroPage from './components/Pages/HeroPage/HeroPage';
-import FallingLeaves from './components/Common/FallingLeaves/FallingLeaves';
 import PricingPage from './components/Pages/PricingPage/PricingPage';
 
 function App() {
@@ -53,10 +52,10 @@ function App() {
                         <Route path="/discover" element={<DiscoverPage />} />
                         <Route path="/import" element={<BulkImporter />} />
                         <Route path="/pricing" element={<PricingPage />} />
+                        <Route path="/hero-page" element={<HeroPage />} />
                       </Routes>
                     </SignedIn>
                     <SignedOut>
-                      <FallingLeaves />
                       <Routes>
                         <Route path="/about" element={<AboutPage />} />
                         <Route path="/contact" element={<ContactPage />} />

@@ -9,7 +9,7 @@ import type { TTSControlsProps, TTSVoice } from '../../interfaces/text-to-speech
 export const TTSControls: React.FC<TTSControlsProps> = ({ articleId, variant = 'card' }) => {
     const [voices, setVoices] = useState<TTSVoice[]>([]);
     const [selectedVoice, setSelectedVoice] = useState<TTSVoice['voice']>('Charon');
-    const [speed, setSpeed] = useState(0.9);
+    const [speed, setSpeed] = useState(0.9); // Slower default for summaries
     const [isLoading, setIsLoading] = useState(false);
     const [isPlaying, setIsPlaying] = useState(false);
     const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -35,10 +35,11 @@ export const TTSControls: React.FC<TTSControlsProps> = ({ articleId, variant = '
     }, [getToken]);
 
     useEffect(() => {
+        const audio = audioRef.current;
         return () => {
-            if (audioRef.current) {
-                audioRef.current.pause();
-                URL.revokeObjectURL(audioRef.current.src);
+            if (audio) {
+                audio.pause();
+                URL.revokeObjectURL(audio.src);
             }
         };
     }, []);
@@ -50,7 +51,7 @@ export const TTSControls: React.FC<TTSControlsProps> = ({ articleId, variant = '
             return;
         }
 
-        if (!isPlaying && audioRef.current) {
+        if (!isPlaying && audioRef.current && audioRef.current.src) {
             audioRef.current.play();
             setIsPlaying(true);
             return;
@@ -59,14 +60,14 @@ export const TTSControls: React.FC<TTSControlsProps> = ({ articleId, variant = '
         setIsLoading(true);
         try {
             const token = await getToken();
+            // NOTE: This endpoint needs to be created in the backend.
+            // It should generate audio for the article's *summary*.
             const response = await fetch(
-                `/api/articles/${articleId}/audio?voice=${selectedVoice}&speed=${speed}`,
-                {
-                    headers: { Authorization: `Bearer ${token}` },
-                },
+                `/api/articles/${articleId}/summary/audio?voice=${selectedVoice}&speed=${speed}`,
+                { headers: { Authorization: `Bearer ${token}` } },
             );
 
-            if (!response.ok) throw new Error('Failed to fetch audio.');
+            if (!response.ok) throw new Error('Failed to fetch summary audio.');
 
             const audioBlob = await response.blob();
             const audioUrl = URL.createObjectURL(audioBlob);
@@ -79,7 +80,7 @@ export const TTSControls: React.FC<TTSControlsProps> = ({ articleId, variant = '
             setIsPlaying(true);
             newAudio.onended = () => setIsPlaying(false);
         } catch (error) {
-            console.error('Error playing audio:', error);
+            console.error('Error playing summary audio:', error);
         } finally {
             setIsLoading(false);
         }
@@ -100,9 +101,7 @@ export const TTSControls: React.FC<TTSControlsProps> = ({ articleId, variant = '
                 >
                     <AnimatePresence mode="wait">
                         {isLoading ? (
-                            <motion.div key="spinner">
-                                <FontAwesomeIcon icon={faSpinner} spin />
-                            </motion.div>
+                            <motion.div key="spinner"><FontAwesomeIcon icon={faSpinner} spin /></motion.div>
                         ) : isPlaying ? (
                             <FontAwesomeIcon icon={faPause} key="pause" />
                         ) : (

@@ -131,7 +131,7 @@ const DiscoverPage: React.FC = () => {
             </div>
 
             <RecommendationCarousel
-                title="Fresh Finds"
+                title="New from Around the Web"
                 articles={discoveredArticles}
                 onAddToLibrary={handleAddToLibrary}
             />
