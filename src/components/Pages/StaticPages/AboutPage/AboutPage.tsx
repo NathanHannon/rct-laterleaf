@@ -20,8 +20,8 @@ const AboutPage: React.FC = () => {
                     <h2>Key Features</h2>
                     <div className="feature-grid">
                         <div className="feature-item">
-                            <h3>Smart Summarization</h3>
-                            <p>Our AI-powered summarization helps you quickly understand the key points of any article.</p>
+                            <h3>AI-Powered Summaries</h3>
+                            <p>Our AI helps you quickly understand the key points of supported articles, saving you time and helping you focus on what matters.</p>
                         </div>
                         <div className="feature-item">
                             <h3>Collection Management</h3>
@@ -44,6 +44,15 @@ const AboutPage: React.FC = () => {
                         We believe that information should be accessible, organized, and actionable.
                         Later Leaf empowers users to build their own curated knowledge base,
                         making it easier to learn, research, and stay informed in our fast-paced digital world.
+                    </p>
+                </section>
+
+                <section className="compatibility">
+                    <h2>Site Compatibility</h2>
+                    <p>
+                        LaterLeaf works best with open web content and many popular publications.
+                        Some sites with heavy paywalls or complex protection may not be fully supported yet.
+                        We're continuously working to improve compatibility while respecting publishers' rights.
                     </p>
                 </section>
 

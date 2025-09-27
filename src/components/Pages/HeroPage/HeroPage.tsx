@@ -28,7 +28,7 @@ const HeroPage: React.FC = () => {
                 <div className="hero-content">
                     <h1 className="hero-title">Read Smarter, Not Harder.</h1>
                     <p className="hero-subtitle">
-                        LaterLeaf is your intelligent second brain. Save articles from millions of news sites and blogs across the web, let AI summarize it, and find exactly what you need with powerful search.
+                        LaterLeaf is your intelligent second brain. Save articles from many popular news sites and blogs, let AI summarize the key points, and find exactly what you need with search.
                     </p>
                     <div className="hero-cta">
                         <SignUpButton mode="modal">
@@ -43,13 +43,13 @@ const HeroPage: React.FC = () => {
             <section className="key-benefits">
                 <div className="benefit-card">
                     <FontAwesomeIcon icon={faSave} className="benefit-icon" />
-                    <h3>Never Lose an Article</h3>
-                    <p>Save content from anywhere with a single click. Your personal library, organized and always available.</p>
+                    <h3>Save Articles That Matter</h3>
+                    <p>Save content from many popular sites with a simple URL paste. Build your personal library of the articles you actually want to read.</p>
                 </div>
                 <div className="benefit-card">
                     <FontAwesomeIcon icon={faBolt} className="benefit-icon" />
-                    <h3>Instant AI Summaries</h3>
-                    <p>Get the key insights from any article in seconds. Choose between quick overviews or in-depth Pro summaries.</p>
+                    <h3>AI Summaries</h3>
+                    <p>Get key insights from supported articles in seconds. Our AI focuses on the main points so you can decide what's worth reading fully.</p>
                 </div>
                 <div className="benefit-card">
                     <FontAwesomeIcon icon={faSearch} className="benefit-icon" />

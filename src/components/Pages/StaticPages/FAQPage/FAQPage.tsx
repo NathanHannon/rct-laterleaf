@@ -63,6 +63,11 @@ const FAQPage: React.FC = () => {
             answer: 'Yes, you can export your saved articles and collections at any time. This includes the original article content, summaries, and your organizational structure. We believe your data should always be portable and accessible to you.'
         },
         {
+            id: 'site-compatibility',
+            question: 'Which websites work with LaterLeaf?',
+            answer: 'LaterLeaf works well with many popular news sites, blogs, and open web content. However, some sites with heavy paywalls, complex javascript, or content protection may not be fully supported yet. We\'re continuously working to improve compatibility while respecting publishers\' rights.'
+        },
+        {
             id: 'account-deletion',
             question: 'How do I delete my account?',
             answer: 'You can delete your account through your account settings. When you delete your account, all your saved articles, collections, and personal data will be permanently removed from our servers. This action cannot be undone, so please make sure to export any data you want to keep first.'
@@ -104,7 +109,7 @@ const FAQPage: React.FC = () => {
         },
         {
             title: 'Technical Support',
-            items: faqData.filter(item => ['mobile-access', 'browser-support', 'technical-issues'].includes(item.id))
+            items: faqData.filter(item => ['site-compatibility', 'mobile-access', 'browser-support', 'technical-issues'].includes(item.id))
         },
         {
             title: 'Account & Billing',
