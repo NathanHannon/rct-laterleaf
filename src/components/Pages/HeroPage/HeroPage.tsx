@@ -31,7 +31,7 @@ const HeroPage: React.FC = () => {
                         LaterLeaf is your intelligent second brain. Save articles from millions of news sites and blogs across the web, let AI summarize it, and find exactly what you need with powerful search.
                     </p>
                     <div className="hero-cta">
-                        <SignUpButton mode="modal" redirectUrl='/dashboard'>
+                        <SignUpButton mode="modal">
                             <button className="cta-button">Get Started for Free</button>
                         </SignUpButton>
                         <p className="cta-subtext">No credit card required.</p>
@@ -90,7 +90,7 @@ const HeroPage: React.FC = () => {
             {/* --- Final CTA Section --- */}
             <section className="final-cta">
                 <h2>Ready to Supercharge Your Reading?</h2>
-                <SignUpButton mode="modal" redirectUrl='/dashboard'>
+                <SignUpButton mode="modal">
                     <button className="cta-button">Sign Up for Free</button>
                 </SignUpButton>
             </section>

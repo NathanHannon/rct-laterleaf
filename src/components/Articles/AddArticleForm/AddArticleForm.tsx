@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { useAuth } from '@clerk/clerk-react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlus, faSpinner } from '@fortawesome/free-solid-svg-icons';
+import { useToastContext } from '../../../context/toastContextUtils';
+import { useApiErrorHandler } from '../../../hooks/useApiErrorHandler';
 import './AddArticleForm.scss';
 
 interface AddArticleFormProps {
@@ -10,16 +12,16 @@ interface AddArticleFormProps {
 
 const AddArticleForm: React.FC<AddArticleFormProps> = ({ onArticleAdded }) => {
     const { getToken } = useAuth();
+    const { showSuccess } = useToastContext();
+    const { handleApiError, handleGenericError } = useApiErrorHandler();
     const [newLink, setNewLink] = useState('');
     const [isImporting, setIsImporting] = useState(false);
-    const [error, setError] = useState('');
 
     const handleImportArticle = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!newLink || isImporting) return;
 
         setIsImporting(true);
-        setError('');
 
         try {
             const token = await getToken();
@@ -33,14 +35,16 @@ const AddArticleForm: React.FC<AddArticleFormProps> = ({ onArticleAdded }) => {
             });
 
             if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error?.message || 'Failed to import article');
+                await handleApiError(response, 'Save Failed');
+                return;
             }
 
             setNewLink('');
-            onArticleAdded(); // Notify parent to refresh
+            onArticleAdded();
+            showSuccess('Article Saved!', 'The article has been successfully added to your list.');
+            
         } catch (err) {
-            setError(err instanceof Error ? err.message : 'An unknown error occurred');
+            handleGenericError(err, 'Import Failed');
         } finally {
             setIsImporting(false);
         }
@@ -65,9 +69,8 @@ const AddArticleForm: React.FC<AddArticleFormProps> = ({ onArticleAdded }) => {
                     <span>Save</span>
                 </button>
             </div>
-            {error && <p className="import-error">{error}</p>}
         </form>
     );
 };
 
-export default AddArticleForm; 
+export default AddArticleForm;
