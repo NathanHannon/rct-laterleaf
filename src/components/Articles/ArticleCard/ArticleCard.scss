@@ -343,3 +343,45 @@
         left: 100%;
     }
 }
+
+/* URL-only specific styles */
+.url-only-link {
+    .url-only-placeholder {
+        position: relative;
+        border: 2px dashed var(--secondary-color);
+        opacity: 0.8;
+
+        .url-only-badge {
+            position: absolute;
+            bottom: 8px;
+            right: 8px;
+            background: var(--primary-color);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+    }
+
+    .card-content {
+        .card-url {
+            font-size: 0.8rem;
+            color: var(--secondary-color);
+            margin-top: 8px;
+            text-overflow: ellipsis;
+            overflow: hidden;
+            white-space: nowrap;
+        }
+    }
+
+    &:hover {
+        .url-only-placeholder {
+            border-color: var(--primary-color);
+            opacity: 1;
+        }
+    }
+}
+

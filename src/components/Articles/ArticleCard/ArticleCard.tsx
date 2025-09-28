@@ -17,7 +17,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
     onAddToLibrary, // Destructure new prop
 }) => {
     // Reverted to `imageUrl` to match the actual data property for the hero image.
-    const { id, imageUrl, title, excerpt, isBookmarked, isArchived } = article;
+    const { id, imageUrl, title, excerpt, isBookmarked, isArchived, isUrlOnly, url } = article;
     const [isBookmarkAnimating, setIsBookmarkAnimating] = useState(false);
     const [showSaveEffect, setShowSaveEffect] = useState(false);
     const [showDropdown, setShowDropdown] = useState(false);
@@ -131,23 +131,43 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
                     )}
                 </AnimatePresence>
 
-                <Link to={`/article/${id}`} className="article-card-link">
-                    <div className="card-image-container">
-                        {imageUrl ? (
-                            <img src={imageUrl} alt={title} className="card-image" loading="lazy" />
-                        ) : (
-                            <div className="card-image-placeholder" style={{ background: placeholderGradient }}>
+                {isUrlOnly ? (
+                    <a href={url} target="_blank" rel="noopener noreferrer" className="article-card-link url-only-link">
+                        <div className="card-image-container">
+                            <div className="card-image-placeholder url-only-placeholder" style={{ background: placeholderGradient }}>
                                 <span className="placeholder-icon">
                                     <FontAwesomeIcon icon={faNewspaper} />
                                 </span>
+                                <span className="url-only-badge">Original Link</span>
                             </div>
-                        )}
-                    </div>
-                    <div className="card-content">
-                        <p className="card-title">{title}</p>
-                        <p className="card-description">{excerpt}</p>
-                    </div>
-                </Link>
+                        </div>
+                        <div className="card-content">
+                            <p className="card-title">{title || 'Original Article'}</p>
+                            <p className="card-description">
+                                {excerpt || 'Click to view the original article. Content extraction is being retried automatically.'}
+                            </p>
+                            <p className="card-url">{url}</p>
+                        </div>
+                    </a>
+                ) : (
+                    <Link to={`/article/${id}`} className="article-card-link">
+                        <div className="card-image-container">
+                            {imageUrl ? (
+                                <img src={imageUrl} alt={title} className="card-image" loading="lazy" />
+                            ) : (
+                                <div className="card-image-placeholder" style={{ background: placeholderGradient }}>
+                                    <span className="placeholder-icon">
+                                        <FontAwesomeIcon icon={faNewspaper} />
+                                    </span>
+                                </div>
+                            )}
+                        </div>
+                        <div className="card-content">
+                            <p className="card-title">{title}</p>
+                            <p className="card-description">{excerpt}</p>
+                        </div>
+                    </Link>
+                )}
 
                 {/* Updated Actions with Dropdown */}
                 <div className="article-card-actions" onClick={handleActionClick}>
