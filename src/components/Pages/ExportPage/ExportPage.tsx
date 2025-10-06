@@ -150,7 +150,7 @@ const ExportPage: React.FC = () => {
                         </div>
                         <div className="info-item">
                             <h4>⭐ Status</h4>
-                            <p>Favorite and archive status for each article</p>
+                            <p>Bookmarked and archive status for each article</p>
                         </div>
                         <div className="info-item">
                             <h4>📅 Dates</h4>

@@ -34,7 +34,7 @@ const BookmarkedArticles: React.FC = () => {
             const data: Article[] = await response.json();
             setArticles(data);
         } catch (error) {
-            console.error("Failed to fetch favorited articles:", error);
+            console.error("Failed to fetch bookmarked articles:", error);
         }
     }, [getToken]);
 
@@ -81,9 +81,10 @@ const BookmarkedArticles: React.FC = () => {
     };
 
     const handleToggleBookmark = async (articleId: string) => {
-        const success = await handleAction(articleId, 'favorite');
+        // 🔧 FIX: Use 'bookmark' endpoint instead of 'favorite'
+        const success = await handleAction(articleId, 'bookmark');
         if (success) {
-            // Un-favoriting should remove it from this list
+            // Un-bookmarking should remove it from this list since this is the bookmarks page
             setArticles(prev => prev.filter(a => a.id !== articleId));
         }
     };
@@ -145,4 +146,4 @@ const BookmarkedArticles: React.FC = () => {
     );
 };
 
-export default BookmarkedArticles; 
+export default BookmarkedArticles;
