@@ -3,10 +3,11 @@ import './ArticleCard.scss';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBookmark as faBookmarkSolid, faArchive, faTrash, faEllipsisV, faFolderPlus, faNewspaper, faPlus } from '@fortawesome/free-solid-svg-icons';
+import { faBookmark as faBookmarkSolid, faArchive, faTrash, faEllipsisV, faFolderPlus, faNewspaper, faPlus, faExternalLinkAlt, faShieldAlt } from '@fortawesome/free-solid-svg-icons';
 import { faBookmark as faBookmarkRegular } from '@fortawesome/free-regular-svg-icons';
 import CollectionSelector from '../../Collections/CollectionSelector/CollectionSelector';
 import { getGradientForString } from '../../../utils/colorUtils';
+import { extractUrlMetadata, getDomainColor } from '../../../utils/urlMetadata';
 import type { ArticleCardProps } from '../../../interfaces/props/article-card-props';
 
 const ArticleCard: React.FC<ArticleCardProps> = ({
@@ -16,8 +17,12 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
     onToggleBookmark,
     onAddToLibrary, // Destructure new prop
 }) => {
-    // Reverted to `imageUrl` to match the actual data property for the hero image.
-    const { id, imageUrl, title, excerpt, isBookmarked, isArchived, isUrlOnly, url } = article;
+    // Destructure both standard and metadata fields
+    const {
+        id, imageUrl, title, excerpt, isBookmarked, isArchived, isUrlOnly, url,
+        // Rich metadata fields
+        siteName, siteIcon, ogImage, ogDescription, themeColor
+    } = article;
     const [isBookmarkAnimating, setIsBookmarkAnimating] = useState(false);
     const [showSaveEffect, setShowSaveEffect] = useState(false);
     const [showDropdown, setShowDropdown] = useState(false);
@@ -133,29 +138,73 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
 
                 {isUrlOnly ? (
                     <a href={url} target="_blank" rel="noopener noreferrer" className="article-card-link url-only-link">
-                        <div className="card-image-container">
-                            <div className="card-image-placeholder url-only-placeholder" style={{ background: placeholderGradient }}>
-                                <span className="placeholder-icon">
-                                    <FontAwesomeIcon icon={faNewspaper} />
-                                </span>
-                                <span className="url-only-badge">Original Link</span>
+                        <div className="rich-preview-container">
+                            {/* Hero Image Area */}
+                            <div className="preview-image-section">
+                                {(ogImage || imageUrl) ? (
+                                    <img src={ogImage || imageUrl} alt={title} className="preview-image" loading="lazy" />
+                                ) : (
+                                    <div
+                                        className="preview-placeholder"
+                                        style={{
+                                            background: themeColor
+                                                ? `linear-gradient(135deg, ${themeColor} 0%, ${themeColor}88 100%)`
+                                                : `linear-gradient(135deg, ${getDomainColor(url)} 0%, ${getDomainColor(url + 'gradient')} 100%)`
+                                        }}
+                                    >
+                                        <FontAwesomeIcon icon={faNewspaper} className="preview-icon" />
+                                    </div>
+                                )}
+                                <div className="preview-overlay external-link-overlay">
+                                    <FontAwesomeIcon icon={faExternalLinkAlt} className="external-link-icon" />
+                                </div>
                             </div>
-                        </div>
-                        <div className="card-content">
-                            <p className="card-title">{title || 'Original Article'}</p>
-                            <p className="card-description">
-                                {excerpt || 'Click to view the original article. Content extraction is being retried automatically.'}
-                            </p>
-                            <p className="card-url">{url}</p>
+
+                            {/* Content Section */}
+                            <div className="preview-content">
+                                <h2 className="preview-title">
+                                    {title || 'Click to view original article'}
+                                </h2>
+
+                                <p className="preview-description">
+                                    {ogDescription || excerpt || 'Content extraction is being retried automatically. Click to view the original article.'}
+                                </p>
+
+                                <div className="preview-footer">
+                                    <div className="preview-source">
+                                        <img
+                                            src={siteIcon || extractUrlMetadata(url).favicon}
+                                            alt=""
+                                            className="source-favicon"
+                                            onError={(e) => {
+                                                const target = e.target as HTMLImageElement;
+                                                target.style.display = 'none';
+                                            }}
+                                        />
+                                        <span className="source-name">{siteName || extractUrlMetadata(url).siteName}</span>
+                                        {extractUrlMetadata(url).isSecure && (
+                                            <FontAwesomeIcon icon={faShieldAlt} className="secure-icon" title="Secure connection" />
+                                        )}
+                                    </div>
+                                    <span className="read-original-badge">Read Original</span>
+                                </div>
+                            </div>
                         </div>
                     </a>
                 ) : (
                     <Link to={`/article/${id}`} className="article-card-link">
                         <div className="card-image-container">
-                            {imageUrl ? (
-                                <img src={imageUrl} alt={title} className="card-image" loading="lazy" />
+                            {(ogImage || imageUrl) ? (
+                                <img src={ogImage || imageUrl} alt={title} className="card-image" loading="lazy" />
                             ) : (
-                                <div className="card-image-placeholder" style={{ background: placeholderGradient }}>
+                                <div
+                                    className="card-image-placeholder"
+                                    style={{
+                                        background: themeColor
+                                            ? `linear-gradient(135deg, ${themeColor} 0%, ${themeColor}88 100%)`
+                                            : placeholderGradient
+                                    }}
+                                >
                                     <span className="placeholder-icon">
                                         <FontAwesomeIcon icon={faNewspaper} />
                                     </span>
@@ -164,7 +213,22 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
                         </div>
                         <div className="card-content">
                             <p className="card-title">{title}</p>
-                            <p className="card-description">{excerpt}</p>
+                            <p className="card-description">{ogDescription || excerpt}</p>
+
+                            <div className="card-footer">
+                                {siteIcon && (
+                                    <img
+                                        src={siteIcon}
+                                        alt=""
+                                        className="source-favicon"
+                                        onError={(e) => {
+                                            const target = e.target as HTMLImageElement;
+                                            target.style.display = 'none';
+                                        }}
+                                    />
+                                )}
+                                <span className="source-name">{siteName || extractUrlMetadata(url).siteName}</span>
+                            </div>
                         </div>
                     </Link>
                 )}

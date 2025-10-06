@@ -14,4 +14,13 @@ export interface Article {
     summary?: string;
     createdAt: string;
     isUrlOnly?: boolean; // Flag for URL-only entries that failed extraction
+
+    // Rich metadata fields
+    siteName?: string;
+    siteIcon?: string;
+    ogImage?: string;
+    ogDescription?: string;
+    themeColor?: string;
+    ogType?: string;
+    metadataScrapedAt?: string;
 }

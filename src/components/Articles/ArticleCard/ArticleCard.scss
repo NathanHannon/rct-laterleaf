@@ -82,19 +82,25 @@
 }
 
 .card-image-container {
-    width: 100%;
-    aspect-ratio: 16 / 9;
-    position: relative; // Required for the placeholder's absolute positioning
+    width: 100% !important;
+    height: 180px !important;
+    min-height: 180px !important;
+    max-height: 180px !important;
+    position: relative;
     overflow: hidden;
-    background-color: #f0f0f0;
+    background-color: var(--card-bg);
     border-top-left-radius: 8px;
     border-top-right-radius: 8px;
+    flex-shrink: 0 !important;
 
     .card-image {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
+        width: 100% !important;
+        height: 180px !important;
+        min-height: 180px !important;
+        max-height: 180px !important;
+        object-fit: cover !important;
         transition: transform 0.3s ease;
+        display: block !important;
     }
 
     // This ensures the placeholder perfectly fills the container and centers the icon.
@@ -102,8 +108,10 @@
         position: absolute;
         top: 0;
         left: 0;
-        width: 100%;
-        height: 100%;
+        width: 100% !important;
+        height: 180px !important;
+        min-height: 180px !important;
+        max-height: 180px !important;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -117,43 +125,64 @@
 }
 
 .card-content {
-    padding: 15px;
+    padding: 16px;
     display: flex;
     flex-direction: column;
     flex-grow: 1;
-    /* Take up remaining space */
     min-height: 0;
-    /* Allow content to shrink if needed */
 
     .card-title {
-        font-size: 1.2rem;
-        font-weight: bold;
-        color: var(--text-color); // Use theme text color
-        margin: 0 0 10px 0;
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: var(--text-color);
+        margin: 0 0 8px 0;
         display: -webkit-box;
         -webkit-line-clamp: 2;
-        /* Limit title to 2 lines */
         line-clamp: 2;
         -webkit-box-orient: vertical;
         overflow: hidden;
         text-overflow: ellipsis;
-        line-height: 1.4;
+        line-height: 1.3;
     }
 
     .card-description {
-        font-size: 1rem;
-        color: var(--text-color-secondary); // Use theme secondary text color
-        margin: 0;
+        font-size: 0.9rem;
+        color: var(--text-color-secondary);
+        margin: 0 0 auto 0;
         display: -webkit-box;
-        -webkit-line-clamp: 4;
-        /* Show up to 4 lines of description */
-        line-clamp: 4;
+        -webkit-line-clamp: 3;
+        line-clamp: 3;
         -webkit-box-orient: vertical;
         overflow: hidden;
         text-overflow: ellipsis;
-        line-height: 1.5;
+        line-height: 1.4;
         flex-grow: 1;
-        /* Fill remaining space */
+    }
+
+    .card-footer {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 12px;
+        padding-top: 12px;
+        border-top: 1px solid var(--border-light);
+
+        .source-favicon {
+            width: 16px;
+            height: 16px;
+            border-radius: 2px;
+            object-fit: cover;
+            flex-shrink: 0;
+        }
+
+        .source-name {
+            font-size: 0.8rem;
+            color: var(--text-tertiary);
+            font-weight: 500;
+            text-overflow: ellipsis;
+            overflow: hidden;
+            white-space: nowrap;
+        }
     }
 }
 
@@ -166,16 +195,18 @@
     justify-content: space-between;
     align-items: center;
     padding: 10px 15px;
-    background: linear-gradient(to top, rgba(0, 0, 0, 0.7) 0%, rgba(0, 0, 0, 0) 100%);
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.8) 0%, rgba(0, 0, 0, 0.1) 80%, rgba(0, 0, 0, 0) 100%);
     opacity: 0;
     transform: translateY(20px);
     transition: opacity 0.3s ease, transform 0.3s ease;
+    height: 70px;
 
-    // Always show actions on mobile (no hover needed) and remove the gradient.
     @media (max-width: 768px) {
         opacity: 1;
         transform: translateY(0);
         background: none;
+        height: 60px;
+        padding: 8px 15px;
     }
 
     // On larger touch devices (tablets), show actions and the gradient, but not on small mobile screens.
@@ -344,44 +375,167 @@
     }
 }
 
-/* URL-only specific styles */
+/* URL-only rich preview styles */
 .url-only-link {
-    .url-only-placeholder {
-        position: relative;
-        border: 2px dashed var(--secondary-color);
-        opacity: 0.8;
+    .rich-preview-container {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+    }
 
-        .url-only-badge {
+    .preview-image-section {
+        width: 100% !important;
+        height: 180px !important;
+        min-height: 180px !important;
+        max-height: 180px !important;
+        position: relative;
+        overflow: hidden;
+        border-top-left-radius: 8px;
+        border-top-right-radius: 8px;
+        flex-shrink: 0 !important;
+
+        .preview-image {
+            width: 100% !important;
+            height: 180px !important;
+            min-height: 180px !important;
+            max-height: 180px !important;
+            object-fit: cover !important;
+            transition: transform 0.3s ease;
+            display: block !important;
+        }
+
+        .preview-placeholder {
+            width: 100% !important;
+            height: 180px !important;
+            min-height: 180px !important;
+            max-height: 180px !important;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            .preview-icon {
+                font-size: 3rem;
+                color: rgba(255, 255, 255, 0.8);
+                filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+            }
+        }
+
+        .preview-overlay {
             position: absolute;
-            bottom: 8px;
-            right: 8px;
-            background: var(--primary-color);
-            color: white;
-            padding: 4px 8px;
-            border-radius: 12px;
-            font-size: 0.7rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+            top: 12px;
+            left: 12px;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(8px);
+            padding: 6px;
+            border-radius: 50%;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+
+            .external-link-icon {
+                color: white;
+                font-size: 0.8rem;
+            }
         }
     }
 
-    .card-content {
-        .card-url {
-            font-size: 0.8rem;
-            color: var(--secondary-color);
-            margin-top: 8px;
-            text-overflow: ellipsis;
+    .preview-content {
+        padding: 16px;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+
+        .preview-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            line-height: 1.3;
+            color: var(--text-color);
+            margin: 0;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            line-clamp: 2;
+            -webkit-box-orient: vertical;
             overflow: hidden;
-            white-space: nowrap;
+        }
+
+        .preview-description {
+            font-size: 0.9rem;
+            line-height: 1.4;
+            color: var(--text-color-secondary);
+            margin: 0 0 auto 0;
+            flex: 1;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .preview-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid var(--border-light);
+
+            .preview-source {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+
+                .source-favicon {
+                    width: 16px;
+                    height: 16px;
+                    border-radius: 2px;
+                    object-fit: cover;
+                    flex-shrink: 0;
+                }
+
+                .source-name {
+                    font-size: 0.8rem;
+                    font-weight: 500;
+                    color: var(--text-tertiary);
+                    text-overflow: ellipsis;
+                    overflow: hidden;
+                    white-space: nowrap;
+                }
+
+                .secure-icon {
+                    color: var(--success-color, #22c55e);
+                    font-size: 0.7rem;
+                    margin-left: 4px;
+                }
+            }
+
+            .read-original-badge {
+                background: var(--primary-color);
+                color: white;
+                padding: 4px 8px;
+                border-radius: 12px;
+                font-size: 0.7rem;
+                font-weight: 600;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+                opacity: 0.8;
+                transition: opacity 0.3s ease;
+            }
         }
     }
 
     &:hover {
-        .url-only-placeholder {
-            border-color: var(--primary-color);
+        .preview-image-section {
+            .preview-image {
+                transform: scale(1.05);
+            }
+
+            .preview-overlay {
+                opacity: 1;
+            }
+        }
+
+        .preview-footer .read-original-badge {
             opacity: 1;
         }
     }
 }
-
