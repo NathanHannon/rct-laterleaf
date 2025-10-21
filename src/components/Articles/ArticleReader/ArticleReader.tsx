@@ -9,7 +9,7 @@ import ConfirmationDialog from '../../Common/ConfirmationDialog/ConfirmationDial
 import TagsManager from '../../TagsManager/TagsManager';
 import './ArticleReader.scss';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBookmark as faBookmarkSolid, faArchive, faTrash, faMagicWandSparkles, faRotateRight, faFolderPlus, faEllipsisV, faGem, faClock } from '@fortawesome/free-solid-svg-icons';
+import { faBookmark as faBookmarkSolid, faArchive, faTrash, faRotateRight, faFolderPlus, faEllipsisV, faGem, faClock, faStarHalfStroke } from '@fortawesome/free-solid-svg-icons';
 import { faBookmark as faBookmarkRegular } from '@fortawesome/free-regular-svg-icons';
 import { hasProAccess } from '../../../utils/tierUtils';
 
@@ -44,7 +44,7 @@ const ArticleReader = () => {
     const contentRef = useRef<HTMLDivElement>(null);
 
     // Check if user has pro access for chat functionality
-    const userHasProAccess = hasProAccess(user);
+    const userHasProAccess = hasProAccess(!!user);
 
     // Use contentHtml for display, falling back to content if it doesn't exist
     const displayContent = article?.contentHtml || article?.content || '';
@@ -352,7 +352,7 @@ const ArticleReader = () => {
                     className={`button-summarize ${article.summary ? 'has-summary' : ''} ${isGeneratingSummary ? 'loading' : ''}`}
                     disabled={isGeneratingSummary}
                 >
-                    <FontAwesomeIcon icon={faMagicWandSparkles} />
+                    <FontAwesomeIcon icon={faStarHalfStroke} />
                     <span>
                         {isGeneratingSummary ? 'Generating...' :
                             article.summary ? (showSummary ? 'Hide Summary' : 'Show Summary') :
