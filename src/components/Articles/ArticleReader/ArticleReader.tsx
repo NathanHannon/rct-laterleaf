@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useAuth, useUser } from "@clerk/clerk-react";
+import { useAuth } from "@clerk/clerk-react";
 import { motion, AnimatePresence } from 'motion/react';
 import ReactMarkdown from 'react-markdown';
 import type { Article } from '../../../interfaces/article';
@@ -12,11 +12,12 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBookmark as faBookmarkSolid, faArchive, faTrash, faRotateRight, faFolderPlus, faEllipsisV, faGem, faClock, faStarHalfStroke } from '@fortawesome/free-solid-svg-icons';
 import { faBookmark as faBookmarkRegular } from '@fortawesome/free-regular-svg-icons';
 import { hasProAccess } from '../../../utils/tierUtils';
+import { useUserStatus } from '../../../context/userStatusContext';
 
 const ArticleReader = () => {
     const { articleId } = useParams<{ articleId: string }>();
     const { getToken } = useAuth();
-    const { user } = useUser();
+    const { isPro } = useUserStatus();
     const navigate = useNavigate();
     const [article, setArticle] = useState<Article | null>(null);
     const [loading, setLoading] = useState(true);
@@ -44,7 +45,7 @@ const ArticleReader = () => {
     const contentRef = useRef<HTMLDivElement>(null);
 
     // Check if user has pro access for chat functionality
-    const userHasProAccess = hasProAccess(!!user);
+    const userHasProAccess = hasProAccess(isPro);
 
     // Use contentHtml for display, falling back to content if it doesn't exist
     const displayContent = article?.contentHtml || article?.content || '';
