@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
+import { createContext, useState, useEffect, type ReactNode } from 'react';
 import { useAuth } from '@clerk/clerk-react';
 
 interface UserStatusContextType {
@@ -6,7 +6,7 @@ interface UserStatusContextType {
     isLoading: boolean;
 }
 
-const UserStatusContext = createContext<UserStatusContextType | undefined>(undefined);
+export const UserStatusContext = createContext<UserStatusContextType | undefined>(undefined);
 
 export const UserStatusProvider = ({ children }: { children: ReactNode }) => {
     const { getToken, isSignedIn } = useAuth();
@@ -53,12 +53,4 @@ export const UserStatusProvider = ({ children }: { children: ReactNode }) => {
             {children}
         </UserStatusContext.Provider>
     );
-};
-
-export const useUserStatus = () => {
-    const context = useContext(UserStatusContext);
-    if (context === undefined) {
-        throw new Error('useUserStatus must be used within a UserStatusProvider');
-    }
-    return context;
 };

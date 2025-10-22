@@ -14,7 +14,7 @@ import AddArticleForm from '../AddArticleForm/AddArticleForm';
 import { hasProAccess } from '../../../utils/tierUtils';
 import { sortArticles } from '../../../utils/sortUtils';
 import { motion } from 'motion/react';
-import { useUserStatus } from '../../../context/userStatusContext';
+import { useUserStatus } from '../../../hooks/useUserStatus';
 
 const ArticleList = () => {
     const [articles, setArticles] = useState<Article[]>([]);

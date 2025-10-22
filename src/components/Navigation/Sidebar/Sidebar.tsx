@@ -8,7 +8,7 @@ import { hasProAccess } from '../../../utils/tierUtils';
 import SearchModeToggle from '../../Search/SearchModeToggle/SearchModeToggle';
 import './Sidebar.scss';
 import logo from '../../../assets/logo/icon-transparent.png';
-import { useUserStatus } from '../../../context/userStatusContext';
+import { useUserStatus } from '../../../hooks/useUserStatus';
 import UpgradeButton from '../../Common/Controls/UpgradeButton/UpgradeButton';
 
 interface SidebarProps {
