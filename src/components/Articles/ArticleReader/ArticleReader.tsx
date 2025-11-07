@@ -7,12 +7,13 @@ import type { Article } from '../../../interfaces/article';
 import CollectionSelector from '../../Collections/CollectionSelector/CollectionSelector';
 import ConfirmationDialog from '../../Common/ConfirmationDialog/ConfirmationDialog';
 import TagsManager from '../../TagsManager/TagsManager';
+import ArticleAudioPlayer from '../ArticleAudioPlayer/ArticleAudioPlayer';
 import './ArticleReader.scss';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBookmark as faBookmarkSolid, faArchive, faTrash, faRotateRight, faFolderPlus, faEllipsisV, faGem, faClock, faStarHalfStroke } from '@fortawesome/free-solid-svg-icons';
 import { faBookmark as faBookmarkRegular } from '@fortawesome/free-regular-svg-icons';
 import { hasProAccess } from '../../../utils/tierUtils';
-import { useUserStatus } from '../../../context/userStatusContext';
+import { useUserStatus } from '../../../hooks/useUserStatus';
 
 const ArticleReader = () => {
     const { articleId } = useParams<{ articleId: string }>();
@@ -336,7 +337,7 @@ const ArticleReader = () => {
             <div className="article-actions">
                 <motion.button
                     onClick={handleFavorite}
-                    className={`button-favorite ${article.isBookmarked ? 'favorited' : ''}`}
+                    className={`button-favorite ${article.isBookmarked ? 'bookmarked' : ''}`}
                     whileTap={{ scale: 0.95 }}
                     animate={isBookmarkAnimating ? {
                         scale: [1, 1.1, 1],
@@ -440,6 +441,17 @@ const ArticleReader = () => {
                     )}
                 </div>
             </div>
+
+            {/* Audio Player - Add this section */}
+            {article.content && articleId && (
+                <div className="article-audio-section">
+                    <ArticleAudioPlayer 
+                        articleId={articleId}
+                        content={article.content}
+                        className="article-audio-player"
+                    />
+                </div>
+            )}
 
             {/* AI Summary Panel */}
             <AnimatePresence>

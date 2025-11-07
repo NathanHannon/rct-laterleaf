@@ -1,54 +1,50 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@clerk/clerk-react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import {
-    faPlay,
-    faPause,
-    faStop,
-    faVolumeUp,
-    faSpinner,
-    faExclamationTriangle
-} from '@fortawesome/free-solid-svg-icons';
+import { faPlay, faPause, faSpinner } from '@fortawesome/free-solid-svg-icons';
+import { useUserStatus } from '../../../hooks/useUserStatus';
 import './ArticleAudioPlayer.scss';
-
-interface Voice {
-    name: string;
-    displayName: string;
-    languageCode: string;
-    ssmlGender: string;
-}
 
 interface ArticleAudioPlayerProps {
     articleId: string;
     content: string;
-    title?: string;
+    className?: string;
 }
 
-const ArticleAudioPlayer: React.FC<ArticleAudioPlayerProps> = ({
-    articleId,
-    content,
-    title
+interface TTSVoice {
+    voice: string;
+    description: string;
+    recommended: string;
+}
+
+const ArticleAudioPlayer: React.FC<ArticleAudioPlayerProps> = ({ 
+    articleId, 
+    content, 
+    className = '' 
 }) => {
     const { getToken } = useAuth();
+    const { isPro } = useUserStatus();
     const audioRef = useRef<HTMLAudioElement>(null);
 
-    const [isPlaying, setIsPlaying] = useState(false);
+    // Audio state
     const [isLoading, setIsLoading] = useState(false);
+    const [isPlaying, setIsPlaying] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [audioUrl, setAudioUrl] = useState<string | null>(null);
     const [currentTime, setCurrentTime] = useState(0);
     const [duration, setDuration] = useState(0);
-    const [volume, setVolume] = useState(1);
-    const [playbackRate, setPlaybackRate] = useState(1);
-    const [availableVoices, setAvailableVoices] = useState<Voice[]>([]);
+    
+    // Audio controls
     const [selectedVoice, setSelectedVoice] = useState<string>('');
-    const [audioUrl, setAudioUrl] = useState<string | null>(null);
+    const [speed, setSpeed] = useState(1.0);
+    const [availableVoices, setAvailableVoices] = useState<TTSVoice[]>([]);
 
     // Fetch available voices on component mount
     useEffect(() => {
         fetchAvailableVoices();
     }, []);
 
-    // Update current time during playback
+    // Audio event handlers
     useEffect(() => {
         const audio = audioRef.current;
         if (!audio) return;
@@ -59,7 +55,6 @@ const ArticleAudioPlayer: React.FC<ArticleAudioPlayerProps> = ({
         const handleError = () => {
             setError('Audio playback failed');
             setIsPlaying(false);
-            setIsLoading(false);
         };
 
         audio.addEventListener('timeupdate', updateTime);
@@ -87,7 +82,7 @@ const ArticleAudioPlayer: React.FC<ArticleAudioPlayerProps> = ({
     const fetchAvailableVoices = async () => {
         try {
             const token = await getToken();
-            const response = await fetch('/api/articles/voices', {
+            const response = await fetch('/api/ai/tts-voices', {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                 },
@@ -97,7 +92,8 @@ const ArticleAudioPlayer: React.FC<ArticleAudioPlayerProps> = ({
                 const voices = await response.json();
                 setAvailableVoices(voices);
                 if (voices.length > 0 && !selectedVoice) {
-                    setSelectedVoice(voices[0].name);
+                    // Set default voice - use the first available voice (Puck)
+                    setSelectedVoice(voices[0].voice);
                 }
             }
         } catch (error) {
@@ -116,15 +112,24 @@ const ArticleAudioPlayer: React.FC<ArticleAudioPlayerProps> = ({
 
         try {
             const token = await getToken();
-            const response = await fetch(`/api/articles/${articleId}/audio`, {
-                method: 'POST',
+            
+            // Build query parameters
+            const params = new URLSearchParams();
+            if (selectedVoice) {
+                params.append('voice', selectedVoice);
+            }
+            if (speed !== 1.0) {
+                params.append('speed', speed.toString());
+            }
+            
+            const queryString = params.toString();
+            const url = `/api/articles/${articleId}/audio${queryString ? `?${queryString}` : ''}`;
+            
+            const response = await fetch(url, {
+                method: 'GET',
                 headers: {
                     'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({
-                    voice: selectedVoice || undefined,
-                }),
             });
 
             if (!response.ok) {
@@ -133,35 +138,37 @@ const ArticleAudioPlayer: React.FC<ArticleAudioPlayerProps> = ({
             }
 
             const audioBlob = await response.blob();
-            const url = URL.createObjectURL(audioBlob);
+            const url2 = URL.createObjectURL(audioBlob);
 
             // Clean up previous URL
             if (audioUrl) {
                 URL.revokeObjectURL(audioUrl);
             }
 
-            setAudioUrl(url);
+            setAudioUrl(url2);
 
             // Set audio source and load
             if (audioRef.current) {
-                audioRef.current.src = url;
+                audioRef.current.src = url2;
                 audioRef.current.load();
             }
+
         } catch (error) {
+            console.error('Audio generation error:', error);
             setError(error instanceof Error ? error.message : 'Failed to generate audio');
         } finally {
             setIsLoading(false);
         }
     };
 
-    const handlePlayPause = async () => {
+    const togglePlayback = async () => {
+        const audio = audioRef.current;
+        if (!audio) return;
+
         if (!audioUrl) {
             await generateAudio();
             return;
         }
-
-        const audio = audioRef.current;
-        if (!audio) return;
 
         if (isPlaying) {
             audio.pause();
@@ -171,54 +178,29 @@ const ArticleAudioPlayer: React.FC<ArticleAudioPlayerProps> = ({
                 await audio.play();
                 setIsPlaying(true);
             } catch {
-                setError('Failed to play audio');
+                setError('Playback failed');
                 setIsPlaying(false);
             }
         }
     };
 
-    const handleStop = () => {
+    const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
         const audio = audioRef.current;
         if (!audio) return;
 
-        audio.pause();
-        audio.currentTime = 0;
-        setIsPlaying(false);
-        setCurrentTime(0);
-    };
-
-    const handleSeek = (event: React.ChangeEvent<HTMLInputElement>) => {
-        const audio = audioRef.current;
-        if (!audio) return;
-
-        const newTime = parseFloat(event.target.value);
+        const newTime = parseFloat(e.target.value);
         audio.currentTime = newTime;
         setCurrentTime(newTime);
     };
 
-    const handleVolumeChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        const audio = audioRef.current;
-        const newVolume = parseFloat(event.target.value);
-
-        setVolume(newVolume);
-        if (audio) {
-            audio.volume = newVolume;
+    const handleSpeedChange = (newSpeed: number) => {
+        setSpeed(newSpeed);
+        if (audioRef.current) {
+            audioRef.current.playbackRate = newSpeed;
         }
     };
 
-    const handlePlaybackRateChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-        const audio = audioRef.current;
-        const newRate = parseFloat(event.target.value);
-
-        setPlaybackRate(newRate);
-        if (audio) {
-            audio.playbackRate = newRate;
-        }
-    };
-
-    const formatTime = (time: number): string => {
-        if (!isFinite(time)) return '0:00';
-
+    const formatTime = (time: number) => {
         const minutes = Math.floor(time / 60);
         const seconds = Math.floor(time % 60);
         return `${minutes}:${seconds.toString().padStart(2, '0')}`;
@@ -230,125 +212,114 @@ const ArticleAudioPlayer: React.FC<ArticleAudioPlayerProps> = ({
     }
 
     return (
-        <div className="article-audio-player">
-            <audio
-                ref={audioRef}
-                preload="metadata"
-                style={{ display: 'none' }}
-            />
+        <div className={`article-audio-player ${className}`}>
+            <audio ref={audioRef} preload="metadata" />
+            
+            <div className="audio-controls">
+                <div className="primary-controls">
+                    <button
+                        onClick={togglePlayback}
+                        disabled={isLoading}
+                        className="play-button"
+                        title={audioUrl ? (isPlaying ? 'Pause' : 'Play') : 'Generate Audio'}
+                    >
+                        {isLoading ? (
+                            <FontAwesomeIcon icon={faSpinner} spin />
+                        ) : isPlaying ? (
+                            <FontAwesomeIcon icon={faPause} />
+                        ) : (
+                            <FontAwesomeIcon icon={faPlay} />
+                        )}
+                    </button>
 
-            <div className="audio-header">
-                <h4>Listen to Article</h4>
-                {title && <span className="audio-title">{title}</span>}
+                    <div className="audio-info">
+                        <div className="time-display">
+                            {audioUrl ? (
+                                <>
+                                    <span>{formatTime(currentTime)}</span>
+                                    <span>/</span>
+                                    <span>{formatTime(duration)}</span>
+                                </>
+                            ) : (
+                                <span>Listen to article</span>
+                            )}
+                        </div>
+                        {!isPro && availableVoices.length > 0 && (
+                            <div className="tier-info">
+                                <small>🎵 Free tier - {availableVoices.length} voices available</small>
+                            </div>
+                        )}
+                        {isPro && availableVoices.length > 0 && (
+                            <div className="tier-info">
+                                <small>✨ Pro tier - {availableVoices.length} premium voices available</small>
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                {audioUrl && (
+                    <div className="progress-controls">
+                        <input
+                            type="range"
+                            min="0"
+                            max={duration || 0}
+                            value={currentTime}
+                            onChange={handleSeek}
+                            className="progress-slider"
+                        />
+                    </div>
+                )}
+
+                <div className="audio-settings">
+                    {/* Voice Selection */}
+                    {availableVoices.length > 0 && (
+                        <div className="voice-selector">
+                            <select
+                                value={selectedVoice}
+                                onChange={(e) => setSelectedVoice(e.target.value)}
+                                disabled={isLoading}
+                            >
+                                {availableVoices.map((voice) => (
+                                    <option key={voice.voice} value={voice.voice}>
+                                        {voice.voice} - {voice.description}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                    )}
+
+                    {/* Speed Control */}
+                    <div className="speed-controls">
+                        <label>Speed:</label>
+                        <select
+                            value={speed}
+                            onChange={(e) => handleSpeedChange(parseFloat(e.target.value))}
+                            disabled={isLoading}
+                        >
+                            <option value={0.75}>0.75x</option>
+                            <option value={1.0}>1.0x</option>
+                            <option value={1.25}>1.25x</option>
+                            <option value={1.5}>1.5x</option>
+                        </select>
+                    </div>
+
+                    {/* Regenerate Button */}
+                    {audioUrl && (
+                        <button
+                            onClick={generateAudio}
+                            disabled={isLoading}
+                            className="regenerate-button"
+                            title="Regenerate with current settings"
+                        >
+                            🔄
+                        </button>
+                    )}
+                </div>
             </div>
 
             {error && (
                 <div className="audio-error">
-                    <FontAwesomeIcon icon={faExclamationTriangle} />
-                    <span>{error}</span>
-                </div>
-            )}
-
-            <div className="audio-controls">
-                <div className="primary-controls">
-                    <button
-                        className="control-button play-pause"
-                        onClick={handlePlayPause}
-                        disabled={isLoading}
-                        aria-label={isPlaying ? 'Pause' : 'Play'}
-                    >
-                        {isLoading ? (
-                            <FontAwesomeIcon icon={faSpinner} spin />
-                        ) : (
-                            <FontAwesomeIcon icon={isPlaying ? faPause : faPlay} />
-                        )}
-                    </button>
-
-                    <button
-                        className="control-button stop"
-                        onClick={handleStop}
-                        disabled={!audioUrl || isLoading}
-                        aria-label="Stop"
-                    >
-                        <FontAwesomeIcon icon={faStop} />
-                    </button>
-                </div>
-
-                <div className="progress-controls">
-                    <span className="time-display current-time">
-                        {formatTime(currentTime)}
-                    </span>
-
-                    <input
-                        type="range"
-                        className="progress-slider"
-                        min="0"
-                        max={duration || 0}
-                        value={currentTime}
-                        onChange={handleSeek}
-                        disabled={!audioUrl}
-                        aria-label="Seek"
-                    />
-
-                    <span className="time-display duration">
-                        {formatTime(duration)}
-                    </span>
-                </div>
-            </div>
-
-            <div className="audio-settings">
-                <div className="setting-group">
-                    <label htmlFor="voice-select">Voice:</label>
-                    <select
-                        id="voice-select"
-                        value={selectedVoice}
-                        onChange={(e) => setSelectedVoice(e.target.value)}
-                        disabled={isLoading || isPlaying}
-                    >
-                        {availableVoices.map((voice) => (
-                            <option key={voice.name} value={voice.name}>
-                                {voice.displayName} ({voice.languageCode})
-                            </option>
-                        ))}
-                    </select>
-                </div>
-
-                <div className="setting-group">
-                    <label htmlFor="playback-rate">Speed:</label>
-                    <select
-                        id="playback-rate"
-                        value={playbackRate}
-                        onChange={handlePlaybackRateChange}
-                        disabled={!audioUrl}
-                    >
-                        <option value="0.5">0.5x</option>
-                        <option value="0.75">0.75x</option>
-                        <option value="1">1x</option>
-                        <option value="1.25">1.25x</option>
-                        <option value="1.5">1.5x</option>
-                        <option value="2">2x</option>
-                    </select>
-                </div>
-
-                <div className="setting-group volume-group">
-                    <FontAwesomeIcon icon={faVolumeUp} />
-                    <input
-                        type="range"
-                        className="volume-slider"
-                        min="0"
-                        max="1"
-                        step="0.1"
-                        value={volume}
-                        onChange={handleVolumeChange}
-                        aria-label="Volume"
-                    />
-                </div>
-            </div>
-
-            {isLoading && (
-                <div className="loading-message">
-                    <FontAwesomeIcon icon={faSpinner} spin />
-                    <span>Generating audio...</span>
+                    <small>⚠️ {error}</small>
                 </div>
             )}
         </div>
