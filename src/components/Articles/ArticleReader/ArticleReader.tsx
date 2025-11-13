@@ -6,11 +6,11 @@ import ReactMarkdown from 'react-markdown';
 import type { Article } from '../../../interfaces/article';
 import CollectionSelector from '../../Collections/CollectionSelector/CollectionSelector';
 import ConfirmationDialog from '../../Common/ConfirmationDialog/ConfirmationDialog';
+import ArticlePodcastPlayer from '../ArticlePodcastPlayer/ArticlePodcastPlayer';
 import TagsManager from '../../TagsManager/TagsManager';
-import ArticleAudioPlayer from '../ArticleAudioPlayer/ArticleAudioPlayer';
 import './ArticleReader.scss';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBookmark as faBookmarkSolid, faArchive, faTrash, faRotateRight, faFolderPlus, faEllipsisV, faGem, faClock, faStarHalfStroke } from '@fortawesome/free-solid-svg-icons';
+import { faBookmark as faBookmarkSolid, faArchive, faTrash, faRotateRight, faFolderPlus, faEllipsisV, faGem, faClock, faStarHalfStroke, faPodcast } from '@fortawesome/free-solid-svg-icons';
 import { faBookmark as faBookmarkRegular } from '@fortawesome/free-regular-svg-icons';
 import { hasProAccess } from '../../../utils/tierUtils';
 import { useUserStatus } from '../../../hooks/useUserStatus';
@@ -26,6 +26,7 @@ const ArticleReader = () => {
     const [isGeneratingSummary, setIsGeneratingSummary] = useState(false);
     const [showSummary, setShowSummary] = useState(false);
     const [isBookmarkAnimating, setIsBookmarkAnimating] = useState(false);
+    const [showPodcastPlayer, setShowPodcastPlayer] = useState(false);
     const [isChatMode, setIsChatMode] = useState(false);
     const [chatMessages, setChatMessages] = useState<{ role: 'user' | 'assistant', content: string, timestamp?: string }[]>([]);
     const [isGeneratingChat, setIsGeneratingChat] = useState(false);
@@ -40,6 +41,7 @@ const ArticleReader = () => {
         status?: 'completed' | 'pending';
     }>({});
 
+    // Podcast player states
     // New states for reading progress and time estimation
     const [readingProgress, setReadingProgress] = useState(0);
     const [estimatedReadingTime, setEstimatedReadingTime] = useState(0);
@@ -362,6 +364,15 @@ const ArticleReader = () => {
                     </span>
                 </button>
 
+                {/* Podcast Player Toggle Button */}
+                <button
+                    onClick={() => setShowPodcastPlayer(!showPodcastPlayer)}
+                    className="button-podcast"
+                >
+                    <FontAwesomeIcon icon={faPodcast} />
+                    <span>{showPodcastPlayer ? 'Hide Podcast' : 'Show Podcast'}</span>
+                </button>
+
                 {/* Pro Summary Toggle for Free Users */}
                 {!userHasProAccess && !article.summary && (
                     <div className="pro-toggle-container">
@@ -442,16 +453,6 @@ const ArticleReader = () => {
                 </div>
             </div>
 
-            {/* Audio Player - Add this section */}
-            {article.content && articleId && (
-                <div className="article-audio-section">
-                    <ArticleAudioPlayer 
-                        articleId={articleId}
-                        content={article.content}
-                        className="article-audio-player"
-                    />
-                </div>
-            )}
 
             {/* AI Summary Panel */}
             <AnimatePresence>
@@ -592,6 +593,17 @@ const ArticleReader = () => {
                     </motion.div>
                 )}
             </AnimatePresence>
+
+            {/* AI Podcast Player - Enhanced audio experience */}
+            {article.content && articleId && showPodcastPlayer && (
+                <div className="article-audio-section">
+                    <ArticlePodcastPlayer
+                        articleId={articleId}
+                        title={article.title || 'Article Audio'}
+                        className="article-podcast-player"
+                    />
+                </div>
+            )}
 
             <div className="article-source">
                 <p>This content is republished from <a href={article.url} target="_blank" rel="noopener noreferrer">the original source</a> for personal use. All rights belong to the original author and publisher.</p>

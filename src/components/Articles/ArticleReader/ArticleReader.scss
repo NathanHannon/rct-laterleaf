@@ -510,6 +510,40 @@
         }
     }
 
+    .button-podcast {
+        background-color: #ff5722; // Orange for podcast features
+        color: white;
+        white-space: nowrap;
+        min-height: 36px;
+        box-sizing: border-box;
+
+        &:hover {
+            background-color: #f4511e;
+        }
+
+        &.has-podcast {
+            background-color: #e64a19; // Different orange when podcast exists
+
+            &:hover {
+                background-color: #d84315;
+            }
+        }
+
+        &.loading {
+            background-color: #bdbdbd; // Gray when loading
+            cursor: not-allowed;
+
+            svg {
+                animation: spin 1s linear infinite;
+            }
+        }
+
+        &:disabled {
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+    }
+
     // --- Add these styles for the new toggle switch ---
     .pro-toggle-container {
         display: flex;
@@ -672,16 +706,16 @@
 }
 
 .ai-summary-panel {
-    background: linear-gradient(135deg, #f3e5f5 0%, #e8dff5 100%);
-    border: 2px solid #d1c4e9;
+    background: linear-gradient(135deg, #f3e5ff 0%, #e9d5ff 100%);
+    border: 2px solid #8b5cf6;
     border-radius: 12px;
     padding: 1.5rem;
     overflow: hidden;
 }
 
 [data-theme='dark'] .ai-summary-panel {
-    background: linear-gradient(135deg, #2a1a3d 0%, #3c2a4d 100%);
-    border-color: #4a2a6d;
+    background: linear-gradient(135deg, #1e1b2e 0%, #1a1625 100%);
+    border-color: #8b5cf6;
 }
 
 .summary-header {
@@ -1092,6 +1126,77 @@
                     border-radius: 20px;
                     font-size: 0.85rem;
                 }
+            }
+        }
+    }
+}
+
+// Podcast Player Panel Styles
+.podcast-player-panel {
+    background: linear-gradient(135deg, #fff5f0 0%, #ffecdf 100%);
+    border: 2px solid #ff5722;
+    border-radius: 12px;
+    padding: 1.5rem;
+    overflow: hidden;
+
+    [data-theme='dark'] & {
+        background: linear-gradient(135deg, #2d1f1a 0%, #1f1612 100%);
+        border-color: #ff5722;
+    }
+
+    .embedded-player {
+        margin: 0;
+        background: transparent;
+        border: none;
+        padding: 0;
+        box-shadow: none;
+    }
+
+    .podcast-script-toggle {
+        margin-top: 1rem;
+        border-top: 1px solid rgba(255, 87, 34, 0.2);
+        padding-top: 1rem;
+
+        .script-toggle-button {
+            background: transparent;
+            border: 2px solid #ff5722;
+            color: #ff5722;
+            border-radius: 6px;
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+
+            &:hover {
+                background: #ff5722;
+                color: white;
+            }
+        }
+
+        .script-content {
+            margin-top: 1rem;
+            background: rgba(255, 87, 34, 0.05);
+            border: 1px solid rgba(255, 87, 34, 0.2);
+            border-radius: 8px;
+            padding: 1rem;
+            overflow: auto;
+
+            pre {
+                margin: 0;
+                white-space: pre-wrap;
+                font-family: 'Courier New', monospace;
+                font-size: 0.85rem;
+                line-height: 1.4;
+                color: var(--text-color);
+            }
+
+            [data-theme='dark'] & {
+                background: rgba(255, 87, 34, 0.1);
+                border-color: rgba(255, 87, 34, 0.3);
             }
         }
     }

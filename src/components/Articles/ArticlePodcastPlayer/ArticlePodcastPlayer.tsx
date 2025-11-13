@@ -1,8 +1,9 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useAuth } from '@clerk/clerk-react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPlay, faPause, faSpinner, faPodcast, faCog } from '@fortawesome/free-solid-svg-icons';
+import { faPlay, faPause, faSpinner, faPodcast, faCog, faRotateLeft, faRotateRight } from '@fortawesome/free-solid-svg-icons';
 import { useUserStatus } from '../../../hooks/useUserStatus';
+import ConfirmationDialog from '../../Common/ConfirmationDialog/ConfirmationDialog';
 import './ArticlePodcastPlayer.scss';
 
 interface ArticlePodcastPlayerProps {
@@ -11,16 +12,10 @@ interface ArticlePodcastPlayerProps {
     className?: string;
 }
 
-interface TTSVoice {
-    voice: string;
-    description: string;
-    recommended: string;
-}
-
-const ArticlePodcastPlayer: React.FC<ArticlePodcastPlayerProps> = ({ 
-    articleId, 
+const ArticlePodcastPlayer: React.FC<ArticlePodcastPlayerProps> = ({
+    articleId,
     title,
-    className = '' 
+    className = ''
 }) => {
     const { getToken } = useAuth();
     const { isPro } = useUserStatus();
@@ -33,34 +28,67 @@ const ArticlePodcastPlayer: React.FC<ArticlePodcastPlayerProps> = ({
     const [audioUrl, setAudioUrl] = useState<string | null>(null);
     const [currentTime, setCurrentTime] = useState(0);
     const [duration, setDuration] = useState(0);
-    
-    // Podcast settings
+
+    // Podcast settings - Simplified for fixed backend voices
     const [showSettings, setShowSettings] = useState(false);
-    const [availableVoices, setAvailableVoices] = useState<TTSVoice[]>([]);
-    const [hostVoice, setHostVoice] = useState<string>('Puck');
-    const [expertVoice, setExpertVoice] = useState<string>('Charon');
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [podcastDuration, setPodcastDuration] = useState<'short' | 'medium' | 'long'>('medium');
     const [podcastStyle, setPodcastStyle] = useState<'casual' | 'professional' | 'educational'>('casual');
     const [speed, setSpeed] = useState(1.0);
 
-    // Podcast metadata
-    const [podcastInfo, setPodcastInfo] = useState<{
-        segments: number;
-        estimatedDuration: number;
-    } | null>(null);
+    // Check for existing podcast on component mount
+    const checkPodcastStatus = useCallback(async () => {
+        console.log(`🎙️ Checking podcast status for article ${articleId}`);
+        try {
+            const token = await getToken();
+            const response = await fetch(`/api/articles/${articleId}/podcast-status`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                },
+            });
 
-    // Fetch available voices on component mount
+            console.log(`📊 Podcast status response:`, response.status, response.ok);
+
+            if (response.ok) {
+                const status = await response.json();
+                console.log(`📋 Podcast status data:`, status);
+
+                if (status.hasAudio && status.audioUrl) {
+                    console.log(`🎵 Found existing audio URL: ${status.audioUrl}`);
+                    setAudioUrl(status.audioUrl);
+
+                    // Set up audio element
+                    if (audioRef.current) {
+                        audioRef.current.src = status.audioUrl;
+                        audioRef.current.load();
+                        console.log(`🔊 Audio element configured with URL`);
+                    }
+                } else {
+                    console.log(`❌ No audio found for this article`);
+                }
+            } else {
+                console.warn(`⚠️ Failed to check podcast status:`, response.status);
+            }
+        } catch (error) {
+            console.error('❌ Error checking podcast status:', error);
+        }
+    }, [articleId, getToken]);
+
     useEffect(() => {
-        fetchAvailableVoices();
-    }, [fetchAvailableVoices]);
-
-    // Audio event handlers
+        checkPodcastStatus();
+    }, [checkPodcastStatus]);    // Audio event handlers
     useEffect(() => {
         const audio = audioRef.current;
         if (!audio) return;
 
-        const updateTime = () => setCurrentTime(audio.currentTime);
-        const updateDuration = () => setDuration(audio.duration);
+        const updateTime = () => {
+            setCurrentTime(audio.currentTime);
+            updateProgressFill(audio.currentTime, audio.duration);
+        };
+        const updateDuration = () => {
+            setDuration(audio.duration);
+            updateProgressFill(audio.currentTime, audio.duration);
+        };
         const handleEnd = () => setIsPlaying(false);
         const handleError = () => {
             setError('Audio playback failed');
@@ -89,48 +117,38 @@ const ArticlePodcastPlayer: React.FC<ArticlePodcastPlayerProps> = ({
         };
     }, [audioUrl]);
 
-    const fetchAvailableVoices = useCallback(async () => {
-        try {
-            const token = await getToken();
-            const response = await fetch('/api/ai/tts-voices', {
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                },
-            });
+    const generatePodcast = async (forceRegenerate = false) => {
+        console.log(`🎙️ generatePodcast started for article ${articleId}, force: ${forceRegenerate}`);
+        console.log(`👤 Pro status: ${isPro}`);
 
-            if (response.ok) {
-                const voices = await response.json();
-                setAvailableVoices(voices);
-                
-                // Set default voices if available
-                if (voices.length >= 2) {
-                    setHostVoice(voices[0].voice); // First available voice
-                    setExpertVoice(voices[1].voice); // Second available voice
-                }
-            }
-        } catch (error) {
-            console.error('Failed to fetch voices:', error);
+        // Check Pro status first
+        if (!isPro) {
+            const errorMsg = 'Podcast generation is a Pro-only feature. Please upgrade to access multi-speaker audio generation.';
+            console.warn(`⚠️ ${errorMsg}`);
+            setError(errorMsg);
+            alert(errorMsg); // Add alert to make the error more visible
+            return;
         }
-    }, [getToken]);
 
-    const generatePodcast = async () => {
         setIsLoading(true);
         setError(null);
+        console.log(`⏳ Starting podcast generation...`);
 
         try {
             const token = await getToken();
-            
-            // Build query parameters
+            console.log(`🔑 Got auth token`);
+
+            // Build query parameters - no voice selection since backend uses fixed Zephyr/Charon
             const params = new URLSearchParams();
-            if (hostVoice) params.append('hostVoice', hostVoice);
-            if (expertVoice) params.append('expertVoice', expertVoice);
             if (podcastDuration) params.append('duration', podcastDuration);
             if (podcastStyle) params.append('style', podcastStyle);
-            if (speed !== 1.0) params.append('speed', speed.toString());
-            
+            if (forceRegenerate) params.append('force', 'true'); // Add force parameter
+
             const queryString = params.toString();
             const url = `/api/articles/${articleId}/podcast-audio${queryString ? `?${queryString}` : ''}`;
-            
+
+            console.log(`🌐 Making request to: ${url}`);
+
             const response = await fetch(url, {
                 method: 'GET',
                 headers: {
@@ -138,64 +156,100 @@ const ArticlePodcastPlayer: React.FC<ArticlePodcastPlayerProps> = ({
                 },
             });
 
+            console.log(`📡 Response status: ${response.status}, ok: ${response.ok}`);
+            console.log(`📡 Response headers:`, Object.fromEntries(response.headers.entries()));
+
             if (!response.ok) {
                 const errorText = await response.text();
+                console.error(`❌ Request failed:`, errorText);
+                if (response.status === 402) {
+                    throw new Error('Podcast generation requires a Pro subscription. Please upgrade to access this feature.');
+                }
                 throw new Error(`Podcast generation failed: ${errorText}`);
             }
 
-            // Extract metadata from headers
-            const segments = response.headers.get('X-Script-Segments');
-            const estimatedDuration = response.headers.get('X-Podcast-Duration');
-            
-            if (segments && estimatedDuration) {
-                setPodcastInfo({
-                    segments: parseInt(segments, 10),
-                    estimatedDuration: parseInt(estimatedDuration, 10)
-                });
+            // Handle redirect response (cached audio)
+            if (response.redirected || response.url !== url) {
+                console.log(`🔄 Got redirect to: ${response.url}`);
+                const redirectUrl = response.url;
+                setAudioUrl(redirectUrl);
+
+                // Set audio source and load
+                if (audioRef.current) {
+                    console.log(`🔊 Setting audio src to redirect URL`);
+                    audioRef.current.src = redirectUrl;
+                    audioRef.current.load();
+                }
+            } else {
+                console.log(`📦 Got blob response, creating object URL`);
+                // Handle blob response (new audio)
+                const audioBlob = await response.blob();
+                console.log(`📦 Audio blob size: ${audioBlob.size} bytes, type: ${audioBlob.type}`);
+
+                const newAudioUrl = URL.createObjectURL(audioBlob);
+                console.log(`🔗 Created object URL: ${newAudioUrl}`);
+
+                // Clean up previous URL
+                if (audioUrl) {
+                    URL.revokeObjectURL(audioUrl);
+                    console.log(`🗑️ Cleaned up previous object URL`);
+                }
+
+                setAudioUrl(newAudioUrl);
+
+                // Set audio source and load
+                if (audioRef.current) {
+                    console.log(`🔊 Setting audio src to new object URL`);
+                    audioRef.current.src = newAudioUrl;
+                    audioRef.current.load();
+                }
             }
 
-            const audioBlob = await response.blob();
-            const audioUrl = URL.createObjectURL(audioBlob);
+            console.log(`✅ Podcast generation completed successfully`);
 
-            // Clean up previous URL
-            if (audioUrl) {
-                URL.revokeObjectURL(audioUrl);
-            }
-
-            setAudioUrl(audioUrl);
-
-            // Set audio source and load
-            if (audioRef.current) {
-                audioRef.current.src = audioUrl;
-                audioRef.current.load();
-            }
+            // Don't re-check status since we already have the audio URL set
+            // Re-checking might override our audioUrl state
+            console.log(`🎵 Audio URL is now set, playback controls should appear`);
 
         } catch (error) {
-            console.error('Podcast generation error:', error);
+            console.error('❌ Podcast generation error:', error);
             setError(error instanceof Error ? error.message : 'Failed to generate podcast');
         } finally {
             setIsLoading(false);
+            console.log(`🏁 Podcast generation process finished`);
         }
     };
 
     const togglePlayback = async () => {
-        const audio = audioRef.current;
-        if (!audio) return;
+        console.log(`🎵 togglePlayback called - audioUrl: ${audioUrl}, isPlaying: ${isPlaying}`);
 
-        if (!audioUrl) {
-            await generatePodcast();
+        const audio = audioRef.current;
+        if (!audio || !audioUrl) {
+            console.error('❌ No audio element or URL available', { audio: !!audio, audioUrl });
+            setError('No audio available for playback');
             return;
         }
 
+        console.log(`🔊 Audio element state:`, {
+            src: audio.src,
+            readyState: audio.readyState,
+            currentTime: audio.currentTime,
+            duration: audio.duration
+        });
+
         if (isPlaying) {
+            console.log(`⏸️ Pausing audio`);
             audio.pause();
             setIsPlaying(false);
         } else {
             try {
+                console.log(`▶️ Attempting to play audio`);
                 await audio.play();
                 setIsPlaying(true);
-            } catch {
-                setError('Playback failed');
+                console.log(`✅ Audio playback started successfully`);
+            } catch (err) {
+                console.error('❌ Playback error:', err);
+                setError('Audio playback failed');
                 setIsPlaying(false);
             }
         }
@@ -208,6 +262,70 @@ const ArticlePodcastPlayer: React.FC<ArticlePodcastPlayerProps> = ({
         const newTime = parseFloat(e.target.value);
         audio.currentTime = newTime;
         setCurrentTime(newTime);
+        updateProgressFill(newTime, duration);
+    };
+
+    const deletePodcast = async () => {
+        setIsLoading(true);
+        setError(null);
+        console.log(`🗑️ Deleting podcast for article ${articleId}`);
+
+        try {
+            const token = await getToken();
+            const response = await fetch(`/api/articles/${articleId}/podcast-audio`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`Failed to delete podcast: ${errorText}`);
+            }
+
+            console.log(`✅ Podcast deleted successfully`);
+
+            // Clear local state
+            setAudioUrl(null);
+            setIsPlaying(false);
+            setCurrentTime(0);
+            setDuration(0);
+            setShowDeleteConfirm(false);
+
+            // Clear audio element
+            if (audioRef.current) {
+                audioRef.current.src = '';
+                audioRef.current.load();
+            }
+
+        } catch (err) {
+            console.error('Delete failed:', err);
+            setError(err instanceof Error ? err.message : 'Failed to delete podcast');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const skipForward = () => {
+        const audio = audioRef.current;
+        if (!audio) return;
+        audio.currentTime = Math.min(audio.currentTime + 10, audio.duration || 0);
+    };
+
+    const skipBackward = () => {
+        const audio = audioRef.current;
+        if (!audio) return;
+        audio.currentTime = Math.max(audio.currentTime - 10, 0);
+    };
+
+    // Update progress fill dynamically
+    const updateProgressFill = (currentTime: number, duration: number) => {
+        const progressSlider = document.querySelector('.progress-slider') as HTMLElement;
+        if (progressSlider && duration > 0) {
+            const progress = (currentTime / duration) * 100;
+            progressSlider.style.setProperty('--progress', `${progress}%`);
+        }
     };
 
     const handleSpeedChange = (newSpeed: number) => {
@@ -223,33 +341,17 @@ const ArticlePodcastPlayer: React.FC<ArticlePodcastPlayerProps> = ({
         return `${minutes}:${seconds.toString().padStart(2, '0')}`;
     };
 
-    const getDurationLabel = () => {
-        switch (podcastDuration) {
-            case 'short': return '3-5 min';
-            case 'medium': return '7-10 min';
-            case 'long': return '15+ min';
-            default: return '';
-        }
-    };
-
     return (
         <div className={`article-podcast-player ${className}`}>
             <audio ref={audioRef} preload="metadata" />
-            
+
             <div className="podcast-header">
                 <div className="podcast-info">
                     <h4>
                         <FontAwesomeIcon icon={faPodcast} />
                         AI Podcast Discussion
                     </h4>
-                    <p>Two-speaker conversation about: "{title}"</p>
-                    {podcastInfo && (
-                        <div className="podcast-metadata">
-                            <small>
-                                {podcastInfo.segments} segments • ~{Math.round(podcastInfo.estimatedDuration / 60)} min
-                            </small>
-                        </div>
-                    )}
+                    <p>Podcast-style conversation about: "{title}"</p>
                 </div>
                 <button
                     onClick={() => setShowSettings(!showSettings)}
@@ -288,39 +390,18 @@ const ArticlePodcastPlayer: React.FC<ArticlePodcastPlayerProps> = ({
                         </select>
                     </div>
 
-                    {availableVoices.length >= 2 && (
-                        <>
-                            <div className="setting-group">
-                                <label>Host Voice:</label>
-                                <select
-                                    value={hostVoice}
-                                    onChange={(e) => setHostVoice(e.target.value)}
-                                    disabled={isLoading}
-                                >
-                                    {availableVoices.map((voice) => (
-                                        <option key={voice.voice} value={voice.voice}>
-                                            {voice.voice}
-                                        </option>
-                                    ))}
-                                </select>
+                    <div className="setting-group voice-info">
+                        <label>Voices (Fixed):</label>
+                        <div className="voice-display">
+                            <div className="speaker">
+                                <strong>Speaker1:</strong> Zephyr (Bright)
                             </div>
-
-                            <div className="setting-group">
-                                <label>Expert Voice:</label>
-                                <select
-                                    value={expertVoice}
-                                    onChange={(e) => setExpertVoice(e.target.value)}
-                                    disabled={isLoading}
-                                >
-                                    {availableVoices.map((voice) => (
-                                        <option key={voice.voice} value={voice.voice}>
-                                            {voice.voice}
-                                        </option>
-                                    ))}
-                                </select>
+                            <div className="speaker">
+                                <strong>Speaker2:</strong> Charon (Informative)
                             </div>
-                        </>
-                    )}
+                            <small>🎭 Optimized Podcast-style voices</small>
+                        </div>
+                    </div>
 
                     <div className="setting-group">
                         <label>Speed:</label>
@@ -340,20 +421,70 @@ const ArticlePodcastPlayer: React.FC<ArticlePodcastPlayerProps> = ({
 
             <div className="podcast-controls">
                 <div className="primary-controls">
-                    <button
-                        onClick={togglePlayback}
-                        disabled={isLoading}
-                        className="play-button"
-                        title={audioUrl ? (isPlaying ? 'Pause' : 'Play') : `Generate ${getDurationLabel()} Podcast`}
-                    >
-                        {isLoading ? (
-                            <FontAwesomeIcon icon={faSpinner} spin />
-                        ) : isPlaying ? (
-                            <FontAwesomeIcon icon={faPause} />
-                        ) : (
-                            <FontAwesomeIcon icon={faPlay} />
-                        )}
-                    </button>
+                    {!isPro ? (
+                        <div className="pro-required">
+                            <div className="upgrade-message">
+                                🎙️ Pro Required for Podcasts - Multi-speaker audio generation requires a Pro subscription
+                            </div>
+                        </div>
+                    ) : audioUrl ? (
+                        <div className="playback-controls">
+                            <button
+                                onClick={skipBackward}
+                                disabled={isLoading || !audioUrl}
+                                className="skip-button skip-backward"
+                                title="Skip backward 10s"
+                            >
+                                <FontAwesomeIcon icon={faRotateLeft} />
+                            </button>
+                            <button
+                                onClick={togglePlayback}
+                                disabled={isLoading}
+                                className="play-button"
+                                title={isPlaying ? 'Pause' : 'Play'}
+                            >
+                                {isPlaying ? (
+                                    <FontAwesomeIcon icon={faPause} />
+                                ) : (
+                                    <FontAwesomeIcon icon={faPlay} />
+                                )}
+                            </button>
+                            <button
+                                onClick={skipForward}
+                                disabled={isLoading || !audioUrl}
+                                className="skip-button skip-forward"
+                                title="Skip forward 10s"
+                            >
+                                <FontAwesomeIcon icon={faRotateRight} />
+                            </button>
+                            <button
+                                onClick={() => setShowDeleteConfirm(true)}
+                                disabled={isLoading}
+                                className="new-podcast-button"
+                                title="Delete podcast and clear from storage"
+                            >
+                                🗑️ Delete Podcast
+                            </button>
+                        </div>
+                    ) : (
+                        <button
+                            onClick={() => generatePodcast(false)}
+                            disabled={isLoading}
+                            className="generate-btn"
+                        >
+                            {isLoading ? (
+                                <>
+                                    <FontAwesomeIcon icon={faSpinner} spin />
+                                    <span>Generating...</span>
+                                </>
+                            ) : (
+                                <>
+                                    <FontAwesomeIcon icon={faPodcast} />
+                                    <span>Generate Podcast</span>
+                                </>
+                            )}
+                        </button>
+                    )}
 
                     <div className="audio-info">
                         <div className="time-display">
@@ -363,14 +494,16 @@ const ArticlePodcastPlayer: React.FC<ArticlePodcastPlayerProps> = ({
                                     <span>/</span>
                                     <span>{formatTime(duration)}</span>
                                 </>
+                            ) : isPro ? (
+                                <span>Ready to generate podcast discussion</span>
                             ) : (
-                                <span>Generate podcast discussion ({getDurationLabel()})</span>
+                                <span>Pro subscription required for podcast generation</span>
                             )}
                         </div>
                         <div className="tier-info">
                             <small>
-                                🎙️ {isPro ? 'Pro tier - All voices' : 'Free tier - Basic voices'} • 
-                                HOST: {hostVoice} + EXPERT: {expertVoice}
+                                🎙️ {isPro ? 'Pro Feature - Premium Quality' : 'Requires Pro Subscription'} •
+                                SPEAKER1: Zephyr + SPEAKER2: Charon
                             </small>
                         </div>
                     </div>
@@ -388,24 +521,24 @@ const ArticlePodcastPlayer: React.FC<ArticlePodcastPlayerProps> = ({
                         />
                     </div>
                 )}
-
-                {audioUrl && (
-                    <button
-                        onClick={generatePodcast}
-                        disabled={isLoading}
-                        className="regenerate-button"
-                        title="Regenerate with current settings"
-                    >
-                        🔄 Regenerate
-                    </button>
-                )}
             </div>
 
-            {error && (
+            {error && audioUrl && (
                 <div className="podcast-error">
                     <small>⚠️ {error}</small>
                 </div>
             )}
+
+            <ConfirmationDialog
+                isOpen={showDeleteConfirm}
+                title="Delete Podcast"
+                message="Are you sure you want to delete this podcast? This action cannot be undone and will remove the audio file from storage."
+                confirmText={isLoading ? 'Deleting...' : 'Delete Podcast'}
+                cancelText="Cancel"
+                variant="danger"
+                onConfirm={deletePodcast}
+                onCancel={() => setShowDeleteConfirm(false)}
+            />
         </div>
     );
 };
