@@ -29,7 +29,7 @@ const ArticlePodcastPlayer: React.FC<ArticlePodcastPlayerProps> = ({
     const audioRef = useRef<HTMLAudioElement>(null);
 
     // Audio state
-    const [isLoading, setIsLoading] = useState(false);
+    const [isLoading, setIsLoading] = useState(true); // Start with loading true
     const [isPlaying, setIsPlaying] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [audioUrl, setAudioUrl] = useState<string | null>(null);
@@ -81,6 +81,7 @@ const ArticlePodcastPlayer: React.FC<ArticlePodcastPlayerProps> = ({
     // Check for existing podcast on component mount
     const checkPodcastStatus = useCallback(async () => {
         console.log(`🎙️ Checking podcast status for article ${articleId}`);
+        setIsLoading(true); // Set loading true at the start of the check
         try {
             const token = await getToken();
             const response = await fetch(`/api/articles/${articleId}/podcast-status`, {
@@ -95,24 +96,29 @@ const ArticlePodcastPlayer: React.FC<ArticlePodcastPlayerProps> = ({
                 const status = await response.json();
                 console.log(`📋 Podcast status data:`, status);
 
-                if (status.hasAudio && status.audioUrl) {
-                    console.log(`🎵 Found existing audio URL: ${status.audioUrl}`);
-                    setAudioUrl(status.audioUrl);
+                if (status.hasAudio && status.audioLocation) {
+                    console.log(`🎵 Found existing audio URL: ${status.audioLocation}`);
+                    setAudioUrl(status.audioLocation);
 
                     // Set up audio element
                     if (audioRef.current) {
-                        audioRef.current.src = status.audioUrl;
+                        audioRef.current.src = status.audioLocation;
                         audioRef.current.load();
                         console.log(`🔊 Audio element configured with URL`);
                     }
                 } else {
                     console.log(`❌ No audio found for this article`);
+                    setAudioUrl(null); // Explicitly set to null if no audio
                 }
             } else {
                 console.warn(`⚠️ Failed to check podcast status:`, response.status);
+                setAudioUrl(null);
             }
         } catch (error) {
             console.error('❌ Error checking podcast status:', error);
+            setAudioUrl(null);
+        } finally {
+            setIsLoading(false); // Set loading false at the end
         }
     }, [articleId, getToken]);
 
@@ -486,11 +492,16 @@ const ArticlePodcastPlayer: React.FC<ArticlePodcastPlayerProps> = ({
                                 🎙️ Pro Required for Podcasts - Multi-speaker audio generation requires a Pro subscription
                             </div>
                         </div>
+                    ) : isLoading ? (
+                        <div className="loading-container">
+                            <FontAwesomeIcon icon={faSpinner} spin />
+                            <span>Checking for existing podcast...</span>
+                        </div>
                     ) : audioUrl ? (
                         <div className="playback-controls">
                             <button
                                 onClick={skipBackward}
-                                disabled={isLoading || !audioUrl}
+                                disabled={!audioUrl}
                                 className="skip-button skip-backward"
                                 title="Skip backward 10s"
                             >
@@ -498,7 +509,6 @@ const ArticlePodcastPlayer: React.FC<ArticlePodcastPlayerProps> = ({
                             </button>
                             <button
                                 onClick={togglePlayback}
-                                disabled={isLoading}
                                 className="play-button"
                                 title={isPlaying ? 'Pause' : 'Play'}
                             >
@@ -510,7 +520,7 @@ const ArticlePodcastPlayer: React.FC<ArticlePodcastPlayerProps> = ({
                             </button>
                             <button
                                 onClick={skipForward}
-                                disabled={isLoading || !audioUrl}
+                                disabled={!audioUrl}
                                 className="skip-button skip-forward"
                                 title="Skip forward 10s"
                             >
@@ -518,7 +528,6 @@ const ArticlePodcastPlayer: React.FC<ArticlePodcastPlayerProps> = ({
                             </button>
                             <button
                                 onClick={() => setShowDeleteConfirm(true)}
-                                disabled={isLoading}
                                 className="new-podcast-button"
                                 title="Delete podcast and clear from storage"
                             >
@@ -528,20 +537,10 @@ const ArticlePodcastPlayer: React.FC<ArticlePodcastPlayerProps> = ({
                     ) : (
                         <button
                             onClick={() => generatePodcast(false)}
-                            disabled={isLoading}
                             className="generate-btn"
                         >
-                            {isLoading ? (
-                                <>
-                                    <FontAwesomeIcon icon={faSpinner} spin />
-                                    <span>Generating...</span>
-                                </>
-                            ) : (
-                                <>
-                                    <FontAwesomeIcon icon={faPodcast} />
-                                    <span>Generate Podcast</span>
-                                </>
-                            )}
+                            <FontAwesomeIcon icon={faPodcast} />
+                            <span>Generate Podcast</span>
                         </button>
                     )}
 
