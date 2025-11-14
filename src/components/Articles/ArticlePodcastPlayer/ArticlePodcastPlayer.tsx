@@ -6,6 +6,13 @@ import { useUserStatus } from '../../../hooks/useUserStatus';
 import ConfirmationDialog from '../../Common/ConfirmationDialog/ConfirmationDialog';
 import './ArticlePodcastPlayer.scss';
 
+interface VoicePair {
+    speaker1: 'Puck' | 'Charon' | 'Kore' | 'Fenrir' | 'Zephyr';
+    speaker2: 'Puck' | 'Charon' | 'Kore' | 'Fenrir' | 'Zephyr';
+    label: string;
+    description: string;
+}
+
 interface ArticlePodcastPlayerProps {
     articleId: string;
     title: string;
@@ -34,7 +41,42 @@ const ArticlePodcastPlayer: React.FC<ArticlePodcastPlayerProps> = ({
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [podcastDuration, setPodcastDuration] = useState<'short' | 'medium' | 'long'>('medium');
     const [podcastStyle, setPodcastStyle] = useState<'casual' | 'professional' | 'educational'>('casual');
+    const [selectedVoicePair, setSelectedVoicePair] = useState<string>('zephyr-charon');
     const [speed, setSpeed] = useState(1.0);
+
+    // Available voice pairs for podcast conversations
+    const voicePairs: VoicePair[] = [
+        {
+            speaker1: 'Zephyr',
+            speaker2: 'Charon',
+            label: 'Zephyr & Charon (Default)',
+            description: 'Bright & Informative - Great balance for discussions'
+        },
+        {
+            speaker1: 'Puck',
+            speaker2: 'Kore',
+            label: 'Puck & Kore',
+            description: 'Expressive & Warm - Engaging and friendly'
+        },
+        {
+            speaker1: 'Charon',
+            speaker2: 'Fenrir',
+            label: 'Charon & Fenrir',
+            description: 'Clear & Authoritative - Professional discussions'
+        },
+        {
+            speaker1: 'Puck',
+            speaker2: 'Charon',
+            label: 'Puck & Charon',
+            description: 'Dynamic & Clear - Energetic conversations'
+        },
+        {
+            speaker1: 'Kore',
+            speaker2: 'Fenrir',
+            label: 'Kore & Fenrir',
+            description: 'Friendly & Professional - Balanced approach'
+        }
+    ];
 
     // Check for existing podcast on component mount
     const checkPodcastStatus = useCallback(async () => {
@@ -138,10 +180,11 @@ const ArticlePodcastPlayer: React.FC<ArticlePodcastPlayerProps> = ({
             const token = await getToken();
             console.log(`🔑 Got auth token`);
 
-            // Build query parameters - no voice selection since backend uses fixed Zephyr/Charon
+            // Build query parameters - include voice selection
             const params = new URLSearchParams();
             if (podcastDuration) params.append('duration', podcastDuration);
             if (podcastStyle) params.append('style', podcastStyle);
+            if (selectedVoicePair) params.append('voices', selectedVoicePair);
             if (forceRegenerate) params.append('force', 'true'); // Add force parameter
 
             const queryString = params.toString();
@@ -168,48 +211,59 @@ const ArticlePodcastPlayer: React.FC<ArticlePodcastPlayerProps> = ({
                 throw new Error(`Podcast generation failed: ${errorText}`);
             }
 
-            // Handle redirect response (cached audio)
+            // Handle redirect response (cached audio exists via proxy)
             if (response.redirected || response.url !== url) {
                 console.log(`🔄 Got redirect to: ${response.url}`);
-                const redirectUrl = response.url;
-                setAudioUrl(redirectUrl);
+                const proxyUrl = response.url;
+                console.log(`🎯 Setting audioUrl to proxy URL: ${proxyUrl}`);
+                setAudioUrl(proxyUrl);
 
                 // Set audio source and load
                 if (audioRef.current) {
-                    console.log(`🔊 Setting audio src to redirect URL`);
-                    audioRef.current.src = redirectUrl;
+                    console.log(`🔊 Setting audio src to proxy URL`);
+                    audioRef.current.src = proxyUrl;
                     audioRef.current.load();
                 }
-            } else {
-                console.log(`📦 Got blob response, creating object URL`);
-                // Handle blob response (new audio)
-                const audioBlob = await response.blob();
-                console.log(`📦 Audio blob size: ${audioBlob.size} bytes, type: ${audioBlob.type}`);
-
-                const newAudioUrl = URL.createObjectURL(audioBlob);
-                console.log(`🔗 Created object URL: ${newAudioUrl}`);
-
-                // Clean up previous URL
-                if (audioUrl) {
-                    URL.revokeObjectURL(audioUrl);
-                    console.log(`🗑️ Cleaned up previous object URL`);
-                }
-
-                setAudioUrl(newAudioUrl);
-
-                // Set audio source and load
-                if (audioRef.current) {
-                    console.log(`🔊 Setting audio src to new object URL`);
-                    audioRef.current.src = newAudioUrl;
-                    audioRef.current.load();
-                }
+                console.log(`✅ Proxy URL handling complete, audioUrl should be: ${proxyUrl}`);
+                console.log(`✅ Podcast generation completed successfully (from proxy)`);
+                return;
             }
 
-            console.log(`✅ Podcast generation completed successfully`);
+            // Handle blob response (new audio generation)
+            console.log(`📦 Got blob response, creating object URL`);
+            const audioBlob = await response.blob();
+            console.log(`📦 Audio blob size: ${audioBlob.size} bytes, type: ${audioBlob.type}`);
 
-            // Don't re-check status since we already have the audio URL set
-            // Re-checking might override our audioUrl state
-            console.log(`🎵 Audio URL is now set, playback controls should appear`);
+            const newAudioUrl = URL.createObjectURL(audioBlob);
+            console.log(`🔗 Created object URL: ${newAudioUrl}`);
+
+            // Clean up previous URL
+            if (audioUrl) {
+                URL.revokeObjectURL(audioUrl);
+            }
+
+            console.log(`🎯 Setting audioUrl to blob URL: ${newAudioUrl}`);
+            setAudioUrl(newAudioUrl);
+
+            // Set audio source and load
+            if (audioRef.current) {
+                console.log(`🔊 Setting audio src to blob URL`);
+                audioRef.current.src = newAudioUrl;
+                audioRef.current.load();
+            }
+            console.log(`✅ Blob handling complete, audioUrl should be: ${newAudioUrl}`);
+
+            console.log(`✅ Podcast generation completed successfully`);
+            console.log(`🎵 Final audioUrl state: ${audioUrl}`);
+
+            // Force a state check to ensure UI updates
+            setTimeout(() => {
+                console.log(`🔍 Post-generation state check - audioUrl: ${audioUrl}`);
+                if (!audioUrl) {
+                    console.warn('⚠️ AudioUrl is still null after generation - checking status...');
+                    checkPodcastStatus();
+                }
+            }, 100);
 
         } catch (error) {
             console.error('❌ Podcast generation error:', error);
@@ -390,17 +444,22 @@ const ArticlePodcastPlayer: React.FC<ArticlePodcastPlayerProps> = ({
                         </select>
                     </div>
 
-                    <div className="setting-group voice-info">
-                        <label>Voices (Fixed):</label>
-                        <div className="voice-display">
-                            <div className="speaker">
-                                <strong>Speaker1:</strong> Zephyr (Bright)
-                            </div>
-                            <div className="speaker">
-                                <strong>Speaker2:</strong> Charon (Informative)
-                            </div>
-                            <small>🎭 Optimized Podcast-style voices</small>
-                        </div>
+                    <div className="setting-group">
+                        <label>Voice Pair:</label>
+                        <select
+                            value={selectedVoicePair}
+                            onChange={(e) => setSelectedVoicePair(e.target.value)}
+                            disabled={isLoading}
+                        >
+                            {voicePairs.map((pair, index) => (
+                                <option key={index} value={`${pair.speaker1.toLowerCase()}-${pair.speaker2.toLowerCase()}`}>
+                                    {pair.label}
+                                </option>
+                            ))}
+                        </select>
+                        <small className="voice-description">
+                            {voicePairs.find(p => `${p.speaker1.toLowerCase()}-${p.speaker2.toLowerCase()}` === selectedVoicePair)?.description}
+                        </small>
                     </div>
 
                     <div className="setting-group">
@@ -503,7 +562,7 @@ const ArticlePodcastPlayer: React.FC<ArticlePodcastPlayerProps> = ({
                         <div className="tier-info">
                             <small>
                                 🎙️ {isPro ? 'Pro Feature - Premium Quality' : 'Requires Pro Subscription'} •
-                                SPEAKER1: Zephyr + SPEAKER2: Charon
+                                Multiple voice pairs available
                             </small>
                         </div>
                     </div>
