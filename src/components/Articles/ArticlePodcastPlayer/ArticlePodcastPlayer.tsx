@@ -30,6 +30,7 @@ const ArticlePodcastPlayer: React.FC<ArticlePodcastPlayerProps> = ({
 
     // Audio state
     const [isLoading, setIsLoading] = useState(true); // Start with loading true
+    const [isGenerating, setIsGenerating] = useState(false); // Track active generation
     const [isPlaying, setIsPlaying] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [audioUrl, setAudioUrl] = useState<string | null>(null);
@@ -96,13 +97,13 @@ const ArticlePodcastPlayer: React.FC<ArticlePodcastPlayerProps> = ({
                 const status = await response.json();
                 console.log(`📋 Podcast status data:`, status);
 
-                if (status.hasAudio && status.audioLocation) {
-                    console.log(`🎵 Found existing audio URL: ${status.audioLocation}`);
-                    setAudioUrl(status.audioLocation);
+                if (status.hasAudio && status.audioUrl) {
+                    console.log(`🎵 Found existing audio URL: ${status.audioUrl}`);
+                    setAudioUrl(status.audioUrl);
 
                     // Set up audio element
                     if (audioRef.current) {
-                        audioRef.current.src = status.audioLocation;
+                        audioRef.current.src = status.audioUrl;
                         audioRef.current.load();
                         console.log(`🔊 Audio element configured with URL`);
                     }
@@ -179,6 +180,7 @@ const ArticlePodcastPlayer: React.FC<ArticlePodcastPlayerProps> = ({
         }
 
         setIsLoading(true);
+        setIsGenerating(true);
         setError(null);
         console.log(`⏳ Starting podcast generation...`);
 
@@ -206,7 +208,6 @@ const ArticlePodcastPlayer: React.FC<ArticlePodcastPlayerProps> = ({
             });
 
             console.log(`📡 Response status: ${response.status}, ok: ${response.ok}`);
-            console.log(`📡 Response headers:`, Object.fromEntries(response.headers.entries()));
 
             if (!response.ok) {
                 const errorText = await response.text();
@@ -217,66 +218,52 @@ const ArticlePodcastPlayer: React.FC<ArticlePodcastPlayerProps> = ({
                 throw new Error(`Podcast generation failed: ${errorText}`);
             }
 
-            // Handle redirect response (cached audio exists via proxy)
-            if (response.redirected || response.url !== url) {
-                console.log(`🔄 Got redirect to: ${response.url}`);
-                const proxyUrl = response.url;
-                console.log(`🎯 Setting audioUrl to proxy URL: ${proxyUrl}`);
-                setAudioUrl(proxyUrl);
+            // The response will now be JSON with the public URL
+            const responseText = await response.text();
+            console.log(`📄 Raw response body:`, responseText);
 
-                // Set audio source and load
-                if (audioRef.current) {
-                    console.log(`🔊 Setting audio src to proxy URL`);
-                    audioRef.current.src = proxyUrl;
-                    audioRef.current.load();
-                }
-                console.log(`✅ Proxy URL handling complete, audioUrl should be: ${proxyUrl}`);
-                console.log(`✅ Podcast generation completed successfully (from proxy)`);
-                return;
+            let result;
+            try {
+                result = JSON.parse(responseText);
+            } catch (parseError) {
+                console.error(`❌ JSON parse error:`, parseError);
+                throw new Error(`Invalid JSON response: ${responseText.substring(0, 200)}`);
             }
 
-            // Handle blob response (new audio generation)
-            console.log(`📦 Got blob response, creating object URL`);
-            const audioBlob = await response.blob();
-            console.log(`📦 Audio blob size: ${audioBlob.size} bytes, type: ${audioBlob.type}`);
+            const newAudioUrl = result.audioUrl;
 
-            const newAudioUrl = URL.createObjectURL(audioBlob);
-            console.log(`🔗 Created object URL: ${newAudioUrl}`);
+            if (!newAudioUrl) {
+                console.error(`❌ Result object:`, result);
+                throw new Error('Server did not return an audio URL.');
+            }
 
-            // Clean up previous URL
-            if (audioUrl) {
+            console.log(`🔗 Received public audio URL: ${newAudioUrl}`);
+
+            // Clean up previous blob URL if it exists
+            if (audioUrl && audioUrl.startsWith('blob:')) {
                 URL.revokeObjectURL(audioUrl);
             }
 
-            console.log(`🎯 Setting audioUrl to blob URL: ${newAudioUrl}`);
             setAudioUrl(newAudioUrl);
 
             // Set audio source and load
             if (audioRef.current) {
-                console.log(`🔊 Setting audio src to blob URL`);
+                console.log(`🔊 Setting audio src to public URL`);
                 audioRef.current.src = newAudioUrl;
                 audioRef.current.load();
             }
-            console.log(`✅ Blob handling complete, audioUrl should be: ${newAudioUrl}`);
+
+            // Force loading state off after audio is set
+            setIsLoading(false);
+            setIsGenerating(false);
 
             console.log(`✅ Podcast generation completed successfully`);
-            console.log(`🎵 Final audioUrl state: ${audioUrl}`);
-
-            // Force a state check to ensure UI updates
-            setTimeout(() => {
-                console.log(`🔍 Post-generation state check - audioUrl: ${audioUrl}`);
-                if (!audioUrl) {
-                    console.warn('⚠️ AudioUrl is still null after generation - checking status...');
-                    checkPodcastStatus();
-                }
-            }, 100);
 
         } catch (error) {
             console.error('❌ Podcast generation error:', error);
             setError(error instanceof Error ? error.message : 'Failed to generate podcast');
-        } finally {
             setIsLoading(false);
-            console.log(`🏁 Podcast generation process finished`);
+            setIsGenerating(false);
         }
     };
 
@@ -402,7 +389,7 @@ const ArticlePodcastPlayer: React.FC<ArticlePodcastPlayerProps> = ({
     };
 
     return (
-        <div className={`article-podcast-player ${className}`}>
+        <div className={`article-podcast-player ${className} ${isLoading ? 'is-loading' : ''}`}>
             <audio ref={audioRef} preload="metadata" />
 
             <div className="podcast-header">
@@ -495,7 +482,7 @@ const ArticlePodcastPlayer: React.FC<ArticlePodcastPlayerProps> = ({
                     ) : isLoading ? (
                         <div className="loading-container">
                             <FontAwesomeIcon icon={faSpinner} spin />
-                            <span>Checking for existing podcast...</span>
+                            <span>{isGenerating ? 'Generating podcast discussion...' : 'Checking for existing podcast...'}</span>
                         </div>
                     ) : audioUrl ? (
                         <div className="playback-controls">
@@ -558,12 +545,14 @@ const ArticlePodcastPlayer: React.FC<ArticlePodcastPlayerProps> = ({
                                 <span>Pro subscription required for podcast generation</span>
                             )}
                         </div>
-                        <div className="tier-info">
-                            <small>
-                                🎙️ {isPro ? 'Pro Feature - Premium Quality' : 'Requires Pro Subscription'} •
-                                Multiple voice pairs available
-                            </small>
-                        </div>
+                        {!isLoading && (
+                            <div className="tier-info">
+                                <small>
+                                    🎙️ {isPro ? 'Pro Feature - Premium Quality' : 'Requires Pro Subscription'} •
+                                    Multiple voice pairs available
+                                </small>
+                            </div>
+                        )}
                     </div>
                 </div>
 
