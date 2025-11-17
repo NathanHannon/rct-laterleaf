@@ -21,6 +21,9 @@
     --button-text: #ffffff; // White text on buttons
     --link-color: #22c55e; // Primary Green for links
     --accent-color: #facc15; // Accent Yellow for highlights/warnings
+    --related-articles-color: #06b6d4; // Cyan for related articles feature
+    --related-articles-color-rgb: 6, 182, 212; // RGB version for opacity usage
+    --related-articles-hover: #0891b2; // Darker cyan for hover states
 }
 
 // LaterLeaf Design System - Dark Theme  
@@ -46,4 +49,7 @@
     --button-text: #ffffff;
     --link-color: #22c55e;
     --accent-color: #facc15; // Keep accent yellow
+    --related-articles-color: #22d3ee; // Lighter cyan for dark mode
+    --related-articles-color-rgb: 34, 211, 238; // RGB version for opacity usage
+    --related-articles-hover: #06b6d4; // Medium cyan for hover states
 }

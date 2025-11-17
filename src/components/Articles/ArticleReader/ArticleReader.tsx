@@ -7,6 +7,7 @@ import type { Article } from '../../../interfaces/article';
 import CollectionSelector from '../../Collections/CollectionSelector/CollectionSelector';
 import ConfirmationDialog from '../../Common/ConfirmationDialog/ConfirmationDialog';
 import ArticlePodcastPlayer from '../ArticlePodcastPlayer/ArticlePodcastPlayer';
+import RelatedArticles from '../RelatedArticles/RelatedArticles';
 import TagsManager from '../../TagsManager/TagsManager';
 import './ArticleReader.scss';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -603,6 +604,11 @@ const ArticleReader = () => {
                         className="article-podcast-player"
                     />
                 </div>
+            )}
+
+            {/* Related Articles from User's Library */}
+            {articleId && !article.isUrlOnly && (
+                <RelatedArticles articleId={articleId} />
             )}
 
             <div className="article-source">
