@@ -305,6 +305,12 @@ const ArticleReader = () => {
 
                 const data: Article = await response.json();
                 setArticle(data);
+
+                // Initialize summary metadata if pending
+                if (data.summary === 'pending') {
+                    setSummaryMetadata({ status: 'pending' });
+                    setShowSummary(true);
+                }
             } catch (err) {
                 setError(err instanceof Error ? err.message : 'An unknown error occurred');
             } finally {
@@ -314,6 +320,46 @@ const ArticleReader = () => {
 
         fetchArticle();
     }, [articleId, getToken]);
+
+    // Poll for summary updates if status is pending
+    useEffect(() => {
+        let pollInterval: NodeJS.Timeout;
+
+        if (summaryMetadata.status === 'pending' && articleId) {
+            const poll = async () => {
+                try {
+                    const token = await getToken();
+                    const response = await fetch(`/api/articles/${articleId}`, {
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        // Check if summary is no longer pending
+                        if (data.summary && data.summary !== 'pending') {
+                            setArticle(prev => prev ? { ...prev, summary: data.summary } : null);
+                            setSummaryMetadata(prev => ({ ...prev, status: 'completed' }));
+                        }
+                    }
+                } catch (err) {
+                    console.error('Error polling for summary:', err);
+                }
+            };
+
+            // Initial poll after 2 seconds
+            const initialTimeout = setTimeout(poll, 2000);
+
+            // Then poll every 5 seconds
+            pollInterval = setInterval(poll, 5000);
+
+            return () => {
+                clearTimeout(initialTimeout);
+                clearInterval(pollInterval);
+            };
+        }
+    }, [summaryMetadata.status, articleId, getToken]);
 
     if (loading) {
         return <div>Loading article...</div>;

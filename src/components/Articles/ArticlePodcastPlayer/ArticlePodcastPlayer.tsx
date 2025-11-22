@@ -44,6 +44,7 @@ const ArticlePodcastPlayer: React.FC<ArticlePodcastPlayerProps> = ({
     const [podcastStyle, setPodcastStyle] = useState<'casual' | 'professional' | 'educational'>('casual');
     const [selectedVoicePair, setSelectedVoicePair] = useState<string>('zephyr-charon');
     const [speed, setSpeed] = useState(1.0);
+    const [isPolling, setIsPolling] = useState(false);
 
     // Available voice pairs for podcast conversations
     const voicePairs: VoicePair[] = [
@@ -125,7 +126,47 @@ const ArticlePodcastPlayer: React.FC<ArticlePodcastPlayerProps> = ({
 
     useEffect(() => {
         checkPodcastStatus();
-    }, [checkPodcastStatus]);    // Audio event handlers
+    }, [checkPodcastStatus]);
+
+    // Poll for podcast completion
+    useEffect(() => {
+        let pollInterval: NodeJS.Timeout;
+
+        if (isPolling && articleId) {
+            const poll = async () => {
+                try {
+                    const token = await getToken();
+                    const response = await fetch(`/api/articles/${articleId}/podcast-status`, {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+
+                    if (response.ok) {
+                        const status = await response.json();
+                        if (status.hasAudio && status.audioUrl) {
+                            console.log(`✅ Podcast generation complete: ${status.audioUrl}`);
+                            setAudioUrl(status.audioUrl);
+                            setIsPolling(false);
+                            setIsGenerating(false);
+                            setIsLoading(false);
+
+                            if (audioRef.current) {
+                                audioRef.current.src = status.audioUrl;
+                                audioRef.current.load();
+                            }
+                        }
+                    }
+                } catch (err) {
+                    console.error('Error polling podcast status:', err);
+                }
+            };
+
+            // Poll every 5 seconds
+            pollInterval = setInterval(poll, 5000);
+            return () => clearInterval(pollInterval);
+        }
+    }, [isPolling, articleId, getToken]);
+
+    // Audio event handlers
     useEffect(() => {
         const audio = audioRef.current;
         if (!audio) return;
@@ -231,6 +272,14 @@ const ArticlePodcastPlayer: React.FC<ArticlePodcastPlayerProps> = ({
             }
 
             const newAudioUrl = result.audioUrl;
+
+            // Handle queued status
+            if (newAudioUrl === 'processing') {
+                console.log('⏳ Podcast generation queued, starting polling...');
+                setIsGenerating(true);
+                setIsPolling(true);
+                return;
+            }
 
             if (!newAudioUrl) {
                 console.error(`❌ Result object:`, result);
