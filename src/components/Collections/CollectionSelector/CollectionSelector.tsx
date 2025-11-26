@@ -28,15 +28,42 @@ const CollectionSelector: React.FC<CollectionSelectorProps> = ({
     const { getToken } = useAuth();
     const { showSuccess, showError, showWarning } = useToastContext();
     const [collections, setCollections] = useState<Collection[]>([]);
+    const [suggestedNames, setSuggestedNames] = useState<string[]>([]);
     const [loading, setLoading] = useState(false);
+    const [loadingSuggestions, setLoadingSuggestions] = useState(false);
     const [addingToCollection, setAddingToCollection] = useState<string | null>(null);
 
     useEffect(() => {
         if (isOpen) {
             fetchCollections();
+            fetchSuggestions();
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isOpen]);
+
+    const fetchSuggestions = async () => {
+        setLoadingSuggestions(true);
+        try {
+            const token = await getToken();
+            const response = await fetch('/api/collections/suggest-for-article', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ articleId })
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                setSuggestedNames(data);
+            }
+        } catch (error) {
+            console.error('Failed to fetch suggestions:', error);
+        } finally {
+            setLoadingSuggestions(false);
+        }
+    };
 
     const fetchCollections = async () => {
         setLoading(true);
@@ -119,6 +146,12 @@ const CollectionSelector: React.FC<CollectionSelectorProps> = ({
                 >
                     <div className="modal-header">
                         <h3>Add to Collection</h3>
+                        {loadingSuggestions && (
+                            <span className="suggestions-loading-badge">
+                                <FontAwesomeIcon icon={faSpinner} spin size="sm" />
+                                Finding suggestions...
+                            </span>
+                        )}
                     </div>
 
                     <div className="modal-content">
@@ -134,30 +167,48 @@ const CollectionSelector: React.FC<CollectionSelectorProps> = ({
                             </div>
                         ) : (
                             <div className="collections-list">
-                                {collections.map((collection) => (
-                                    <motion.button
-                                        key={collection.id}
-                                        className="collection-option"
-                                        onClick={() => handleAddToCollection(collection.id)}
-                                        disabled={addingToCollection === collection.id}
-                                        whileHover={{ scale: 1.02 }}
-                                        whileTap={{ scale: 0.98 }}
-                                    >
-                                        <div className="collection-info">
-                                            <h4>{collection.name}</h4>
-                                            {collection.description && (
-                                                <p>{collection.description}</p>
-                                            )}
-                                        </div>
-                                        <div className="collection-action">
-                                            {addingToCollection === collection.id ? (
-                                                <FontAwesomeIcon icon={faSpinner} spin />
-                                            ) : (
-                                                <FontAwesomeIcon icon={faPlus} />
-                                            )}
-                                        </div>
-                                    </motion.button>
-                                ))}
+                                {collections
+                                    .sort((a, b) => {
+                                        const aSuggested = suggestedNames.includes(a.name);
+                                        const bSuggested = suggestedNames.includes(b.name);
+                                        if (aSuggested && !bSuggested) return -1;
+                                        if (!aSuggested && bSuggested) return 1;
+                                        return a.name.localeCompare(b.name);
+                                    })
+                                    .map((collection) => {
+                                        const isSuggested = suggestedNames.includes(collection.name);
+                                        return (
+                                            <motion.button
+                                                key={collection.id}
+                                                className={`collection-option ${isSuggested ? 'suggested' : ''}`}
+                                                onClick={() => handleAddToCollection(collection.id)}
+                                                disabled={addingToCollection === collection.id}
+                                                whileHover={{ scale: 1.02 }}
+                                                whileTap={{ scale: 0.98 }}
+                                            >
+                                                <div className="collection-info">
+                                                    <div className="collection-name-row">
+                                                        <h4>{collection.name}</h4>
+                                                        {isSuggested && (
+                                                            <span className="suggestion-badge">
+                                                                Suggested
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                    {collection.description && (
+                                                        <p>{collection.description}</p>
+                                                    )}
+                                                </div>
+                                                <div className="collection-action">
+                                                    {addingToCollection === collection.id ? (
+                                                        <FontAwesomeIcon icon={faSpinner} spin />
+                                                    ) : (
+                                                        <FontAwesomeIcon icon={faPlus} />
+                                                    )}
+                                                </div>
+                                            </motion.button>
+                                        );
+                                    })}
                             </div>
                         )}
                     </div>

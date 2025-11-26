@@ -30,11 +30,14 @@ const CollectionsList: React.FC = () => {
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [editingCollection, setEditingCollection] = useState<Collection | null>(null);
     const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
+    const [createModalInitialData, setCreateModalInitialData] = useState({ name: '', description: '', emoji: '📦' });
     const [deleteConfirm, setDeleteConfirm] = useState<{ show: boolean; collectionId: string | null; collectionName: string }>({
         show: false,
         collectionId: null,
         collectionName: ''
     });
+    const [suggestedCollections, setSuggestedCollections] = useState<{ name: string; emoji: string; reason: string }[]>([]);
+    const [loadingSuggestions, setLoadingSuggestions] = useState(false);
 
     const fetchCollections = async () => {
         try {
@@ -85,9 +88,31 @@ const CollectionsList: React.FC = () => {
         }
     };
 
+    const fetchSuggestions = async () => {
+        setLoadingSuggestions(true);
+        try {
+            const token = await getToken();
+            const response = await fetch('/api/collections/suggest-new', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                setSuggestedCollections(data);
+            }
+        } catch (error) {
+            console.error('Failed to fetch suggestions:', error);
+        } finally {
+            setLoadingSuggestions(false);
+        }
+    };
+
     useEffect(() => {
         if (isLoaded && isSignedIn) {
             fetchCollections();
+            fetchSuggestions();
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isLoaded, isSignedIn]);
@@ -182,6 +207,20 @@ const CollectionsList: React.FC = () => {
         }
     };
 
+    const handleUseSuggestion = (suggestion: { name: string; emoji: string; reason: string }) => {
+        setCreateModalInitialData({
+            name: suggestion.name,
+            description: suggestion.reason,
+            emoji: suggestion.emoji
+        });
+        setShowCreateModal(true);
+    };
+
+    const openCreateModal = () => {
+        setCreateModalInitialData({ name: '', description: '', emoji: '📦' });
+        setShowCreateModal(true);
+    };
+
     if (!isLoaded || loading) {
         return (
             <div className="loading-container">
@@ -199,13 +238,47 @@ const CollectionsList: React.FC = () => {
             <div className="collections-header">
                 <h1>My Collections</h1>
                 <button
-                    onClick={() => setShowCreateModal(true)}
+                    onClick={openCreateModal}
                     className="create-collection-btn"
                 >
                     <FontAwesomeIcon icon={faPlus} />
                     New Collection
                 </button>
             </div>
+
+            {(loadingSuggestions || suggestedCollections.length > 0) && (
+                <div className="suggestions-section">
+                    <h2>Suggested for You</h2>
+                    {loadingSuggestions ? (
+                        <div className="suggestions-loading">
+                            <FontAwesomeIcon icon={faSpinner} spin />
+                            <span>Finding suggestions...</span>
+                        </div>
+                    ) : (
+                        <div className="suggestions-grid">
+                            {suggestedCollections.map((suggestion, index) => (
+                                <motion.div
+                                    key={index}
+                                    className="suggestion-card"
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: index * 0.1 }}
+                                    onClick={() => handleUseSuggestion(suggestion)}
+                                >
+                                    <div className="suggestion-emoji">{suggestion.emoji}</div>
+                                    <div className="suggestion-content">
+                                        <h3>{suggestion.name}</h3>
+                                        <p>{suggestion.reason}</p>
+                                    </div>
+                                    <div className="suggestion-action">
+                                        <FontAwesomeIcon icon={faPlus} />
+                                    </div>
+                                </motion.div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            )}
 
             <motion.div
                 className="collections-grid"
@@ -249,7 +322,7 @@ const CollectionsList: React.FC = () => {
                 onClose={() => setShowCreateModal(false)}
                 onSave={handleCreateCollection}
                 mode="create"
-                initialData={{ name: '', description: '', emoji: '📦' }}
+                initialData={createModalInitialData}
             />
 
             {editingCollection && (
