@@ -8,15 +8,15 @@ A lightweight, "Save & Go" browser extension built with **React, TypeScript, and
 ## 1. Tech Stack & Tools
 -   **Framework**: React 18 + TypeScript
 -   **Build Tool**: Vite + `@crxjs/vite-plugin` (Hot Module Replacement for extensions)
--   **Styling**: Tailwind CSS (matches `rct-laterleaf` design system)
+-   **Styling**: SCSS / SASS (matches `rct-laterleaf` design system variables & mixins)
 -   **State/Auth**: Clerk (via Chrome Storage sync)
 -   **Extraction**: `@mozilla/readability` + `dompurify` (running in Content Script)
 
 ## 2. Project Structure
-Recommended location: `Web/ext-laterleaf`
+Recommended location: `Web/browser-extension`
 
 ```text
-ext-laterleaf/
+browser-extension/
 ├── manifest.json
 ├── package.json
 ├── vite.config.ts
@@ -29,6 +29,7 @@ ext-laterleaf/
 │   ├── popup/
 │   │   ├── index.tsx       # React Entry
 │   │   ├── Popup.tsx       # Simple "Save" UI
+│   │   ├── Popup.module.scss # Component-scoped styles
 │   │   └── components/     # Shared UI components
 │   ├── lib/
 │   │   ├── api.ts          # Typed API client
@@ -36,6 +37,8 @@ ext-laterleaf/
 │   └── assets/
 │       ├── icons/          # Extension icons
 │       └── styles/         # Global styles
+│           ├── _variables.scss # Shared variables from main app
+│           └── main.scss       # Global resets
 └── public/                 # Static public files
 ```
 
