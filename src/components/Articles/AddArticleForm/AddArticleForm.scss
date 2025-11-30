@@ -1,94 +1,123 @@
-.add-article-form {
-    display: flex;
-    gap: 10px;
+.add-article-wrapper {
     margin-bottom: 2rem;
     background-color: var(--card-bg);
     padding: 1rem;
     border-radius: 8px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 
-    .input-wrapper {
-        position: relative;
-        flex-grow: 1; // Allow the wrapper to expand
-        display: flex; // Make this a flex container for the input inside
-        align-items: center;
-        border-bottom: 2px solid var(--card-border); // Use theme variable
-        transition: border-color 0.3s ease;
+    .add-article-form {
+        display: flex;
+        gap: 10px;
 
-        &:focus-within {
-            border-color: var(--text-color); // Darker line on focus
-        }
-
-        input[type="text"] {
-            width: 100%; // Make the input fill the wrapper
-            padding: 10px 15px;
-            border: none; // Remove the input's own border
-            border-radius: 0;
-            font-size: 1rem;
-            background-color: transparent; // Make background transparent
-            color: var(--text-color); // Use theme variable for text color
-
-            &::placeholder {
-                color: var(--text-color-secondary);
-            }
-
-            &:focus {
-                outline: none;
-                box-shadow: none; // Remove the focus box-shadow
-            }
-        }
-
-        .save-link-button {
-            position: absolute;
-            right: 0;
-            top: 50%;
-            transform: translateY(-50%);
-            background: none;
-            border: none;
-            color: var(--text-color); // Use theme variable
-            cursor: pointer;
-            font-size: 16px;
-            display: flex;
+        .input-wrapper {
+            position: relative;
+            flex-grow: 1; // Allow the wrapper to expand
+            display: flex; // Make this a flex container for the input inside
             align-items: center;
-            gap: 8px;
-            padding: 8px;
-            transition: color 0.3s ease;
+            border-bottom: 2px solid var(--card-border); // Use theme variable
+            transition: border-color 0.3s ease;
 
-            &:hover:not(:disabled) {
-                color: var(--primary-color); // Highlight on hover
+            &:focus-within {
+                border-color: var(--text-color); // Darker line on focus
+            }
+
+            input[type="text"] {
+                width: 100%; // Make the input fill the wrapper
+                padding: 10px 15px;
+                border: none; // Remove the input's own border
+                border-radius: 0;
+                font-size: 1rem;
+                background-color: transparent; // Make background transparent
+                color: var(--text-color); // Use theme variable for text color
+
+                &::placeholder {
+                    color: var(--text-color-secondary);
+                }
+
+                &:focus {
+                    outline: none;
+                    box-shadow: none; // Remove the focus box-shadow
+                }
+            }
+
+            .save-link-button {
+                position: absolute;
+                right: 0;
+                top: 50%;
+                transform: translateY(-50%);
+                background: none;
+                border: none;
+                color: var(--text-color); // Use theme variable
+                cursor: pointer;
+                font-size: 16px;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                padding: 8px;
+                transition: color 0.3s ease;
+
+                &:hover:not(:disabled) {
+                    color: var(--primary-color); // Highlight on hover
+                }
+
+                &:disabled {
+                    color: var(--secondary-color);
+                    cursor: not-allowed;
+                }
+            }
+        }
+
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            background-color: var(--primary-color);
+            color: var(--button-text-color); // Use theme variable for button text
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+
+            &:hover {
+                background-color: var(--primary-color-dark);
             }
 
             &:disabled {
-                color: var(--secondary-color);
+                background-color: var(--secondary-color);
                 cursor: not-allowed;
             }
         }
-    }
 
-    button {
-        padding: 10px 20px;
-        border: none;
-        border-radius: 6px;
-        background-color: var(--primary-color);
-        color: var(--button-text-color); // Use theme variable for button text
-        font-size: 1rem;
-        font-weight: 600;
-        cursor: pointer;
-        transition: background-color 0.2s ease;
-
-        &:hover {
-            background-color: var(--primary-color-dark);
+        .import-error {
+            color: #f44336;
+            margin-top: 8px;
+            font-size: 14px;
         }
 
-        &:disabled {
-            background-color: var(--secondary-color);
-            cursor: not-allowed;
-        }
-    }
+        .extension-promo {
+            margin-top: 1rem;
+            padding-top: 0.75rem;
+            border-top: 1px solid var(--card-border);
+            font-size: 0.85rem;
+            color: var(--text-color-secondary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
 
-    .import-error {
-        color: #f44336;
-        margin-top: 8px;
-        font-size: 14px;
+            svg {
+                color: var(--primary-color);
+            }
+
+            a {
+                color: var(--text-color);
+                font-weight: 600;
+                text-decoration: none;
+
+                &:hover {
+                    text-decoration: underline;
+                    color: var(--primary-color);
+                }
+            }
+        }
     }
 }

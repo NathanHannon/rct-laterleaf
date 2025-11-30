@@ -560,6 +560,31 @@
             user-select: none;
         }
 
+        .credit-counters {
+            display: flex;
+            gap: 0.75rem;
+            margin-left: 0.5rem;
+            padding-left: 0.75rem;
+            border-left: 1px solid var(--card-border);
+
+            .credit-item {
+                display: flex;
+                align-items: center;
+                gap: 0.25rem;
+                font-size: 0.8rem;
+                color: var(--text-color-secondary);
+
+                .credit-value {
+                    font-weight: 600;
+                    color: var(--primary-color);
+
+                    &.empty {
+                        color: #ef4444; // Red for empty
+                    }
+                }
+            }
+        }
+
         .toggle-switch {
             position: relative;
             display: inline-block;

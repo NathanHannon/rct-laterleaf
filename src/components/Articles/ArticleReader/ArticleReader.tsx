@@ -15,11 +15,13 @@ import { faBookmark as faBookmarkSolid, faArchive, faTrash, faRotateRight, faFol
 import { faBookmark as faBookmarkRegular } from '@fortawesome/free-regular-svg-icons';
 import { hasProAccess } from '../../../utils/tierUtils';
 import { useUserStatus } from '../../../hooks/useUserStatus';
+import { useUserCredits } from '../../../hooks/useUserCredits';
 
 const ArticleReader = () => {
     const { articleId } = useParams<{ articleId: string }>();
     const { getToken } = useAuth();
     const { isPro } = useUserStatus();
+    const { credits, fetchCredits } = useUserCredits();
     const navigate = useNavigate();
     const [article, setArticle] = useState<Article | null>(null);
     const [loading, setLoading] = useState(true);
@@ -91,6 +93,11 @@ const ArticleReader = () => {
             setEstimatedReadingTime(readingTime);
         }
     }, [article]);
+
+    // Fetch user credits on mount
+    useEffect(() => {
+        fetchCredits();
+    }, []);
 
     const handleFavorite = async () => {
         if (!articleId || !article) return;
@@ -437,6 +444,24 @@ const ArticleReader = () => {
                             />
                             <span className="slider round"></span>
                         </label>
+
+                        {/* Credit Counters for Free Users */}
+                        {credits && (
+                            <div className="credit-counters">
+                                <div className="credit-item" title="Basic summaries remaining this month">
+                                    <span className="credit-label">Basic:</span>
+                                    <span className={`credit-value ${credits.basicCreditsRemaining === 0 ? 'empty' : ''}`}>
+                                        {credits.basicCreditsRemaining}
+                                    </span>
+                                </div>
+                                <div className="credit-item" title="Pro summaries remaining this month">
+                                    <span className="credit-label">Pro:</span>
+                                    <span className={`credit-value ${credits.proCreditsRemaining === 0 ? 'empty' : ''}`}>
+                                        {credits.proCreditsRemaining}
+                                    </span>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 )}
 

@@ -2,7 +2,7 @@ import { forwardRef } from 'react';
 import { NavLink } from 'react-router-dom';
 import { SignedIn } from "@clerk/clerk-react";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faInbox, faBookmark, faArchive, faFolderOpen, faFileExport, faCompass, faTimes, faSearch } from '@fortawesome/free-solid-svg-icons';
+import { faInbox, faBookmark, faArchive, faFolderOpen, faFileExport, faCompass, faTimes, faSearch, faCog } from '@fortawesome/free-solid-svg-icons';
 import { useSearch } from '../../../hooks/searchHook';
 import { hasProAccess } from '../../../utils/tierUtils';
 import SearchModeToggle from '../../Search/SearchModeToggle/SearchModeToggle';
@@ -102,6 +102,10 @@ const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(({ isOpen, onClose }, r
                         <NavLink to="/export" onClick={onClose} className="nav-link">
                             <FontAwesomeIcon icon={faFileExport} />
                             <span>Export</span>
+                        </NavLink>
+                        <NavLink to="/settings" onClick={onClose} className="nav-link">
+                            <FontAwesomeIcon icon={faCog} />
+                            <span>Settings</span>
                         </NavLink>
                     </div>
                 </nav>

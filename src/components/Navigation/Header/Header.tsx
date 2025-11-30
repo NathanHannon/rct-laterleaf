@@ -1,14 +1,15 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { SignedIn, SignedOut, SignInButton, SignUpButton, UserButton } from "@clerk/clerk-react";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBars } from '@fortawesome/free-solid-svg-icons';
+import { faBars, faCog } from '@fortawesome/free-solid-svg-icons';
 import ThemeSwitcher from '../../Common/ThemeSwitcher/ThemeSwitcher';
 import Sidebar from '../Sidebar/Sidebar';
 import './Header.scss';
 import logo from '../../../assets/logo/icon-transparent.png';
 
 const Header: React.FC = () => {
+    const navigate = useNavigate();
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [isScrolled, setIsScrolled] = useState(false);
     const sidebarRef = useRef<HTMLDivElement>(null);
@@ -73,7 +74,15 @@ const Header: React.FC = () => {
                 <div className="header-right">
                     <ThemeSwitcher />
                     <SignedIn>
-                        <UserButton />
+                        <UserButton>
+                            <UserButton.MenuItems>
+                                <UserButton.Action
+                                    label="Settings"
+                                    labelIcon={<FontAwesomeIcon icon={faCog} />}
+                                    onClick={() => navigate('/settings')}
+                                />
+                            </UserButton.MenuItems>
+                        </UserButton>
                     </SignedIn>
                     <SignedOut>
                         <div className="auth-buttons">
