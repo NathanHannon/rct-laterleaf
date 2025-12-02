@@ -162,6 +162,21 @@
         .fa-spinner {
             color: #666;
         }
+
+        .check-icon {
+            color: #28a745;
+        }
+    }
+
+    &.has-article {
+        opacity: 0.7;
+        cursor: default;
+        background-color: #f8f9fa;
+
+        &:hover {
+            background-color: #f8f9fa;
+            transform: none;
+        }
     }
 }
 

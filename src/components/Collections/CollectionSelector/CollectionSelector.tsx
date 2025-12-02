@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@clerk/clerk-react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPlus, faSpinner } from '@fortawesome/free-solid-svg-icons';
+import { faPlus, faSpinner, faCheck } from '@fortawesome/free-solid-svg-icons';
 import { motion, AnimatePresence } from 'motion/react';
 import { useToastContext } from '../../../context/toastContextUtils';
 import './CollectionSelector.scss';
@@ -10,6 +10,7 @@ interface Collection {
     id: string;
     name: string;
     description?: string;
+    hasArticle?: boolean;
 }
 
 interface CollectionSelectorProps {
@@ -69,15 +70,36 @@ const CollectionSelector: React.FC<CollectionSelectorProps> = ({
         setLoading(true);
         try {
             const token = await getToken();
-            const response = await fetch('/api/collections', {
+            // Fetch all collections
+            const collectionsResponse = await fetch('/api/collections', {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
             });
 
-            if (response.ok) {
-                const data = await response.json();
-                setCollections(data);
+            // Fetch collections this article is already in
+            const articleCollectionsResponse = await fetch(`/api/articles/${articleId}/collections`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (collectionsResponse.ok) {
+                const allCollections = await collectionsResponse.json();
+                let articleCollectionIds: string[] = [];
+
+                if (articleCollectionsResponse.ok) {
+                    const articleCollections = await articleCollectionsResponse.json();
+                    articleCollectionIds = articleCollections.map((c: any) => c.id);
+                }
+
+                // Mark collections that already have this article
+                const collectionsWithStatus = allCollections.map((c: Collection) => ({
+                    ...c,
+                    hasArticle: articleCollectionIds.includes(c.id)
+                }));
+
+                setCollections(collectionsWithStatus);
             }
         } catch (error) {
             showError('Failed to fetch collections', 'Please try again later.');
@@ -88,8 +110,12 @@ const CollectionSelector: React.FC<CollectionSelectorProps> = ({
     };
 
     const handleAddToCollection = async (collectionId: string) => {
-        setAddingToCollection(collectionId);
         const selectedCollection = collections.find(c => c.id === collectionId);
+        if (selectedCollection?.hasArticle) {
+            return; // Already in collection
+        }
+
+        setAddingToCollection(collectionId);
         const collectionName = selectedCollection?.name || 'collection';
 
         try {
@@ -180,11 +206,11 @@ const CollectionSelector: React.FC<CollectionSelectorProps> = ({
                                         return (
                                             <motion.button
                                                 key={collection.id}
-                                                className={`collection-option ${isSuggested ? 'suggested' : ''}`}
+                                                className={`collection-option ${isSuggested ? 'suggested' : ''} ${collection.hasArticle ? 'has-article' : ''}`}
                                                 onClick={() => handleAddToCollection(collection.id)}
-                                                disabled={addingToCollection === collection.id}
-                                                whileHover={{ scale: 1.02 }}
-                                                whileTap={{ scale: 0.98 }}
+                                                disabled={addingToCollection === collection.id || collection.hasArticle}
+                                                whileHover={collection.hasArticle ? {} : { scale: 1.02 }}
+                                                whileTap={collection.hasArticle ? {} : { scale: 0.98 }}
                                             >
                                                 <div className="collection-info">
                                                     <div className="collection-name-row">
@@ -202,6 +228,8 @@ const CollectionSelector: React.FC<CollectionSelectorProps> = ({
                                                 <div className="collection-action">
                                                     {addingToCollection === collection.id ? (
                                                         <FontAwesomeIcon icon={faSpinner} spin />
+                                                    ) : collection.hasArticle ? (
+                                                        <FontAwesomeIcon icon={faCheck} className="check-icon" />
                                                     ) : (
                                                         <FontAwesomeIcon icon={faPlus} />
                                                     )}
