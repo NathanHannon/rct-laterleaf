@@ -58,13 +58,15 @@ const Header: React.FC = () => {
         <>
             <header className={`app-header ${isScrolled ? 'scrolled' : ''}`}>
                 <div className="header-left">
-                    <button
-                        className="sidebar-toggle"
-                        onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-                        aria-label="Toggle sidebar"
-                    >
-                        <FontAwesomeIcon icon={faBars} />
-                    </button>
+                    <SignedIn>
+                        <button
+                            className="sidebar-toggle"
+                            onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                            aria-label="Toggle sidebar"
+                        >
+                            <FontAwesomeIcon icon={faBars} />
+                        </button>
+                    </SignedIn>
                     <Link to="/" className="logo">
                         <img src={logo} alt="laterLeaf logo" />
                         <h2>Later Leaf</h2>
@@ -98,14 +100,16 @@ const Header: React.FC = () => {
             </header>
 
             {/* Backdrop */}
-            {isSidebarOpen && <div className="sidebar-backdrop" onClick={closeSidebar} />}
+            <SignedIn>
+                {isSidebarOpen && <div className="sidebar-backdrop" onClick={closeSidebar} />}
 
-            {/* Sidebar Component */}
-            <Sidebar
-                isOpen={isSidebarOpen}
-                onClose={closeSidebar}
-                ref={sidebarRef}
-            />
+                {/* Sidebar Component */}
+                <Sidebar
+                    isOpen={isSidebarOpen}
+                    onClose={closeSidebar}
+                    ref={sidebarRef}
+                />
+            </SignedIn>
         </>
     );
 };
