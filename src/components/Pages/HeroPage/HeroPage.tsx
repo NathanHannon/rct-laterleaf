@@ -1,7 +1,7 @@
 import React from 'react';
 import { SignUpButton } from '@clerk/clerk-react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faSave, faBolt, faSearch, faCheckCircle } from '@fortawesome/free-solid-svg-icons';
+import { faSave, faBolt, faSearch, faCheckCircle, faHeadphones } from '@fortawesome/free-solid-svg-icons';
 import './HeroPage.scss';
 
 const HeroPage: React.FC = () => {
@@ -17,6 +17,7 @@ const HeroPage: React.FC = () => {
         "Unlimited Pro summaries",
         "Full-text semantic search",
         "Personalized AI Summaries",
+        "Audio Overviews (Podcasts)",
         "Chat with your articles (Coming Soon)",
         "Offline mode (Coming Soon)"
     ];
@@ -55,6 +56,11 @@ const HeroPage: React.FC = () => {
                     <FontAwesomeIcon icon={faSearch} className="benefit-icon" />
                     <h3>Find Anything, Instantly</h3>
                     <p>Go beyond simple keywords. Pro users can search by concepts and ideas with semantic search.</p>
+                    <div className="benefit-card">
+                        <FontAwesomeIcon icon={faHeadphones} className="benefit-icon" />
+                        <h3>Listen on the Go</h3>
+                        <p>Turn articles into engaging audio podcasts. Perfect for commuting or multitasking.</p>
+                    </div>
                 </div>
             </section>
 
