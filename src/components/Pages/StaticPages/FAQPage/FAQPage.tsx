@@ -20,12 +20,17 @@ const FAQPage: React.FC = () => {
         {
             id: 'how-to-save-articles',
             question: 'How do I save articles to Later Leaf?',
-            answer: 'You can save articles by using our "Add Article" feature on the main dashboard. Simply paste the URL of any article, and Later Leaf will automatically fetch the content, generate a summary, and add it to your library. You can then organize it into collections and add tags for easy retrieval.'
+            answer: 'You can save articles by using our "Add Article" feature on the main dashboard or by using our browser extension. Simply paste the URL of any article, and Later Leaf will automatically fetch the content and add it to your library. You can then organize it into collections and add tags for easy retrieval.'
+        },
+        {
+            id: 'browser-extension',
+            question: 'Is there a browser extension?',
+            answer: 'Yes! We offer a browser extension for Chrome and other Chromium-based browsers. It allows you to save the current page to your Later Leaf library with a single click, without needing to copy and paste URLs manually.'
         },
         {
             id: 'free-vs-pro',
             question: 'What\'s the difference between Free and Pro accounts?',
-            answer: 'Free accounts include basic article saving, summarization, and organization features with a monthly limit on AI-generated summaries. Pro accounts offer unlimited summaries, advanced chat functionality to discuss articles with AI, priority support, and access to advanced search features.'
+            answer: 'Free accounts include basic article saving, summarization, and organization features with a monthly limit on AI-generated summaries. Pro accounts offer unlimited summaries, Audio Overviews to listen to your articles, and access to advanced semantic search features.'
         },
         {
             id: 'how-to-upgrade',
@@ -36,6 +41,11 @@ const FAQPage: React.FC = () => {
             id: 'ai-summarization',
             question: 'How does AI summarization work?',
             answer: 'Our AI analyzes the full text of saved articles and generates concise summaries that capture the key points and main ideas. The summaries are processed securely and are designed to help you quickly understand content without reading the entire article. You can regenerate summaries if needed.'
+        },
+        {
+            id: 'audio-overviews',
+            question: 'What are Audio Overviews?',
+            answer: 'Audio Overviews turn your saved articles into engaging podcasts. You can listen to a conversation between two AI hosts discussing the key points of the article. This is perfect for consuming content while commuting, exercising, or multitasking. This feature is available for Pro users.'
         },
         {
             id: 'data-privacy',
@@ -75,7 +85,7 @@ const FAQPage: React.FC = () => {
         {
             id: 'browser-support',
             question: 'Which browsers are supported?',
-            answer: 'Later Leaf works on all modern browsers including Chrome, Firefox, Safari, and Edge. We recommend using the latest version of your preferred browser for the best experience.'
+            answer: 'Later Leaf works on all modern browsers including Chrome, Firefox, Safari, and Edge. We recommend using the latest version of your preferred browser for the best experience. Please note that our browser extension is currently only available for Chromium-based browsers (Chrome, Edge, Brave, etc.).'
         },
         {
             id: 'technical-issues',
@@ -97,11 +107,11 @@ const FAQPage: React.FC = () => {
     const categories = [
         {
             title: 'Getting Started',
-            items: faqData.filter(item => ['what-is-laterleaf', 'how-to-save-articles', 'collections'].includes(item.id))
+            items: faqData.filter(item => ['what-is-laterleaf', 'how-to-save-articles', 'browser-extension', 'collections'].includes(item.id))
         },
         {
             title: 'Features & Functionality',
-            items: faqData.filter(item => ['ai-summarization', 'search-functionality', 'free-vs-pro'].includes(item.id))
+            items: faqData.filter(item => ['ai-summarization', 'audio-overviews', 'search-functionality', 'free-vs-pro'].includes(item.id))
         },
         {
             title: 'Privacy & Security',

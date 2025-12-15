@@ -1,7 +1,7 @@
 import React from 'react';
 import { SignUpButton } from '@clerk/clerk-react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faSave, faBolt, faSearch, faCheckCircle, faHeadphones } from '@fortawesome/free-solid-svg-icons';
+import { faSave, faBolt, faSearch, faCheckCircle, faHeadphones, faPuzzlePiece, faLayerGroup } from '@fortawesome/free-solid-svg-icons';
 import './HeroPage.scss';
 
 const HeroPage: React.FC = () => {
@@ -56,16 +56,25 @@ const HeroPage: React.FC = () => {
                     <FontAwesomeIcon icon={faSearch} className="benefit-icon" />
                     <h3>Find Anything, Instantly</h3>
                     <p>Go beyond simple keywords. Pro users can search by concepts and ideas with semantic search.</p>
-                    <div className="benefit-card">
-                        <FontAwesomeIcon icon={faHeadphones} className="benefit-icon" />
-                        <h3>Listen on the Go</h3>
-                        <p>Turn articles into engaging audio podcasts. Perfect for commuting or multitasking.</p>
-                    </div>
                 </div>
-            </section>
+                <div className="benefit-card">
+                    <FontAwesomeIcon icon={faHeadphones} className="benefit-icon" />
+                    <h3>Listen on the Go</h3>
+                    <p>Turn articles into engaging audio podcasts. Perfect for commuting or multitasking.</p>
+                </div>                <div className="benefit-card">
+                    <FontAwesomeIcon icon={faPuzzlePiece} className="benefit-icon" />
+                    <h3>Save in One Click</h3>
+                    <p>Use our browser extension to save articles instantly as you browse the web. No need to copy-paste URLs.</p>
+                </div>
+                <div className="benefit-card">
+                    <FontAwesomeIcon icon={faLayerGroup} className="benefit-icon" />
+                    <h3>Stay Organized</h3>
+                    <p>Keep your reading list tidy with custom collections and tags. Group related articles together for easy access.</p>
+                </div>
+            </section >
 
             {/* --- Features at a Glance Section --- */}
-            <section className="features-glance">
+            < section className="features-glance" >
                 <h2>Features at a Glance</h2>
                 <div className="features-container">
                     <div className="feature-list free">
@@ -91,16 +100,16 @@ const HeroPage: React.FC = () => {
                         </ul>
                     </div>
                 </div>
-            </section>
+            </section >
 
             {/* --- Final CTA Section --- */}
-            <section className="final-cta">
+            < section className="final-cta" >
                 <h2>Ready to Supercharge Your Reading?</h2>
                 <SignUpButton mode="modal">
                     <button className="cta-button">Sign Up for Free</button>
                 </SignUpButton>
-            </section>
-        </div>
+            </section >
+        </div >
     );
 };
 
