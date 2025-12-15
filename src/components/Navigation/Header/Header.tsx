@@ -68,8 +68,8 @@ const Header: React.FC = () => {
                         </button>
                     </SignedIn>
                     <Link to="/" className="logo">
-                        <img src={logo} alt="laterLeaf logo" />
-                        <h2>Later Leaf</h2>
+                        <img src={logo} alt="LaterLeaf logo" />
+                        <h2>LaterLeaf</h2>
                     </Link>
                 </div>
 

@@ -14,18 +14,18 @@ const FAQPage: React.FC = () => {
     const faqData = [
         {
             id: 'what-is-laterleaf',
-            question: 'What is Later Leaf?',
-            answer: 'Later Leaf is a modern article management platform that helps you save, organize, and rediscover content that matters to you. We provide AI-powered summarization, smart organization tools, and advanced search capabilities to help you build your personal knowledge library.'
+            question: 'What is LaterLeaf?',
+            answer: 'LaterLeaf is a modern article management platform that helps you save, organize, and rediscover content that matters to you. We provide AI-powered summarization, smart organization tools, and advanced search capabilities to help you build your personal knowledge library.'
         },
         {
             id: 'how-to-save-articles',
-            question: 'How do I save articles to Later Leaf?',
-            answer: 'You can save articles by using our "Add Article" feature on the main dashboard or by using our browser extension. Simply paste the URL of any article, and Later Leaf will automatically fetch the content and add it to your library. You can then organize it into collections and add tags for easy retrieval.'
+            question: 'How do I save articles to LaterLeaf?',
+            answer: 'You can save articles by using our "Add Article" feature on the main dashboard or by using our browser extension. Simply paste the URL of any article, and LaterLeaf will automatically fetch the content and add it to your library. You can then organize it into collections and add tags for easy retrieval.'
         },
         {
             id: 'browser-extension',
             question: 'Is there a browser extension?',
-            answer: 'Yes! We offer a browser extension for Chrome and other Chromium-based browsers. It allows you to save the current page to your Later Leaf library with a single click, without needing to copy and paste URLs manually.'
+            answer: 'Yes! We offer a browser extension for Chrome and other Chromium-based browsers. It allows you to save the current page to your LaterLeaf library with a single click, without needing to copy and paste URLs manually.'
         },
         {
             id: 'free-vs-pro',
@@ -35,7 +35,7 @@ const FAQPage: React.FC = () => {
         {
             id: 'how-to-upgrade',
             question: 'How do I upgrade to Pro?',
-            answer: 'Upgrading to Pro is easy! Just go to the "Account" section in Later Leaf, and you\'ll see an option to upgrade to Pro. Follow the prompts to enter your payment information and choose your subscription plan. Once upgraded, you\'ll instantly unlock all Pro features.'
+            answer: 'Upgrading to Pro is easy! Just go to the "Account" section in LaterLeaf, and you\'ll see an option to upgrade to Pro. Follow the prompts to enter your payment information and choose your subscription plan. Once upgraded, you\'ll instantly unlock all Pro features.'
         },
         {
             id: 'ai-summarization',
@@ -60,12 +60,12 @@ const FAQPage: React.FC = () => {
         {
             id: 'search-functionality',
             question: 'How does the search feature work?',
-            answer: 'Later Leaf offers intelligent search that looks through your article titles, content, summaries, and tags. Pro users get access to semantic search, which understands context and meaning, making it easier to find articles even if you don\'t remember exact keywords.'
+            answer: 'LaterLeaf offers intelligent search that looks through your article titles, content, summaries, and tags. Pro users get access to semantic search, which understands context and meaning, making it easier to find articles even if you don\'t remember exact keywords.'
         },
         {
             id: 'mobile-access',
-            question: 'Can I access Later Leaf on mobile devices?',
-            answer: 'Yes! Later Leaf is designed to be fully responsive and works great on mobile devices through your web browser. You can save, read, and organize articles from any device with internet access.'
+            question: 'Can I access LaterLeaf on mobile devices?',
+            answer: 'Yes! LaterLeaf is designed to be fully responsive and works great on mobile devices through your web browser. You can save, read, and organize articles from any device with internet access.'
         },
         {
             id: 'export-data',
@@ -85,7 +85,7 @@ const FAQPage: React.FC = () => {
         {
             id: 'browser-support',
             question: 'Which browsers are supported?',
-            answer: 'Later Leaf works on all modern browsers including Chrome, Firefox, Safari, and Edge. We recommend using the latest version of your preferred browser for the best experience. Please note that our browser extension is currently only available for Chromium-based browsers (Chrome, Edge, Brave, etc.).'
+            answer: 'LaterLeaf works on all modern browsers including Chrome, Firefox, Safari, and Edge. We recommend using the latest version of your preferred browser for the best experience. Please note that our browser extension is currently only available for Chromium-based browsers (Chrome, Edge, Brave, etc.).'
         },
         {
             id: 'technical-issues',
@@ -100,7 +100,7 @@ const FAQPage: React.FC = () => {
         {
             id: 'feature-requests',
             question: 'Can I request new features?',
-            answer: 'Absolutely! We love hearing from our users about features that would make Later Leaf more useful. Please send your feature requests and suggestions to support@laterleaf.com. We review all feedback and consider it for future updates.'
+            answer: 'Absolutely! We love hearing from our users about features that would make LaterLeaf more useful. Please send your feature requests and suggestions to support@laterleaf.com. We review all feedback and consider it for future updates.'
         }
     ];
 
@@ -134,7 +134,7 @@ const FAQPage: React.FC = () => {
 
                 <section className="intro">
                     <p>
-                        Find answers to common questions about Later Leaf. If you can't find what you're looking for,
+                        Find answers to common questions about LaterLeaf. If you can't find what you're looking for,
                         feel free to <a href="/contact">contact our support team</a>.
                     </p>
                 </section>
