@@ -12,7 +12,30 @@ const Header: React.FC = () => {
     const navigate = useNavigate();
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [isScrolled, setIsScrolled] = useState(false);
+    const [isLogoHovered, setIsLogoHovered] = useState(false);
+    const [logoIndex, setLogoIndex] = useState(0);
     const sidebarRef = useRef<HTMLDivElement>(null);
+
+    const logoVariants = [
+        { className: 'font-default', text: 'LaterLeaf' },
+        { className: 'font-serif', text: 'LaterLeaf' },
+        { className: 'font-mono', text: 'LaterLeaf' },
+        { className: 'font-cursive', text: 'LaterLeaf' },
+        { className: 'font-slab', text: 'LaterLeaf' },
+    ];
+
+    // Logo animation logic
+    useEffect(() => {
+        let interval: NodeJS.Timeout;
+        if (isLogoHovered) {
+            interval = setInterval(() => {
+                setLogoIndex((prev) => (prev + 1) % logoVariants.length);
+            }, 2000);
+        } else {
+            setLogoIndex(0);
+        }
+        return () => clearInterval(interval);
+    }, [isLogoHovered, logoVariants.length]);
 
     // Scroll detection for header styling
     useEffect(() => {
@@ -67,9 +90,25 @@ const Header: React.FC = () => {
                             <FontAwesomeIcon icon={faBars} />
                         </button>
                     </SignedIn>
-                    <Link to="/" className="logo">
+                    <Link
+                        to="/"
+                        className="logo"
+                        onMouseEnter={() => setIsLogoHovered(true)}
+                        onMouseLeave={() => setIsLogoHovered(false)}
+                    >
                         <img src={logo} alt="LaterLeaf logo" />
-                        <h2>LaterLeaf</h2>
+                        <div className="logo-text-container">
+                            <div
+                                className="logo-text-stack"
+                                style={{ transform: `translateY(-${logoIndex * 1.5}rem)` }}
+                            >
+                                {logoVariants.map((variant, index) => (
+                                    <h2 key={index} className={variant.className}>
+                                        {variant.text}
+                                    </h2>
+                                ))}
+                            </div>
+                        </div>
                     </Link>
                 </div>
 
