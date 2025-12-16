@@ -67,11 +67,13 @@
 }
 
 .mission,
-.values {
+.values,
+.compatibility {
     margin-top: 3rem;
 }
 
-.mission p {
+.mission p,
+.compatibility-content {
     font-size: 1.1rem;
     background: var(--card-bg);
     padding: 1.5rem;

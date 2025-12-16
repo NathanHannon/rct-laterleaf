@@ -35,6 +35,14 @@ const AboutPage: React.FC = () => {
                             <h3>Interactive Chat</h3>
                             <p>Engage with your saved articles through our AI chat feature (Pro users).</p>
                         </div>
+                        <div className="feature-item">
+                            <h3>Audio Overviews</h3>
+                            <p>Listen to your articles on the go with AI-generated podcasts (Pro users).</p>
+                        </div>
+                        <div className="feature-item">
+                            <h3>Browser Extension</h3>
+                            <p>Save articles instantly from any page with our Chrome extension.</p>
+                        </div>
                     </div>
                 </section>
 
@@ -49,11 +57,14 @@ const AboutPage: React.FC = () => {
 
                 <section className="compatibility">
                     <h2>Site Compatibility</h2>
-                    <p>
-                        LaterLeaf works best with open web content and many popular publications.
-                        Some sites with heavy paywalls or complex protection may not be fully supported yet.
-                        We're continuously working to improve compatibility while respecting publishers' rights.
-                    </p>
+                    <div className="compatibility-content">
+                        <p>
+                            LaterLeaf works best with open web content and many popular publications.
+                            You can use our browser extension to save content directly from your current tab (currently available for Chromium browsers).
+                            Some sites with heavy paywalls or complex protection may not be fully supported yet.
+                            We're continuously working to improve compatibility while respecting publishers' rights.
+                        </p>
+                    </div>
                 </section>
 
                 <section className="values">
