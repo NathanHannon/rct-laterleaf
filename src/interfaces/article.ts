@@ -12,6 +12,7 @@ export interface Article {
     isBookmarked: boolean;
     isArchived: boolean;
     summary?: string;
+    audioLocation?: string;
     createdAt: string;
     isUrlOnly?: boolean; // Flag for URL-only entries that failed extraction
 

@@ -37,6 +37,7 @@ const ArticleReader = () => {
     const [showCollectionSelector, setShowCollectionSelector] = useState(false);
     const [showDropdown, setShowDropdown] = useState(false);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+    const [showDeleteSummaryConfirm, setShowDeleteSummaryConfirm] = useState(false);
     const [useProSummary, setUseProSummary] = useState(false);
     const [summaryMetadata, setSummaryMetadata] = useState<{
         model?: string;
@@ -194,6 +195,36 @@ const ArticleReader = () => {
             setError(err instanceof Error ? err.message : 'Failed to regenerate summary');
         } finally {
             setIsGeneratingSummary(false);
+        }
+    };
+
+    const handleDeleteSummary = () => {
+        setShowDeleteSummaryConfirm(true);
+    };
+
+    const confirmDeleteSummary = async () => {
+        if (!articleId || !article) return;
+        setShowDeleteSummaryConfirm(false);
+
+        try {
+            const token = await getToken();
+            const response = await fetch(`/api/articles/${articleId}/summary`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to delete summary');
+            }
+
+            // Update local state
+            setArticle(prev => prev ? { ...prev, summary: undefined } : null);
+            setShowSummary(false);
+            setSummaryMetadata({});
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Failed to delete summary');
         }
     };
 
@@ -554,7 +585,7 @@ const ArticleReader = () => {
                                     )}
                                     {summaryMetadata.model && !summaryMetadata.fallbackUsed && (
                                         <span className="status-badge success" title={`Generated using ${summaryMetadata.model}`}>
-                                            ✅ {summaryMetadata.model?.includes('2.5-pro') ? 'Pro model' : 'Standard model'}
+                                            ✅ {summaryMetadata.model?.includes('3-flash') || summaryMetadata.model?.includes('2.5-pro') ? 'Pro model' : 'Standard model'}
                                         </span>
                                     )}
                                 </div>
@@ -572,6 +603,13 @@ const ArticleReader = () => {
                                                 icon={faRotateRight}
                                                 className={isGeneratingSummary ? 'spinning' : ''}
                                             />
+                                        </button>
+                                        <button
+                                            onClick={handleDeleteSummary}
+                                            className="delete-summary-button"
+                                            title="Delete summary"
+                                        >
+                                            <FontAwesomeIcon icon={faTrash} />
                                         </button>
                                     </>
                                 )}
@@ -707,6 +745,17 @@ const ArticleReader = () => {
                 variant="danger"
                 onConfirm={confirmDelete}
                 onCancel={() => setShowDeleteConfirm(false)}
+            />
+
+            <ConfirmationDialog
+                isOpen={showDeleteSummaryConfirm}
+                title="Delete Summary"
+                message="Are you sure you want to delete this AI-generated summary?"
+                confirmText="Delete Summary"
+                cancelText="Cancel"
+                variant="danger"
+                onConfirm={confirmDeleteSummary}
+                onCancel={() => setShowDeleteSummaryConfirm(false)}
             />
         </div>
     );

@@ -66,8 +66,9 @@ Purpose: Give AI agents the minimum, project-specific context (NOT generic advic
 
 -   **`GenAiService`**: Uses **Google Gemini** for all generative tasks:
     -   **Basic Summary**: Uses `gemini-2.5-flash-lite`. High limits, runs **synchronously** (direct API response).
-    -   **Pro Summary**: Uses `gemini-2.5-pro`. Strict limits, runs **asynchronously** via `summary-pro` queue.
-    -   **Audio/Podcast**: Uses `gemini-2.5-pro` (multi-speaker). Very strict limits, runs **asynchronously** via `audio-generation` queue.
+    -   **Pro Summary**: Uses `gemini-3-flash`. Strict limits, runs **asynchronously** via `summary-pro` queue.
+    -   **Audio/Podcast**: Uses `gemini-3-flash` (multi-speaker). Very strict limits, runs **asynchronously** via `audio-generation` queue.
+    -   **Script Generation**: Uses `gemini-3-flash` for high-quality conversational scripts.
 -   **`ContentModerationService`**: Uses **OpenAI's** moderation endpoint (`omni-moderation-latest`) to check content before it's recommended to users. This is a deliberate choice to use a best-in-class specialized model for safety.
 -   **`RecommendationService`**: Generates personalized recommendations by averaging user article embeddings into an "interest vector", then using `findSimilarWeighted` for recommendations.
 

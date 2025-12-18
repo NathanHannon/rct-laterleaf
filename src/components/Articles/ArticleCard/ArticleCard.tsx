@@ -3,7 +3,7 @@ import './ArticleCard.scss';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBookmark as faBookmarkSolid, faArchive, faTrash, faEllipsisV, faFolderPlus, faNewspaper, faPlus, faExternalLinkAlt, faShieldAlt } from '@fortawesome/free-solid-svg-icons';
+import { faBookmark as faBookmarkSolid, faArchive, faTrash, faEllipsisV, faFolderPlus, faNewspaper, faPlus, faExternalLinkAlt, faShieldAlt, faStarHalfStroke, faPodcast } from '@fortawesome/free-solid-svg-icons';
 import { faBookmark as faBookmarkRegular } from '@fortawesome/free-regular-svg-icons';
 import CollectionSelector from '../../Collections/CollectionSelector/CollectionSelector';
 import { getGradientForString } from '../../../utils/colorUtils';
@@ -216,18 +216,36 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
                             <p className="card-description">{ogDescription || excerpt}</p>
 
                             <div className="card-footer">
-                                {siteIcon && (
-                                    <img
-                                        src={siteIcon}
-                                        alt=""
-                                        className="source-favicon"
-                                        onError={(e) => {
-                                            const target = e.target as HTMLImageElement;
-                                            target.style.display = 'none';
-                                        }}
-                                    />
-                                )}
-                                <span className="source-name">{siteName || extractUrlMetadata(url).siteName}</span>
+                                <div className="source-info">
+                                    {siteIcon && (
+                                        <img
+                                            src={siteIcon}
+                                            alt=""
+                                            className="source-favicon"
+                                            onError={(e) => {
+                                                const target = e.target as HTMLImageElement;
+                                                target.style.display = 'none';
+                                            }}
+                                        />
+                                    )}
+                                    <span className="source-name">{siteName || extractUrlMetadata(url).siteName}</span>
+                                </div>
+                                <div className="status-indicators">
+                                    {article.summary && (
+                                        <FontAwesomeIcon
+                                            icon={faStarHalfStroke}
+                                            className="indicator-summary"
+                                            title="Pro Summary Available"
+                                        />
+                                    )}
+                                    {article.audioLocation && (
+                                        <FontAwesomeIcon
+                                            icon={faPodcast}
+                                            className="indicator-audio"
+                                            title="Audio Overview Available"
+                                        />
+                                    )}
+                                </div>
                             </div>
                         </div>
                     </Link>

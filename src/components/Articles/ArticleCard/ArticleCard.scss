@@ -162,10 +162,19 @@
     .card-footer {
         display: flex;
         align-items: center;
-        gap: 8px;
+        justify-content: space-between;
         margin-top: 12px;
         padding-top: 12px;
         border-top: 1px solid var(--border-light);
+
+        .source-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            overflow: hidden;
+            flex: 1;
+            min-width: 0;
+        }
 
         .source-favicon {
             width: 16px;
@@ -182,6 +191,24 @@
             text-overflow: ellipsis;
             overflow: hidden;
             white-space: nowrap;
+        }
+
+        .status-indicators {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-shrink: 0;
+            margin-left: 8px;
+
+            .indicator-summary {
+                color: #9c27b0; // Purple
+                font-size: 0.9rem;
+            }
+
+            .indicator-audio {
+                color: #ff9800; // Orange
+                font-size: 0.9rem;
+            }
         }
     }
 }

@@ -799,6 +799,27 @@
             animation: spin 1s linear infinite;
         }
     }
+
+    .delete-summary-button {
+        background: transparent;
+        border: 1px solid #f44336; // Red color
+        color: #f44336;
+        border-radius: 6px;
+        padding: 0.5rem;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 36px;
+        height: 36px;
+        transition: all 0.2s ease;
+
+        &:hover {
+            background: #f44336;
+            color: white;
+            transform: scale(1.05);
+        }
+    }
 }
 
 .summary-content {

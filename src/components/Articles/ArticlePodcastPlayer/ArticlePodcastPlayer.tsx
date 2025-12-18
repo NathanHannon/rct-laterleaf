@@ -233,7 +233,10 @@ const ArticlePodcastPlayer: React.FC<ArticlePodcastPlayerProps> = ({
             const params = new URLSearchParams();
             if (podcastDuration) params.append('duration', podcastDuration);
             if (podcastStyle) params.append('style', podcastStyle);
-            if (selectedVoicePair) params.append('voices', selectedVoicePair);
+            if (selectedVoicePair) {
+                params.append('voices', selectedVoicePair);
+                params.append('personaId', selectedVoicePair);
+            }
             if (forceRegenerate) params.append('force', 'true'); // Add force parameter
 
             const queryString = params.toString();
@@ -467,9 +470,14 @@ const ArticlePodcastPlayer: React.FC<ArticlePodcastPlayerProps> = ({
                             onChange={(e) => setPodcastDuration(e.target.value as 'short' | 'medium' | 'long')}
                             disabled={isLoading}
                         >
-                            <option value="short">Short (3-5 min)</option>
-                            <option value="medium">Medium (7-10 min)</option>
-                            <option value="long">Long (15+ min)</option>
+                            <option value="short">Short (4-5 min)</option>
+                            <option value="medium">Medium (8-10 min)</option>
+                            <option value="long">Long (15 min)</option>
+                            {/* 
+                            <option value="short">Short (2-3 min)</option>
+                            <option value="medium">Medium (4 min)</option>
+                            <option value="long">Long (5 min)</option>
+                            */}
                         </select>
                     </div>
 
