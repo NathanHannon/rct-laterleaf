@@ -128,7 +128,7 @@ const ArticleReader = () => {
         if (!articleId || !article) return;
 
         // If summary already exists, just toggle display
-        if (article.summary) {
+        if (article.summary && article.summaryStatus !== 'pending') {
             setShowSummary(!showSummary);
             return;
         }
@@ -149,7 +149,7 @@ const ArticleReader = () => {
             }
 
             const data = await response.json();
-            setArticle(prev => prev ? { ...prev, summary: data.summary } : null);
+            setArticle(prev => prev ? { ...prev, summary: data.summary, summaryStatus: data.status } : null);
             // Store metadata about the summary generation
             setSummaryMetadata({
                 model: data.model,
@@ -164,13 +164,14 @@ const ArticleReader = () => {
         }
     };
 
-    const handleRefreshSummary = async () => {
+    const handleRefreshSummary = async (useProOverride?: boolean) => {
         if (!articleId || !article) return;
 
         setIsGeneratingSummary(true);
         try {
             const token = await getToken();
-            const url = `/api/articles/${articleId}/summarize?force=true${useProSummary && !userHasProAccess ? '&usePro=true' : ''}`;
+            const effectiveUsePro = typeof useProOverride === 'boolean' ? useProOverride : (useProSummary && !userHasProAccess);
+            const url = `/api/articles/${articleId}/summarize?force=true${effectiveUsePro ? '&usePro=true' : ''}`;
             const response = await fetch(url, {
                 method: 'POST',
                 headers: {
@@ -183,7 +184,7 @@ const ArticleReader = () => {
             }
 
             const data = await response.json();
-            setArticle(prev => prev ? { ...prev, summary: data.summary } : null);
+            setArticle(prev => prev ? { ...prev, summary: data.summary, summaryStatus: data.status } : null);
             // Update metadata for refreshed summary
             setSummaryMetadata({
                 model: data.model,
@@ -345,7 +346,7 @@ const ArticleReader = () => {
                 setArticle(data);
 
                 // Initialize summary metadata if pending
-                if (data.summary === 'pending') {
+                if (data.summaryStatus === 'pending') {
                     setSummaryMetadata({ status: 'pending' });
                     setShowSummary(true);
                 }
@@ -367,7 +368,8 @@ const ArticleReader = () => {
             const poll = async () => {
                 try {
                     const token = await getToken();
-                    const response = await fetch(`/api/articles/${articleId}`, {
+                    // Add timestamp to prevent caching of the polling request
+                    const response = await fetch(`/api/articles/${articleId}?t=${Date.now()}`, {
                         headers: {
                             'Authorization': `Bearer ${token}`
                         }
@@ -376,8 +378,12 @@ const ArticleReader = () => {
                     if (response.ok) {
                         const data = await response.json();
                         // Check if summary is no longer pending
-                        if (data.summary && data.summary !== 'pending') {
-                            setArticle(prev => prev ? { ...prev, summary: data.summary } : null);
+                        if (data.summaryStatus === 'completed' || data.summaryStatus === 'failed') {
+                            setArticle(prev => prev ? { ...prev, summary: data.summary, summaryStatus: data.summaryStatus } : null);
+                            setSummaryMetadata(prev => ({ ...prev, status: data.summaryStatus === 'completed' ? 'completed' : 'pending' })); // Keep pending if failed? No, should handle failed.
+                        }
+
+                        if (data.summaryStatus === 'completed') {
                             setSummaryMetadata(prev => ({ ...prev, status: 'completed' }));
                         }
                     }
@@ -386,11 +392,11 @@ const ArticleReader = () => {
                 }
             };
 
-            // Initial poll after 2 seconds
-            const initialTimeout = setTimeout(poll, 2000);
+            // Initial poll after 1 second
+            const initialTimeout = setTimeout(poll, 1000);
 
-            // Then poll every 5 seconds
-            pollInterval = setInterval(poll, 5000);
+            // Then poll every 1 second for snappy updates
+            pollInterval = setInterval(poll, 1000);
 
             return () => {
                 clearTimeout(initialTimeout);
@@ -459,7 +465,7 @@ const ArticleReader = () => {
                 </button>
 
                 {/* Pro Summary Toggle for Free Users */}
-                {!userHasProAccess && !article.summary && (
+                {!userHasProAccess && (
                     <div className="pro-toggle-container">
                         <span className="toggle-label">
                             <FontAwesomeIcon icon={faGem} />
@@ -471,7 +477,7 @@ const ArticleReader = () => {
                                 type="checkbox"
                                 checked={useProSummary}
                                 onChange={(e) => setUseProSummary(e.target.checked)}
-                                disabled={isGeneratingSummary}
+                                disabled={isGeneratingSummary || (credits?.proCreditsRemaining === 0 && !useProSummary)}
                             />
                             <span className="slider round"></span>
                         </label>
@@ -479,12 +485,6 @@ const ArticleReader = () => {
                         {/* Credit Counters for Free Users */}
                         {credits && (
                             <div className="credit-counters">
-                                <div className="credit-item" title="Basic summaries remaining this month">
-                                    <span className="credit-label">Basic:</span>
-                                    <span className={`credit-value ${credits.basicCreditsRemaining === 0 ? 'empty' : ''}`}>
-                                        {credits.basicCreditsRemaining}
-                                    </span>
-                                </div>
                                 <div className="credit-item" title="Pro summaries remaining this month">
                                     <span className="credit-label">Pro:</span>
                                     <span className={`credit-value ${credits.proCreditsRemaining === 0 ? 'empty' : ''}`}>
@@ -594,7 +594,7 @@ const ArticleReader = () => {
                                 {!isChatMode && (
                                     <>
                                         <button
-                                            onClick={handleRefreshSummary}
+                                            onClick={() => handleRefreshSummary()}
                                             className="refresh-summary-button"
                                             disabled={isGeneratingSummary}
                                             title="Regenerate summary"
@@ -631,13 +631,7 @@ const ArticleReader = () => {
                                     <div className="pending-animation">
                                         <div className="spinner"></div>
                                     </div>
-                                    <p>Your summary is being generated in the background. Please check back in a few minutes.</p>
-                                    <button
-                                        onClick={() => window.location.reload()}
-                                        className="refresh-page-button"
-                                    >
-                                        Refresh to check status
-                                    </button>
+                                    <p>Generating your summary... This may take a few minutes.</p>
                                 </div>
                             ) : (
                                 // Regular summary/chat content

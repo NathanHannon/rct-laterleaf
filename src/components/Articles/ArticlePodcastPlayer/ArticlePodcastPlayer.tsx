@@ -108,6 +108,11 @@ const ArticlePodcastPlayer: React.FC<ArticlePodcastPlayerProps> = ({
                         audioRef.current.load();
                         console.log(`🔊 Audio element configured with URL`);
                     }
+                } else if (status.status === 'pending') {
+                    console.log(`⏳ Podcast is currently generating...`);
+                    setIsPolling(true);
+                    setIsGenerating(true);
+                    setIsLoading(true);
                 } else {
                     console.log(`❌ No audio found for this article`);
                     setAudioUrl(null); // Explicitly set to null if no audio
@@ -142,6 +147,8 @@ const ArticlePodcastPlayer: React.FC<ArticlePodcastPlayerProps> = ({
 
                     if (response.ok) {
                         const status = await response.json();
+
+                        // Check for completion
                         if (status.hasAudio && status.audioUrl) {
                             console.log(`✅ Podcast generation complete: ${status.audioUrl}`);
                             setAudioUrl(status.audioUrl);
@@ -153,6 +160,14 @@ const ArticlePodcastPlayer: React.FC<ArticlePodcastPlayerProps> = ({
                                 audioRef.current.src = status.audioUrl;
                                 audioRef.current.load();
                             }
+                        }
+                        // Check for failure
+                        else if (status.status === 'failed') {
+                            console.error('❌ Podcast generation failed on server');
+                            setError('Podcast generation failed. Please try again.');
+                            setIsPolling(false);
+                            setIsGenerating(false);
+                            setIsLoading(false);
                         }
                     }
                 } catch (err) {
@@ -529,91 +544,95 @@ const ArticlePodcastPlayer: React.FC<ArticlePodcastPlayerProps> = ({
             )}
 
             <div className="podcast-controls">
-                <div className="primary-controls">
-                    {!isPro ? (
-                        <div className="pro-required">
-                            <div className="upgrade-message">
-                                🎙️ Pro Required for Podcasts - Multi-speaker audio generation requires a Pro subscription
+                {!isPro ? (
+                    <div className="pro-required-banner">
+                        <div className="upgrade-message">
+                            🎙️ Pro Required for Podcasts
+                        </div>
+                        <p className="upgrade-description">
+                            Multi-speaker audio generation requires a Pro subscription.
+                            Upgrade to unlock premium AI features.
+                        </p>
+                    </div>
+                ) : (
+                    <div className="primary-controls">
+                        {isLoading ? (
+                            <div className="loading-container">
+                                <FontAwesomeIcon icon={faSpinner} spin />
+                                <span>{isGenerating ? 'Generating podcast discussion...' : 'Checking for existing podcast...'}</span>
                             </div>
-                        </div>
-                    ) : isLoading ? (
-                        <div className="loading-container">
-                            <FontAwesomeIcon icon={faSpinner} spin />
-                            <span>{isGenerating ? 'Generating podcast discussion...' : 'Checking for existing podcast...'}</span>
-                        </div>
-                    ) : audioUrl ? (
-                        <div className="playback-controls">
+                        ) : audioUrl ? (
+                            <div className="playback-controls">
+                                <button
+                                    onClick={skipBackward}
+                                    disabled={!audioUrl}
+                                    className="skip-button skip-backward"
+                                    title="Skip backward 10s"
+                                >
+                                    <FontAwesomeIcon icon={faRotateLeft} />
+                                </button>
+                                <button
+                                    onClick={togglePlayback}
+                                    className="play-button"
+                                    title={isPlaying ? 'Pause' : 'Play'}
+                                >
+                                    {isPlaying ? (
+                                        <FontAwesomeIcon icon={faPause} />
+                                    ) : (
+                                        <FontAwesomeIcon icon={faPlay} />
+                                    )}
+                                </button>
+                                <button
+                                    onClick={skipForward}
+                                    disabled={!audioUrl}
+                                    className="skip-button skip-forward"
+                                    title="Skip forward 10s"
+                                >
+                                    <FontAwesomeIcon icon={faRotateRight} />
+                                </button>
+                                <button
+                                    onClick={() => setShowDeleteConfirm(true)}
+                                    className="new-podcast-button"
+                                    title="Delete podcast and clear from storage"
+                                >
+                                    🗑️ Delete Podcast
+                                </button>
+                            </div>
+                        ) : (
                             <button
-                                onClick={skipBackward}
-                                disabled={!audioUrl}
-                                className="skip-button skip-backward"
-                                title="Skip backward 10s"
+                                onClick={() => generatePodcast(false)}
+                                className="generate-btn"
                             >
-                                <FontAwesomeIcon icon={faRotateLeft} />
+                                <FontAwesomeIcon icon={faPodcast} />
+                                <span>Generate Podcast</span>
                             </button>
-                            <button
-                                onClick={togglePlayback}
-                                className="play-button"
-                                title={isPlaying ? 'Pause' : 'Play'}
-                            >
-                                {isPlaying ? (
-                                    <FontAwesomeIcon icon={faPause} />
-                                ) : (
-                                    <FontAwesomeIcon icon={faPlay} />
-                                )}
-                            </button>
-                            <button
-                                onClick={skipForward}
-                                disabled={!audioUrl}
-                                className="skip-button skip-forward"
-                                title="Skip forward 10s"
-                            >
-                                <FontAwesomeIcon icon={faRotateRight} />
-                            </button>
-                            <button
-                                onClick={() => setShowDeleteConfirm(true)}
-                                className="new-podcast-button"
-                                title="Delete podcast and clear from storage"
-                            >
-                                🗑️ Delete Podcast
-                            </button>
-                        </div>
-                    ) : (
-                        <button
-                            onClick={() => generatePodcast(false)}
-                            className="generate-btn"
-                        >
-                            <FontAwesomeIcon icon={faPodcast} />
-                            <span>Generate Podcast</span>
-                        </button>
-                    )}
+                        )}
 
-                    <div className="audio-info">
-                        <div className="time-display">
-                            {audioUrl ? (
-                                <>
-                                    <span>{formatTime(currentTime)}</span>
-                                    <span>/</span>
-                                    <span>{formatTime(duration)}</span>
-                                </>
-                            ) : isPro ? (
-                                <span>Ready to generate podcast discussion</span>
-                            ) : (
-                                <span>Pro subscription required for podcast generation</span>
+                        <div className="audio-info">
+                            <div className="time-display">
+                                {audioUrl ? (
+                                    <>
+                                        <span>{formatTime(currentTime)}</span>
+                                        <span>/</span>
+                                        <span>{formatTime(duration)}</span>
+                                    </>
+                                ) : (
+                                    <span>Ready to generate podcast discussion</span>
+                                )}
+                            </div>
+                            {!isLoading && (
+                                <div className="tier-info">
+                                    <small>
+                                        🎙️ Pro Feature - Premium Quality •
+                                        Multiple voice pairs available
+                                    </small>
+                                </div>
                             )}
                         </div>
-                        {!isLoading && (
-                            <div className="tier-info">
-                                <small>
-                                    🎙️ {isPro ? 'Pro Feature - Premium Quality' : 'Requires Pro Subscription'} •
-                                    Multiple voice pairs available
-                                </small>
-                            </div>
-                        )}
                     </div>
-                </div>
+                )}
 
-                {audioUrl && (
+                {audioUrl && isPro && (
                     <div className="progress-controls">
                         <input
                             type="range"

@@ -531,18 +531,39 @@
     }
 
     // Pro upgrade message styling - consistent with theme
-    .upgrade-message {
-        background-color: var(--accent-color);
-        color: var(--text-color);
+    .pro-required-banner {
         text-align: center;
-        padding: 1rem;
+        padding: 1.5rem;
+        background-color: rgba(255, 87, 34, 0.08);
         border-radius: 8px;
-        font-weight: 600;
-        margin-bottom: 1rem;
+        border: 1px dashed var(--primary-color);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.5rem;
 
-        [data-theme='dark'] & {
-            background-color: var(--accent-color);
-            color: var(--background-color);
+        .upgrade-message {
+            background-color: transparent;
+            color: var(--primary-color);
+            padding: 0;
+            margin: 0;
+            font-size: 1.1rem;
+            font-weight: 700;
+            text-align: center;
+
+            [data-theme='dark'] & {
+                background-color: transparent;
+                color: var(--primary-color);
+            }
+        }
+
+        .upgrade-description {
+            margin: 0;
+            color: var(--text-color);
+            font-size: 0.95rem;
+            opacity: 0.9;
+            max-width: 80%;
+            line-height: 1.5;
         }
     }
 }
