@@ -42,7 +42,6 @@ const ArticlePodcastPlayer: React.FC<ArticlePodcastPlayerProps> = ({
     const [showSettings, setShowSettings] = useState(false);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [podcastDuration, setPodcastDuration] = useState<'short' | 'medium' | 'long'>('medium');
-    const [podcastStyle, setPodcastStyle] = useState<'casual' | 'professional' | 'educational'>('casual');
     const [selectedVoicePair, setSelectedVoicePair] = useState<string>('zephyr-charon');
     const [speed, setSpeed] = useState(1.0);
     const [isPolling, setIsPolling] = useState(false);
@@ -243,6 +242,20 @@ const ArticlePodcastPlayer: React.FC<ArticlePodcastPlayerProps> = ({
         };
     }, [audioUrl]);
 
+    const getStyleForVoicePair = (pairId: string): 'casual' | 'professional' | 'educational' => {
+        switch (pairId) {
+            case 'charon-fenrir':
+                return 'professional';
+            case 'zephyr-charon':
+            case 'kore-fenrir':
+                return 'educational';
+            case 'puck-kore':
+            case 'puck-charon':
+            default:
+                return 'casual';
+        }
+    };
+
     const generatePodcast = async (forceRegenerate = false) => {
         console.log(`🎙️ generatePodcast started for article ${articleId}, force: ${forceRegenerate}`);
         console.log(`👤 Pro status: ${isPro}`);
@@ -268,11 +281,16 @@ const ArticlePodcastPlayer: React.FC<ArticlePodcastPlayerProps> = ({
             // Build query parameters - include voice selection
             const params = new URLSearchParams();
             if (podcastDuration) params.append('duration', podcastDuration);
-            if (podcastStyle) params.append('style', podcastStyle);
+
             if (selectedVoicePair) {
                 params.append('voices', selectedVoicePair);
                 params.append('personaId', selectedVoicePair);
+
+                // Derive style from voice pair
+                const derivedStyle = getStyleForVoicePair(selectedVoicePair);
+                params.append('style', derivedStyle);
             }
+
             if (forceRegenerate) params.append('force', 'true'); // Add force parameter
 
             const queryString = params.toString();
@@ -515,19 +533,6 @@ const ArticlePodcastPlayer: React.FC<ArticlePodcastPlayerProps> = ({
                             <option value="medium">Medium (4 min)</option>
                             <option value="long">Long (5 min)</option>
                             */}
-                        </select>
-                    </div>
-
-                    <div className="setting-group">
-                        <label>Style:</label>
-                        <select
-                            value={podcastStyle}
-                            onChange={(e) => setPodcastStyle(e.target.value as 'casual' | 'professional' | 'educational')}
-                            disabled={isLoading}
-                        >
-                            <option value="casual">Casual</option>
-                            <option value="professional">Professional</option>
-                            <option value="educational">Educational</option>
                         </select>
                     </div>
 
