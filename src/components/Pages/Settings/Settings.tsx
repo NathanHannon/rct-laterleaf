@@ -1,15 +1,28 @@
-import { useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useClerk } from '@clerk/clerk-react';
 import { useUserCredits } from '../../../hooks/useUserCredits';
 import { useUserStatus } from '../../../hooks/useUserStatus';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faGem, faCoins, faCheckCircle, faTimesCircle, faUserShield } from '@fortawesome/free-solid-svg-icons';
+import { faGem, faCoins, faCheckCircle, faTimesCircle, faUserShield, faWaveSquare } from '@fortawesome/free-solid-svg-icons';
 import './Settings.scss';
 
 const Settings = () => {
     const { openUserProfile } = useClerk();
     const { credits, fetchCredits, loading } = useUserCredits();
     const { isPro } = useUserStatus();
+
+    const [showWaveform, setShowWaveform] = useState(() => {
+        const saved = localStorage.getItem('laterleaf_show_waveform');
+        return saved !== null ? JSON.parse(saved) : true;
+    });
+
+    const handleToggleWaveform = () => {
+        const newValue = !showWaveform;
+        setShowWaveform(newValue);
+        localStorage.setItem('laterleaf_show_waveform', JSON.stringify(newValue));
+        // Dispatch a custom event so other components can react
+        window.dispatchEvent(new Event('laterleaf_waveform_settings_changed'));
+    };
 
     useEffect(() => {
         fetchCredits();
@@ -57,13 +70,19 @@ const Settings = () => {
                                 <span>Basic Summaries</span>
                             </div>
                             <div className="credit-value">
-                                <span className="current">{credits.basicCreditsRemaining}</span>
-                                <span className="total">/ {credits.basicCreditsLimit}</span>
+                                {credits.basicCreditsLimit === -1 ? (
+                                    <span className="current">Unlimited</span>
+                                ) : (
+                                    <>
+                                        <span className="current">{credits.basicCreditsRemaining}</span>
+                                        <span className="total">/ {credits.basicCreditsLimit}</span>
+                                    </>
+                                )}
                             </div>
                             <div className="progress-bar">
                                 <div
                                     className="progress-fill"
-                                    style={{ width: `${(credits.basicCreditsRemaining / credits.basicCreditsLimit) * 100}%` }}
+                                    style={{ width: credits.basicCreditsLimit === -1 ? '100%' : `${(credits.basicCreditsRemaining / credits.basicCreditsLimit) * 100}%` }}
                                 ></div>
                             </div>
                             <p className="reset-date">Resets in {credits.daysUntilReset} days</p>
@@ -115,6 +134,28 @@ const Settings = () => {
                         <FontAwesomeIcon icon={isPro ? faCheckCircle : faTimesCircle} className={isPro ? "text-success" : "text-muted"} />
                         <span>Advanced Search</span>
                         <span className="pro-badge">Pro</span>
+                    </div>
+                </div>
+            </div>
+
+            <div className="settings-section preferences-section">
+                <h2>Preferences</h2>
+                <p className="section-desc">Customize your reading and listening experience.</p>
+                <div className="preference-item">
+                    <div className="preference-info">
+                        <div className="pref-title">
+                            <FontAwesomeIcon icon={faWaveSquare} />
+                            <span>Audio Waveform Animation</span>
+                        </div>
+                        <p>Show the animated background threads in audio players.</p>
+                    </div>
+                    <div className="preference-control">
+                        <button 
+                            className={`toggle-btn ${showWaveform ? 'active' : ''}`}
+                            onClick={handleToggleWaveform}
+                        >
+                            {showWaveform ? 'Enabled' : 'Disabled'}
+                        </button>
                     </div>
                 </div>
             </div>

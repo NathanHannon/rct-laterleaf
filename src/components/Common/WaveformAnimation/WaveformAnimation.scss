@@ -1,0 +1,121 @@
+.waveform-animation {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.3;
+    transition: opacity 0.8s ease;
+
+    .threads-svg {
+        width: 100%;
+        height: 100%;
+        // Default (light mode) blend mode
+        mix-blend-mode: normal;
+    }
+
+    .thread {
+        transition: opacity 1.5s ease;
+        transform-origin: center;
+        opacity: 0.4;
+
+        &.thread-rope-1 {
+            animation: thread-twist-a 6s ease-in-out infinite;
+        }
+
+        &.thread-rope-2 {
+            animation: thread-twist-b 6s ease-in-out infinite;
+        }
+
+        &.thread-rope-3 {
+            animation: thread-twist-a 8s ease-in-out infinite -2s;
+        }
+
+        &.thread-rope-4 {
+            animation: thread-twist-b 8s ease-in-out infinite -2s;
+        }
+
+        &.thread-distant-1 {
+            animation: thread-vibrate 10s ease-in-out infinite;
+        }
+
+        &.thread-distant-2 {
+            animation: thread-vibrate 12s ease-in-out infinite -1s;
+        }
+
+        // Ensure play-state is applied AFTER the animation shorthand
+        animation-play-state: paused;
+    }
+
+    &.is-playing {
+        opacity: 0.6;
+
+        .thread {
+            animation-play-state: running;
+        }
+    }
+}
+
+@keyframes thread-twist-a {
+
+    0%,
+    100% {
+        transform: translateY(-8px);
+        stroke-width: 2.5px;
+        opacity: 1;
+    }
+
+    50% {
+        transform: translateY(8px);
+        stroke-width: 0.8px;
+        opacity: 0.3;
+    }
+}
+
+@keyframes thread-twist-b {
+
+    0%,
+    100% {
+        transform: translateY(8px);
+        stroke-width: 0.8px;
+        opacity: 0.3;
+    }
+
+    50% {
+        transform: translateY(-8px);
+        stroke-width: 2.5px;
+        opacity: 1;
+    }
+}
+
+@keyframes thread-vibrate {
+
+    0%,
+    100% {
+        transform: scaleY(1) translateY(0);
+    }
+
+    50% {
+        transform: scaleY(1.01) translateY(-1px);
+    }
+}
+
+[data-theme='dark'] .waveform-animation {
+    opacity: 0.4;
+
+    &.is-playing {
+        opacity: 0.8;
+    }
+
+    .threads-svg {
+        mix-blend-mode: screen;
+        filter: drop-shadow(0 0 8px rgba(66, 133, 244, 0.4));
+    }
+}

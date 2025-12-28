@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@clerk/clerk-react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPlay, faPause, faSpinner } from '@fortawesome/free-solid-svg-icons';
+import { faPlay, faPause, faSpinner, faCog } from '@fortawesome/free-solid-svg-icons';
 import { useUserStatus } from '../../../hooks/useUserStatus';
+import WaveformAnimation from '../../Common/WaveformAnimation/WaveformAnimation';
 import './ArticleAudioPlayer.scss';
 
 interface ArticleAudioPlayerProps {
@@ -17,10 +18,10 @@ interface TTSVoice {
     recommended: string;
 }
 
-const ArticleAudioPlayer: React.FC<ArticleAudioPlayerProps> = ({ 
-    articleId, 
-    content, 
-    className = '' 
+const ArticleAudioPlayer: React.FC<ArticleAudioPlayerProps> = ({
+    articleId,
+    content,
+    className = ''
 }) => {
     const { getToken } = useAuth();
     const { isPro } = useUserStatus();
@@ -33,11 +34,31 @@ const ArticleAudioPlayer: React.FC<ArticleAudioPlayerProps> = ({
     const [audioUrl, setAudioUrl] = useState<string | null>(null);
     const [currentTime, setCurrentTime] = useState(0);
     const [duration, setDuration] = useState(0);
-    
+
     // Audio controls
     const [selectedVoice, setSelectedVoice] = useState<string>('');
     const [speed, setSpeed] = useState(1.0);
     const [availableVoices, setAvailableVoices] = useState<TTSVoice[]>([]);
+    const [showWaveform, setShowWaveform] = useState(() => {
+        const saved = localStorage.getItem('laterleaf_show_waveform');
+        return saved !== null ? JSON.parse(saved) : true;
+    });
+
+    // Sync with global settings
+    useEffect(() => {
+        const handleSettingsChange = () => {
+            const saved = localStorage.getItem('laterleaf_show_waveform');
+            setShowWaveform(saved !== null ? JSON.parse(saved) : true);
+        };
+        window.addEventListener('laterleaf_waveform_settings_changed', handleSettingsChange);
+        return () => window.removeEventListener('laterleaf_waveform_settings_changed', handleSettingsChange);
+    }, []);
+
+    const handleToggleWaveform = (value: boolean) => {
+        setShowWaveform(value);
+        localStorage.setItem('laterleaf_show_waveform', JSON.stringify(value));
+        window.dispatchEvent(new Event('laterleaf_waveform_settings_changed'));
+    };
 
     // Fetch available voices on component mount
     useEffect(() => {
@@ -112,7 +133,7 @@ const ArticleAudioPlayer: React.FC<ArticleAudioPlayerProps> = ({
 
         try {
             const token = await getToken();
-            
+
             // Build query parameters
             const params = new URLSearchParams();
             if (selectedVoice) {
@@ -121,10 +142,10 @@ const ArticleAudioPlayer: React.FC<ArticleAudioPlayerProps> = ({
             if (speed !== 1.0) {
                 params.append('speed', speed.toString());
             }
-            
+
             const queryString = params.toString();
             const url = `/api/articles/${articleId}/audio${queryString ? `?${queryString}` : ''}`;
-            
+
             const response = await fetch(url, {
                 method: 'GET',
                 headers: {
@@ -213,8 +234,9 @@ const ArticleAudioPlayer: React.FC<ArticleAudioPlayerProps> = ({
 
     return (
         <div className={`article-audio-player ${className}`}>
+            {showWaveform && <WaveformAnimation isPlaying={isPlaying} className="player-background-waveform" />}
             <audio ref={audioRef} preload="metadata" />
-            
+
             <div className="audio-controls">
                 <div className="primary-controls">
                     <button
@@ -300,6 +322,19 @@ const ArticleAudioPlayer: React.FC<ArticleAudioPlayerProps> = ({
                             <option value={1.0}>1.0x</option>
                             <option value={1.25}>1.25x</option>
                             <option value={1.5}>1.5x</option>
+                        </select>
+                    </div>
+
+                    {/* Waveform Toggle */}
+                    <div className="waveform-control">
+                        <label>Waveform:</label>
+                        <select
+                            value={showWaveform ? 'show' : 'hide'}
+                            onChange={(e) => handleToggleWaveform(e.target.value === 'show')}
+                            disabled={isLoading}
+                        >
+                            <option value="show">Show</option>
+                            <option value="hide">Hide</option>
                         </select>
                     </div>
 

@@ -5,10 +5,30 @@
     padding: 1.5rem;
     margin: 1.5rem 0;
     box-shadow: 0 4px 12px rgba(255, 87, 34, 0.15);
+    position: relative;
+    overflow: hidden;
+
+    .player-background-waveform {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 0;
+        opacity: 0.2; // Subtle background for the podcast player
+    }
 
     [data-theme='dark'] & {
         background: linear-gradient(135deg, #2d1f1a 0%, #1f1612 100%);
         border-color: #ff5722;
+    }
+
+    .podcast-header,
+    .podcast-settings,
+    .podcast-controls,
+    .podcast-error {
+        position: relative;
+        z-index: 1;
     }
 
     .podcast-header {

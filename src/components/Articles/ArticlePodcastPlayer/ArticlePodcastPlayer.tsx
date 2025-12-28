@@ -4,6 +4,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlay, faPause, faSpinner, faPodcast, faCog, faRotateLeft, faRotateRight } from '@fortawesome/free-solid-svg-icons';
 import { useUserStatus } from '../../../hooks/useUserStatus';
 import ConfirmationDialog from '../../Common/ConfirmationDialog/ConfirmationDialog';
+import WaveformAnimation from '../../Common/WaveformAnimation/WaveformAnimation';
 import './ArticlePodcastPlayer.scss';
 
 interface VoicePair {
@@ -45,6 +46,26 @@ const ArticlePodcastPlayer: React.FC<ArticlePodcastPlayerProps> = ({
     const [selectedVoicePair, setSelectedVoicePair] = useState<string>('zephyr-charon');
     const [speed, setSpeed] = useState(1.0);
     const [isPolling, setIsPolling] = useState(false);
+    const [showWaveform, setShowWaveform] = useState(() => {
+        const saved = localStorage.getItem('laterleaf_show_waveform');
+        return saved !== null ? JSON.parse(saved) : true;
+    });
+
+    // Sync with global settings
+    useEffect(() => {
+        const handleSettingsChange = () => {
+            const saved = localStorage.getItem('laterleaf_show_waveform');
+            setShowWaveform(saved !== null ? JSON.parse(saved) : true);
+        };
+        window.addEventListener('laterleaf_waveform_settings_changed', handleSettingsChange);
+        return () => window.removeEventListener('laterleaf_waveform_settings_changed', handleSettingsChange);
+    }, []);
+
+    const handleToggleWaveform = (value: boolean) => {
+        setShowWaveform(value);
+        localStorage.setItem('laterleaf_show_waveform', JSON.stringify(value));
+        window.dispatchEvent(new Event('laterleaf_waveform_settings_changed'));
+    };
 
     // Available voice pairs for podcast conversations
     const voicePairs: VoicePair[] = [
@@ -457,6 +478,7 @@ const ArticlePodcastPlayer: React.FC<ArticlePodcastPlayerProps> = ({
 
     return (
         <div className={`article-podcast-player ${className} ${isLoading ? 'is-loading' : ''}`}>
+            {showWaveform && <WaveformAnimation isPlaying={isPlaying} className="player-background-waveform" />}
             <audio ref={audioRef} preload="metadata" />
 
             <div className="podcast-header">
@@ -515,16 +537,18 @@ const ArticlePodcastPlayer: React.FC<ArticlePodcastPlayerProps> = ({
                             value={selectedVoicePair}
                             onChange={(e) => setSelectedVoicePair(e.target.value)}
                             disabled={isLoading}
+                            title={voicePairs.find(p => `${p.speaker1.toLowerCase()}-${p.speaker2.toLowerCase()}` === selectedVoicePair)?.description}
                         >
                             {voicePairs.map((pair, index) => (
-                                <option key={index} value={`${pair.speaker1.toLowerCase()}-${pair.speaker2.toLowerCase()}`}>
+                                <option 
+                                    key={index} 
+                                    value={`${pair.speaker1.toLowerCase()}-${pair.speaker2.toLowerCase()}`}
+                                    title={pair.description}
+                                >
                                     {pair.label}
                                 </option>
                             ))}
                         </select>
-                        <small className="voice-description">
-                            {voicePairs.find(p => `${p.speaker1.toLowerCase()}-${p.speaker2.toLowerCase()}` === selectedVoicePair)?.description}
-                        </small>
                     </div>
 
                     <div className="setting-group">
@@ -538,6 +562,18 @@ const ArticlePodcastPlayer: React.FC<ArticlePodcastPlayerProps> = ({
                             <option value={1.0}>1.0x</option>
                             <option value={1.25}>1.25x</option>
                             <option value={1.5}>1.5x</option>
+                        </select>
+                    </div>
+
+                    <div className="setting-group">
+                        <label>Waveform:</label>
+                        <select
+                            value={showWaveform ? 'show' : 'hide'}
+                            onChange={(e) => handleToggleWaveform(e.target.value === 'show')}
+                            disabled={isLoading}
+                        >
+                            <option value="show">Show Animation</option>
+                            <option value="hide">Hide Animation</option>
                         </select>
                     </div>
                 </div>
