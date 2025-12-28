@@ -540,8 +540,8 @@ const ArticlePodcastPlayer: React.FC<ArticlePodcastPlayerProps> = ({
                             title={voicePairs.find(p => `${p.speaker1.toLowerCase()}-${p.speaker2.toLowerCase()}` === selectedVoicePair)?.description}
                         >
                             {voicePairs.map((pair, index) => (
-                                <option 
-                                    key={index} 
+                                <option
+                                    key={index}
                                     value={`${pair.speaker1.toLowerCase()}-${pair.speaker2.toLowerCase()}`}
                                     title={pair.description}
                                 >

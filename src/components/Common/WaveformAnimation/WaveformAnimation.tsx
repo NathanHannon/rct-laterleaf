@@ -64,11 +64,11 @@ const WaveformAnimation: React.FC<WaveformAnimationProps> = ({
                 {/* Main "Twisted Rope" threads */}
                 <path className="thread thread-rope-1" d="M0,100 C200,60 600,140 800,100" fill="none" stroke="url(#grad-blue)" strokeWidth="2" filter="url(#glow-sharp)" />
                 <path className="thread thread-rope-2" d="M0,100 C200,140 600,60 800,100" fill="none" stroke="url(#grad-purple)" strokeWidth="2" filter="url(#glow-sharp)" />
-                
+
                 {/* Accent threads for complexity */}
                 <path className="thread thread-rope-3" d="M0,100 C250,70 550,130 800,100" fill="none" stroke="url(#grad-pink)" strokeWidth="1" filter="url(#glow-soft)" />
                 <path className="thread thread-rope-4" d="M0,100 C250,130 550,70 800,100" fill="none" stroke="url(#grad-cyan)" strokeWidth="1" filter="url(#glow-soft)" />
-                
+
                 <path className="thread thread-center" d="M0,100 L800,100" fill="none" stroke="white" strokeWidth="0.5" opacity="0.2" />
             </svg>
         </div>

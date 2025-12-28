@@ -150,7 +150,7 @@ const Settings = () => {
                         <p>Show the animated background threads in audio players.</p>
                     </div>
                     <div className="preference-control">
-                        <button 
+                        <button
                             className={`toggle-btn ${showWaveform ? 'active' : ''}`}
                             onClick={handleToggleWaveform}
                         >
