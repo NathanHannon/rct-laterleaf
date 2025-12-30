@@ -1,5 +1,5 @@
 @use './styles/theme.scss';
-@import url('https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=Inter:wght@400;500;700&family=Instrument+Serif:ital@0;1&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=Inter:wght@400;500;700&family=Instrument+Serif:ital@0;1&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap');
 
 body {
   margin: 0;
@@ -25,4 +25,18 @@ h6 {
 a {
   text-decoration: none;
   color: inherit;
+}
+
+button {
+  font-family: 'Instrument Sans', sans-serif;
+}
+
+input,
+textarea,
+select {
+  font-family: 'Inter', sans-serif;
+}
+
+::selection {
+  background-color: rgba(var(--primary-color-rgb), 0.2);
 }

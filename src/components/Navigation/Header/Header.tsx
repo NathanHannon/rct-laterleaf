@@ -18,7 +18,7 @@ const Header: React.FC = () => {
 
     const logoVariants = [
         { className: 'font-default', text: 'LaterLeaf' },
-        { className: 'font-serif', text: 'LaterLeaf' },
+        { className: 'font-sans', text: 'LaterLeaf' },
         { className: 'font-mono', text: 'LaterLeaf' },
         { className: 'font-cursive', text: 'LaterLeaf' },
         { className: 'font-slab', text: 'LaterLeaf' },
