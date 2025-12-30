@@ -100,7 +100,7 @@ const Header: React.FC = () => {
                         <div className="logo-text-container">
                             <div
                                 className="logo-text-stack"
-                                style={{ transform: `translateY(-${logoIndex * 1.5}rem)` }}
+                                style={{ transform: `translateY(-${logoIndex * 2}rem)` }}
                             >
                                 {logoVariants.map((variant, index) => (
                                     <h2 key={index} className={variant.className}>

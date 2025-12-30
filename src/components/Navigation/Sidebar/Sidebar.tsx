@@ -29,7 +29,7 @@ const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(({ isOpen, onClose }, r
             <div className="sidebar__header">
                 <div className="sidebar__logo">
                     <img src={logo} alt="laterLeaf logo" />
-                    <h3>Later Leaf</h3>
+                    <h3>LaterLeaf</h3>
                 </div>
                 <button
                     className="sidebar__close"

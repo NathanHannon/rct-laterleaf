@@ -60,14 +60,14 @@
             user-select: none;
 
             img {
-                height: 32px;
-                width: 32px;
+                height: 40px;
+                width: 40px;
                 flex-shrink: 0;
                 pointer-events: none;
             }
 
             .logo-text-container {
-                height: 1.5rem; // Match the line-height/font-size roughly
+                height: 2rem; // Increased to accommodate 1.5rem font
                 overflow: hidden;
                 display: flex;
                 flex-direction: column;
@@ -85,10 +85,10 @@
 
             h2 {
                 margin: 0;
-                font-size: 1.25rem;
+                font-size: 1.5rem; // Increased to 1.5rem
                 font-weight: 600;
                 white-space: nowrap;
-                height: 1.5rem; // Must match container height
+                height: 2rem; // Must match container height
                 display: flex;
                 align-items: center;
                 line-height: 1;
@@ -96,7 +96,7 @@
                 &.font-default {
                     font-family: 'Instrument Serif', serif;
                     font-weight: 400;
-                    letter-spacing: -0.01em;
+                    // letter-spacing removed
                 }
 
                 &.font-sans {
