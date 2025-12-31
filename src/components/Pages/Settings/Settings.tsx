@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useClerk } from '@clerk/clerk-react';
+import { useNavigate } from 'react-router-dom';
 import { useUserCredits } from '../../../hooks/useUserCredits';
 import { useUserStatus } from '../../../hooks/useUserStatus';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -8,6 +9,7 @@ import './Settings.scss';
 
 const Settings = () => {
     const { openUserProfile } = useClerk();
+    const navigate = useNavigate();
     const { credits, fetchCredits, loading } = useUserCredits();
     const { isPro } = useUserStatus();
 
@@ -51,7 +53,7 @@ const Settings = () => {
                     </div>
 
                     {!isPro && (
-                        <button className="upgrade-button">
+                        <button className="upgrade-button" onClick={() => navigate('/pricing')}>
                             Upgrade to Pro
                         </button>
                     )}
