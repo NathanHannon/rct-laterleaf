@@ -23,6 +23,7 @@ import { useTheme } from './context/themeContext';
 import HeroPage from './components/Pages/HeroPage/HeroPage';
 import PricingPage from './components/Pages/PricingPage/PricingPage';
 import Settings from './components/Pages/Settings/Settings';
+import AdminPage from './components/Admin/AdminPage/AdminPage';
 
 function App() {
   const { theme } = useTheme();
@@ -54,6 +55,7 @@ function App() {
                         <Route path="/import" element={<BulkImporter />} />
                         <Route path="/pricing" element={<PricingPage />} />
                         <Route path="/settings" element={<Settings />} />
+                        <Route path="/admin" element={<AdminPage />} />
                         <Route path="/hero-page" element={<HeroPage />} />
                       </Routes>
                     </SignedIn>

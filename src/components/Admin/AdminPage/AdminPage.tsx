@@ -2,16 +2,17 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '@clerk/clerk-react';
 import { motion } from 'framer-motion';
 import './AdminPage.scss';
-import type { AdminAccess, BlockedDomain, AdminStats } from '../../../interfaces/admin';
+import type { AdminAccess, BlockedDomain, AdminStats, AdminUser, QueueStats } from '../../../interfaces/admin';
 
 const AdminPage: React.FC = () => {
     const { getToken } = useAuth();
     const [adminAccess, setAdminAccess] = useState<AdminAccess | null>(null);
     const [blockedDomains, setBlockedDomains] = useState<BlockedDomain[]>([]);
     const [stats, setStats] = useState<AdminStats | null>(null);
+    const [users, setUsers] = useState<AdminUser[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [activeTab, setActiveTab] = useState<'domains' | 'stats'>('domains');
+    const [activeTab, setActiveTab] = useState<'system' | 'users' | 'domains'>('system');
 
     // Form state for adding new domain
     type BlockReason = 'spam' | 'malicious' | 'inappropriate' | 'scam' | 'phishing';
@@ -51,25 +52,20 @@ const AdminPage: React.FC = () => {
         }
     };
 
-    const fetchBlockedDomains = async () => {
+    const fetchData = async () => {
         try {
-            const response = await fetchWithAuth('/admin/blocked-domains');
-            if (!response.ok) throw new Error('Failed to fetch blocked domains');
-            const data = await response.json();
-            setBlockedDomains(data);
-        } catch {
-            setError('Failed to fetch blocked domains');
-        }
-    };
+            const [domainsRes, statsRes, usersRes] = await Promise.all([
+                fetchWithAuth('/admin/blocked-domains'),
+                fetchWithAuth('/admin/stats'),
+                fetchWithAuth('/admin/users')
+            ]);
 
-    const fetchStats = async () => {
-        try {
-            const response = await fetchWithAuth('/admin/stats');
-            if (!response.ok) throw new Error('Failed to fetch stats');
-            const data = await response.json();
-            setStats(data);
-        } catch {
-            setError('Failed to fetch stats');
+            if (domainsRes.ok) setBlockedDomains(await domainsRes.json());
+            if (statsRes.ok) setStats(await statsRes.json());
+            if (usersRes.ok) setUsers(await usersRes.json());
+        } catch (e) {
+            console.error(e);
+            setError('Failed to fetch admin data');
         }
     };
 
@@ -79,7 +75,7 @@ const AdminPage: React.FC = () => {
             const isAdmin = await checkAdminAccess();
 
             if (isAdmin) {
-                await Promise.all([fetchBlockedDomains(), fetchStats()]);
+                await fetchData();
             }
 
             setLoading(false);
@@ -100,10 +96,7 @@ const AdminPage: React.FC = () => {
 
             if (!response.ok) throw new Error('Failed to block domain');
 
-            // Refresh data
-            await Promise.all([fetchBlockedDomains(), fetchStats()]);
-
-            // Reset form
+            await fetchData();
             setNewDomain({ domain: '', reason: 'spam', notes: '' });
         } catch {
             setError('Failed to block domain');
@@ -117,13 +110,35 @@ const AdminPage: React.FC = () => {
             });
 
             if (!response.ok) throw new Error('Failed to unblock domain');
-
-            // Refresh data
-            await Promise.all([fetchBlockedDomains(), fetchStats()]);
+            await fetchData();
         } catch {
             setError('Failed to unblock domain');
         }
     };
+
+    const renderQueueStats = (name: string, queue: QueueStats) => (
+        <div className="queue-card">
+            <h3>{name} Queue</h3>
+            <div className="queue-grid">
+                <div className="queue-stat waiting">
+                    <span className="label">Waiting</span>
+                    <span className="value">{queue.waiting}</span>
+                </div>
+                <div className="queue-stat active">
+                    <span className="label">Active</span>
+                    <span className="value">{queue.active}</span>
+                </div>
+                <div className="queue-stat failed">
+                    <span className="label">Failed</span>
+                    <span className="value">{queue.failed}</span>
+                </div>
+                <div className="queue-stat completed">
+                    <span className="label">Completed</span>
+                    <span className="value">{queue.completed}</span>
+                </div>
+            </div>
+        </div>
+    );
 
     if (loading) {
         return (
@@ -160,7 +175,7 @@ const AdminPage: React.FC = () => {
         >
             <div className="admin-header">
                 <h1>LaterLeaf Admin Panel</h1>
-                <p>Content moderation and system management</p>
+                <p>System Overview & Management</p>
             </div>
 
             {error && (
@@ -176,142 +191,180 @@ const AdminPage: React.FC = () => {
 
             <div className="admin-tabs">
                 <button
+                    className={`tab-button ${activeTab === 'system' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('system')}
+                >
+                    System Health
+                </button>
+                <button
+                    className={`tab-button ${activeTab === 'users' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('users')}
+                >
+                    Users
+                </button>
+                <button
                     className={`tab-button ${activeTab === 'domains' ? 'active' : ''}`}
                     onClick={() => setActiveTab('domains')}
                 >
                     Blocked Domains
                 </button>
-                <button
-                    className={`tab-button ${activeTab === 'stats' ? 'active' : ''}`}
-                    onClick={() => setActiveTab('stats')}
-                >
-                    Statistics
-                </button>
             </div>
 
-            {activeTab === 'domains' && (
-                <motion.div
-                    className="admin-content"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ duration: 0.3 }}
-                >
-                    <div className="admin-section">
-                        <h2>Block New Domain</h2>
-                        <form onSubmit={handleBlockDomain} className="block-domain-form">
-                            <div className="form-row">
-                                <input
-                                    type="text"
-                                    placeholder="Domain (e.g., spam-site.com)"
-                                    value={newDomain.domain}
-                                    onChange={(e) => setNewDomain({ ...newDomain, domain: e.target.value })}
-                                    className="domain-input"
-                                    required
-                                />
-                                <select
-                                    value={newDomain.reason}
-                                    onChange={(e) => setNewDomain({ ...newDomain, reason: e.target.value as 'spam' | 'malicious' | 'inappropriate' | 'scam' | 'phishing' })}
-                                    className="reason-select"
-                                >
-                                    <option value="spam">Spam</option>
-                                    <option value="malicious">Malicious</option>
-                                    <option value="inappropriate">Inappropriate</option>
-                                    <option value="scam">Scam</option>
-                                    <option value="phishing">Phishing</option>
-                                </select>
+            <div className="admin-content">
+                {activeTab === 'system' && stats && (
+                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+                        <div className="stats-overview">
+                            <div className="stat-card">
+                                <div className="stat-number">{stats.users.total}</div>
+                                <div className="stat-label">Total Users</div>
+                                <div className="stat-sub">{stats.users.pro} Pro Users</div>
                             </div>
-                            <textarea
-                                placeholder="Optional notes..."
-                                value={newDomain.notes}
-                                onChange={(e) => setNewDomain({ ...newDomain, notes: e.target.value })}
-                                className="notes-input"
-                                rows={2}
-                            />
-                            <button type="submit" className="block-button">
-                                Block Domain
-                            </button>
-                        </form>
-                    </div>
-
-                    <div className="admin-section">
-                        <h2>Blocked Domains ({blockedDomains.length})</h2>
-                        <div className="domains-list">
-                            {blockedDomains.map((domain) => (
-                                <motion.div
-                                    key={domain.id}
-                                    className="domain-item"
-                                    layout
-                                    initial={{ opacity: 0, y: 20 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    exit={{ opacity: 0, y: -20 }}
-                                >
-                                    <div className="domain-info">
-                                        <div className="domain-name">{domain.domain}</div>
-                                        <div className="domain-meta">
-                                            <span className={`reason-badge ${domain.reason}`}>
-                                                {domain.reason}
-                                            </span>
-                                            <span className="domain-date">
-                                                {new Date(domain.createdAt).toLocaleDateString()}
-                                            </span>
-                                        </div>
-                                        {domain.notes && (
-                                            <div className="domain-notes">{domain.notes}</div>
-                                        )}
-                                    </div>
-                                    <button
-                                        onClick={() => handleUnblockDomain(domain.domain)}
-                                        className="unblock-button"
-                                        title="Unblock domain"
-                                    >
-                                        Unblock
-                                    </button>
-                                </motion.div>
-                            ))}
-                            {blockedDomains.length === 0 && (
-                                <div className="empty-state">
-                                    No domains currently blocked.
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                </motion.div>
-            )}
-
-            {activeTab === 'stats' && stats && (
-                <motion.div
-                    className="admin-content"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ duration: 0.3 }}
-                >
-                    <div className="admin-section">
-                        <h2>Moderation Statistics</h2>
-                        <div className="stats-grid">
+                            <div className="stat-card">
+                                <div className="stat-number">{stats.articles.total}</div>
+                                <div className="stat-label">Total Articles</div>
+                            </div>
                             <div className="stat-card">
                                 <div className="stat-number">{stats.blockedDomains}</div>
-                                <div className="stat-label">Total Blocked Domains</div>
+                                <div className="stat-label">Blocked Domains</div>
                             </div>
                         </div>
 
-                        {stats.blockedByReason.length > 0 && (
-                            <div className="reason-breakdown">
-                                <h3>Domains by Reason</h3>
-                                <div className="reason-list">
-                                    {stats.blockedByReason.map((item) => (
-                                        <div key={item.reason} className="reason-item">
-                                            <span className={`reason-badge ${item.reason}`}>
-                                                {item.reason}
-                                            </span>
-                                            <span className="reason-count">{item.count}</span>
-                                        </div>
+                        <h2 className="section-title">Job Queues</h2>
+                        <div className="queues-container">
+                            {renderQueueStats('Pro Summary', stats.queues.pro)}
+                            {renderQueueStats('Audio Generation', stats.queues.audio)}
+                            {renderQueueStats('Chunking', stats.queues.chunking)}
+                        </div>
+                    </motion.div>
+                )}
+
+                {activeTab === 'users' && (
+                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+                        <div className="users-table-container">
+                            <table className="users-table">
+                                <thead>
+                                    <tr>
+                                        <th>User</th>
+                                        <th>Status</th>
+                                        <th>Joined</th>
+                                        <th>Last Login</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {users.map(user => (
+                                        <tr key={user.id}>
+                                            <td>
+                                                <div className="user-cell">
+                                                    <span className="user-name">{user.firstName} {user.lastName}</span>
+                                                    <span className="user-email">{user.email}</span>
+                                                    <span className="user-id">{user.id}</span>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                {user.hasProAccess ? (
+                                                    <span className="badge pro">PRO</span>
+                                                ) : (
+                                                    <span className="badge basic">BASIC</span>
+                                                )}
+                                            </td>
+                                            <td>{new Date(user.createdAt).toLocaleDateString()}</td>
+                                            <td>{user.lastLoginAt ? new Date(user.lastLoginAt).toLocaleDateString() : '-'}</td>
+                                        </tr>
                                     ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </motion.div>
+                )}
+
+                {activeTab === 'domains' && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ duration: 0.3 }}
+                    >
+                        <div className="admin-section">
+                            <h2>Block New Domain</h2>
+                            <form onSubmit={handleBlockDomain} className="block-domain-form">
+                                <div className="form-row">
+                                    <input
+                                        type="text"
+                                        placeholder="Domain (e.g., spam-site.com)"
+                                        value={newDomain.domain}
+                                        onChange={(e) => setNewDomain({ ...newDomain, domain: e.target.value })}
+                                        className="domain-input"
+                                        required
+                                    />
+                                    <select
+                                        value={newDomain.reason}
+                                        onChange={(e) => setNewDomain({ ...newDomain, reason: e.target.value as 'spam' | 'malicious' | 'inappropriate' | 'scam' | 'phishing' })}
+                                        className="reason-select"
+                                    >
+                                        <option value="spam">Spam</option>
+                                        <option value="malicious">Malicious</option>
+                                        <option value="inappropriate">Inappropriate</option>
+                                        <option value="scam">Scam</option>
+                                        <option value="phishing">Phishing</option>
+                                    </select>
                                 </div>
+                                <textarea
+                                    placeholder="Optional notes..."
+                                    value={newDomain.notes}
+                                    onChange={(e) => setNewDomain({ ...newDomain, notes: e.target.value })}
+                                    className="notes-input"
+                                    rows={2}
+                                />
+                                <button type="submit" className="block-button">
+                                    Block Domain
+                                </button>
+                            </form>
+                        </div>
+
+                        <div className="admin-section">
+                            <h2>Blocked Domains ({blockedDomains.length})</h2>
+                            <div className="domains-list">
+                                {blockedDomains.map((domain) => (
+                                    <motion.div
+                                        key={domain.id}
+                                        className="domain-item"
+                                        layout
+                                        initial={{ opacity: 0, y: 20 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, y: -20 }}
+                                    >
+                                        <div className="domain-info">
+                                            <div className="domain-name">{domain.domain}</div>
+                                            <div className="domain-meta">
+                                                <span className={`reason-badge ${domain.reason}`}>
+                                                    {domain.reason}
+                                                </span>
+                                                <span className="domain-date">
+                                                    {new Date(domain.createdAt).toLocaleDateString()}
+                                                </span>
+                                            </div>
+                                            {domain.notes && (
+                                                <div className="domain-notes">{domain.notes}</div>
+                                            )}
+                                        </div>
+                                        <button
+                                            onClick={() => handleUnblockDomain(domain.domain)}
+                                            className="unblock-button"
+                                            title="Unblock domain"
+                                        >
+                                            Unblock
+                                        </button>
+                                    </motion.div>
+                                ))}
+                                {blockedDomains.length === 0 && (
+                                    <div className="empty-state">
+                                        No domains currently blocked.
+                                    </div>
+                                )}
                             </div>
-                        )}
-                    </div>
-                </motion.div>
-            )}
+                        </div>
+                    </motion.div>
+                )}
+            </div>
         </motion.div>
     );
 };
