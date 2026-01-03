@@ -1,8 +1,11 @@
+@use '../../../styles/mixins' as *;
+
 .article-reader {
     padding: 2rem;
     background-color: var(--card-bg);
+    // Paper sheet effect
     border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.08), 0 4px 12px rgba(0, 0, 0, 0.04);
     max-width: 800px;
     margin: 2rem auto;
     position: relative;
@@ -733,16 +736,20 @@
 }
 
 .ai-summary-panel {
-    background: linear-gradient(135deg, #f3e5ff 0%, #e9d5ff 100%);
-    border: 2px solid #8b5cf6;
-    border-radius: 12px;
+    @include glass-panel;
+    // Stained Glass Effect (Purple)
+    background: rgba(139, 92, 246, 0.15) !important;
+    border-color: rgba(139, 92, 246, 0.3);
+    box-shadow: 0 8px 32px rgba(139, 92, 246, 0.1);
     padding: 1.5rem;
+    border-radius: 12px;
     overflow: hidden;
 }
 
 [data-theme='dark'] .ai-summary-panel {
-    background: linear-gradient(135deg, #1e1b2e 0%, #1a1625 100%);
-    border-color: #8b5cf6;
+    background: rgba(139, 92, 246, 0.15) !important;
+    border-color: rgba(139, 92, 246, 0.4);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
 }
 
 .summary-header {
@@ -1248,4 +1255,8 @@
             }
         }
     }
+}
+
+.article-audio-section {
+    overflow: hidden;
 }

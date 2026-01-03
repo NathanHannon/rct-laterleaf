@@ -502,8 +502,7 @@ const ArticlePodcastPlayer: React.FC<ArticlePodcastPlayerProps> = ({
             <div className="podcast-header">
                 <div className="podcast-info">
                     <h4>
-                        <FontAwesomeIcon icon={faPodcast} />
-                        AI Podcast Discussion
+                        🎙️ Podcast Discussion
                     </h4>
                     <p>Podcast-style conversation about: "{title}"</p>
                 </div>

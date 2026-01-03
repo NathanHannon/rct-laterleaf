@@ -699,15 +699,23 @@ const ArticleReader = () => {
             </AnimatePresence>
 
             {/* AI Podcast Player - Enhanced audio experience */}
-            {article.content && articleId && showPodcastPlayer && (
-                <div className="article-audio-section">
-                    <ArticlePodcastPlayer
-                        articleId={articleId}
-                        title={article.title || 'Article Audio'}
-                        className="article-podcast-player"
-                    />
-                </div>
-            )}
+            <AnimatePresence>
+                {article.content && articleId && showPodcastPlayer && (
+                    <motion.div
+                        className="article-audio-section"
+                        initial={{ opacity: 0, height: 0, marginBottom: 0 }}
+                        animate={{ opacity: 1, height: 'auto', marginBottom: '1.5rem' }}
+                        exit={{ opacity: 0, height: 0, marginBottom: 0 }}
+                        transition={{ duration: 0.3, ease: "easeOut" }}
+                    >
+                        <ArticlePodcastPlayer
+                            articleId={articleId}
+                            title={article.title || 'Article Audio'}
+                            className="article-podcast-player"
+                        />
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
             {/* Related Articles from User's Library */}
             {articleId && !article.isUrlOnly && (

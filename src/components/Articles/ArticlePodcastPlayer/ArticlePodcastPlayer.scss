@@ -1,12 +1,22 @@
+@use '../../../styles/mixins' as *;
+
 .article-podcast-player {
-    background: linear-gradient(135deg, #fff5f0 0%, #ffecdf 100%);
-    border: 2px solid #ff5722;
+    @include glass-panel;
+    // Stained Glass Effect (Orange)
+    background: rgba(255, 87, 34, 0.15) !important;
+    border-color: rgba(255, 87, 34, 0.3);
     border-radius: 12px;
     padding: 1.5rem;
-    margin: 1.5rem 0;
-    box-shadow: 0 4px 12px rgba(255, 87, 34, 0.15);
+    // margin: 1.5rem 0; // Handled by parent animation wrapper
+    box-shadow: 0 8px 32px rgba(255, 87, 34, 0.1);
     position: relative;
     overflow: hidden;
+
+    [data-theme='dark'] & {
+        background: rgba(255, 87, 34, 0.15) !important;
+        border-color: rgba(255, 87, 34, 0.4);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    }
 
     .player-background-waveform {
         position: absolute;
