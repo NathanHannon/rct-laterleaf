@@ -748,11 +748,11 @@
 }
 
 [data-theme='dark'] .ai-summary-panel {
-    // Darker, more opaque background to prevent edge glowing artifacts
-    background: rgba(30, 15, 45, 0.95) !important;
-    border-color: rgba(139, 92, 246, 0.4);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-    backdrop-filter: blur(10px);
+    // Stained Glass: Higher opacity for rich color, but still translucent
+    background: rgba(139, 92, 246, 0.35) !important;
+    border-color: rgba(139, 92, 246, 0.5);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    backdrop-filter: blur(16px);
 }
 
 .summary-header {
@@ -782,12 +782,10 @@
     gap: 0.5rem;
     flex-shrink: 0;
 
+    // Shared button styles
     .refresh-summary-button,
     .delete-summary-button,
     .close-panel-button {
-        background: transparent;
-        border: 1px solid var(--primary-color);
-        color: var(--primary-color);
         border-radius: 6px;
         padding: 0.5rem;
         cursor: pointer;
@@ -798,15 +796,30 @@
         height: 36px;
         transition: all 0.2s ease;
 
-        &:hover:not(:disabled) {
-            background: var(--primary-color);
-            color: var(--button-text);
-            transform: scale(1.05);
-        }
-
         &:disabled {
             opacity: 0.6;
             cursor: not-allowed;
+        }
+
+        &:hover:not(:disabled) {
+            transform: scale(1.05);
+        }
+    }
+
+    .refresh-summary-button {
+        background: rgba(var(--primary-color-rgb), 0.1);
+        border: 1px solid var(--primary-color);
+        color: var(--primary-color);
+
+        [data-theme='dark'] & {
+            background: rgba(var(--primary-color-rgb), 0.2);
+            color: #ffffff; // White icon on purple glass
+            border-color: var(--primary-color);
+        }
+
+        &:hover:not(:disabled) {
+            background: var(--primary-color);
+            color: var(--button-text);
         }
 
         .spinning {
@@ -815,45 +828,42 @@
     }
 
     .delete-summary-button {
-        border-color: #ef4444;
+        background: rgba(239, 68, 68, 0.1);
+        border: 1px solid #ef4444;
         color: #ef4444;
+
+        [data-theme='dark'] & {
+            background: rgba(239, 68, 68, 0.25);
+            color: #ff6b6b;
+            border-color: #ff6b6b;
+        }
 
         &:hover:not(:disabled) {
             background: #ef4444;
             color: white;
+            border-color: #ef4444;
         }
     }
 
     .close-panel-button {
-        border-color: transparent;
+        background: rgba(0, 0, 0, 0.05);
+        border: 1px solid transparent;
         color: var(--text-color-secondary);
         font-size: 1.1rem;
 
-        &:hover:not(:disabled) {
-            background: rgba(0, 0, 0, 0.05);
-            color: var(--text-color);
-            border-color: transparent;
+        [data-theme='dark'] & {
+            background: rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.8);
         }
-    }
 
-    .delete-summary-button {
-        background: transparent;
-        border: 1px solid #f44336; // Red color
-        color: #f44336;
-        border-radius: 6px;
-        padding: 0.5rem;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        min-width: 36px;
-        height: 36px;
-        transition: all 0.2s ease;
+        &:hover:not(:disabled) {
+            background: rgba(0, 0, 0, 0.1);
+            color: var(--text-color);
 
-        &:hover {
-            background: #f44336;
-            color: white;
-            transform: scale(1.05);
+            [data-theme='dark'] & {
+                background: rgba(255, 255, 255, 0.2);
+                color: #ffffff;
+            }
         }
     }
 }

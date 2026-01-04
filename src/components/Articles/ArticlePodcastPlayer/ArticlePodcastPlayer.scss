@@ -13,11 +13,11 @@
     overflow: hidden;
 
     [data-theme='dark'] & {
-        // Darker, more opaque background to prevent edge glowing artifacts
-        background: rgba(45, 25, 20, 0.95) !important;
-        border-color: rgba(255, 87, 34, 0.4);
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-        backdrop-filter: blur(10px);
+        // Stained Glass: Higher opacity for rich color, but still translucent
+        background: rgba(255, 87, 34, 0.35) !important;
+        border-color: rgba(255, 87, 34, 0.5);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+        backdrop-filter: blur(16px);
     }
 
     .player-background-waveform {
@@ -78,9 +78,8 @@
             }
         }
 
-        .settings-toggle,
-        .close-button {
-            background: transparent;
+        .settings-toggle {
+            background: rgba(0, 0, 0, 0.05);
             border: 2px solid var(--card-border);
             border-radius: 8px;
             width: 36px;
@@ -93,21 +92,48 @@
             transition: all 0.2s ease;
             margin-left: 0.5rem;
 
+            [data-theme='dark'] & {
+                background: rgba(255, 255, 255, 0.1);
+                border-color: rgba(255, 255, 255, 0.1);
+                color: rgba(255, 255, 255, 0.9);
+            }
+
             &:hover {
+                background: var(--primary-color);
                 border-color: var(--primary-color);
-                color: var(--primary-color);
+                color: var(--button-text);
                 transform: scale(1.05);
             }
         }
 
         .close-button {
-            border-color: transparent;
+            background: rgba(0, 0, 0, 0.05);
+            border: 2px solid transparent;
+            border-radius: 8px;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: var(--text-color-secondary);
+            transition: all 0.2s ease;
+            margin-left: 0.5rem;
             font-size: 1.1rem;
 
+            [data-theme='dark'] & {
+                background: rgba(255, 255, 255, 0.1);
+                color: rgba(255, 255, 255, 0.8);
+            }
+
             &:hover {
-                background: rgba(0, 0, 0, 0.05);
-                border-color: transparent;
+                background: rgba(0, 0, 0, 0.1);
                 color: var(--text-color);
+
+                [data-theme='dark'] & {
+                    background: rgba(255, 255, 255, 0.2);
+                    color: #ffffff;
+                }
             }
         }
     }
@@ -285,7 +311,7 @@
     }
 
     .new-podcast-button {
-        background: transparent;
+        background: rgba(220, 53, 69, 0.15);
         color: #dc3545;
         border: 2px solid #dc3545;
         border-radius: 8px;
@@ -296,9 +322,16 @@
         transition: all 0.2s ease;
         margin-left: 2rem;
 
+        [data-theme='dark'] & {
+            background: rgba(220, 53, 69, 0.25);
+            color: #ff6b6b;
+            border-color: #ff6b6b;
+        }
+
         &:hover:not(:disabled) {
             background-color: #dc3545;
             color: white;
+            border-color: #dc3545;
         }
 
         &:disabled {
