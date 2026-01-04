@@ -611,6 +611,13 @@ const ArticleReader = () => {
                                         >
                                             <FontAwesomeIcon icon={faTrash} />
                                         </button>
+                                        <button 
+                                            className="close-panel-button"
+                                            onClick={() => setShowSummary(false)}
+                                            title="Close Summary"
+                                        >
+                                            ✕
+                                        </button>
                                     </>
                                 )}
                                 {isChatMode && (
@@ -712,6 +719,7 @@ const ArticleReader = () => {
                             articleId={articleId}
                             title={article.title || 'Article Audio'}
                             className="article-podcast-player"
+                            onClose={() => setShowPodcastPlayer(false)}
                         />
                     </motion.div>
                 )}

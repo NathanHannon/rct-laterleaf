@@ -744,6 +744,7 @@
     padding: 1.5rem;
     border-radius: 12px;
     overflow: hidden;
+    // position: relative; // Removed absolute positioning for close button
 }
 
 [data-theme='dark'] .ai-summary-panel {
@@ -779,7 +780,9 @@
     gap: 0.5rem;
     flex-shrink: 0;
 
-    .refresh-summary-button {
+    .refresh-summary-button,
+    .delete-summary-button,
+    .close-panel-button {
         background: transparent;
         border: 1px solid var(--primary-color);
         color: var(--primary-color);
@@ -806,6 +809,28 @@
 
         .spinning {
             animation: spin 1s linear infinite;
+        }
+    }
+
+    .delete-summary-button {
+        border-color: #ef4444;
+        color: #ef4444;
+
+        &:hover:not(:disabled) {
+            background: #ef4444;
+            color: white;
+        }
+    }
+
+    .close-panel-button {
+        border-color: transparent;
+        color: var(--text-color-secondary);
+        font-size: 1.1rem;
+
+        &:hover:not(:disabled) {
+            background: rgba(0, 0, 0, 0.05);
+            color: var(--text-color);
+            border-color: transparent;
         }
     }
 

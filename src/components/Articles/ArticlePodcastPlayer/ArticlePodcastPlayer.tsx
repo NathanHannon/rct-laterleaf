@@ -18,12 +18,14 @@ interface ArticlePodcastPlayerProps {
     articleId: string;
     title: string;
     className?: string;
+    onClose?: () => void;
 }
 
 const ArticlePodcastPlayer: React.FC<ArticlePodcastPlayerProps> = ({
     articleId,
     title,
-    className = ''
+    className = '',
+    onClose
 }) => {
     const { getToken } = useAuth();
     const { isPro } = useUserStatus();
@@ -513,6 +515,15 @@ const ArticlePodcastPlayer: React.FC<ArticlePodcastPlayerProps> = ({
                 >
                     <FontAwesomeIcon icon={faCog} />
                 </button>
+                {onClose && (
+                    <button
+                        onClick={onClose}
+                        className="close-button"
+                        title="Close Podcast"
+                    >
+                        ✕
+                    </button>
+                )}
             </div>
 
             {showSettings && (

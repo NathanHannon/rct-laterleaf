@@ -1,11 +1,20 @@
+@use '../../../styles/mixins' as *;
+
 .related-articles-container {
     margin: 1.5rem 0;
     border-radius: 12px;
     overflow: hidden;
-    background: linear-gradient(135deg,
-            rgba(var(--related-articles-color-rgb), 0.05) 0%,
-            rgba(var(--related-articles-color-rgb), 0.1) 100%);
-    border: 1px solid rgba(var(--related-articles-color-rgb), 0.2);
+    @include glass-panel;
+    // Cyan tint for Related Articles
+    background: rgba(var(--related-articles-color-rgb), 0.1) !important;
+    border-color: rgba(var(--related-articles-color-rgb), 0.25);
+    box-shadow: 0 8px 32px rgba(var(--related-articles-color-rgb), 0.08);
+
+    [data-theme='dark'] & {
+        background: rgba(var(--related-articles-color-rgb), 0.1) !important;
+        border-color: rgba(var(--related-articles-color-rgb), 0.3);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    }
 }
 
 .related-articles-toggle {
@@ -55,7 +64,19 @@
     display: flex;
     flex-direction: column;
     gap: 0.75rem;
-    padding: 0 1.5rem 1.5rem;
+    
+    // Animation props
+    max-height: 0;
+    opacity: 0;
+    overflow: hidden;
+    padding: 0 1.5rem;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+
+    &.expanded {
+        max-height: 1000px;
+        opacity: 1;
+        padding: 0 1.5rem 1.5rem;
+    }
 }
 
 .related-article-card {

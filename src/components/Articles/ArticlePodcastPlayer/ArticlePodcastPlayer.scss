@@ -76,27 +76,36 @@
             }
         }
 
-        .settings-toggle {
+        .settings-toggle,
+        .close-button {
             background: transparent;
             border: 2px solid var(--card-border);
             border-radius: 8px;
-            width: 40px;
-            height: 40px;
+            width: 36px;
+            height: 36px;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
             color: var(--text-color-secondary);
             transition: all 0.2s ease;
+            margin-left: 0.5rem;
 
             &:hover {
                 border-color: var(--primary-color);
                 color: var(--primary-color);
                 transform: scale(1.05);
             }
+        }
 
-            svg {
-                font-size: 0.9rem;
+        .close-button {
+            border-color: transparent;
+            font-size: 1.1rem;
+            
+            &:hover {
+                background: rgba(0, 0, 0, 0.05);
+                border-color: transparent;
+                color: var(--text-color);
             }
         }
     }

@@ -73,8 +73,8 @@ const RelatedArticles: React.FC<RelatedArticlesProps> = ({ articleId }) => {
                 <span className={`expand-icon ${isExpanded ? 'expanded' : ''}`}>▼</span>
             </button>
 
-            {isExpanded && !isLoading && (
-                <div className="related-articles-list">
+            {!isLoading && (
+                <div className={`related-articles-list ${isExpanded ? 'expanded' : ''}`}>
                     {relatedArticles.map((article) => (
                         <div
                             key={article.id}
