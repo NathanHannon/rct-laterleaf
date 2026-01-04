@@ -611,7 +611,7 @@ const ArticleReader = () => {
                                         >
                                             <FontAwesomeIcon icon={faTrash} />
                                         </button>
-                                        <button 
+                                        <button
                                             className="close-panel-button"
                                             onClick={() => setShowSummary(false)}
                                             title="Close Summary"
