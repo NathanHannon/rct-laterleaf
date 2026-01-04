@@ -4,6 +4,10 @@
     -webkit-backdrop-filter: blur(12px);
     border: 1px solid rgba(255, 255, 255, 0.3);
     box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+    
+    // Fix for edge artifacts
+    transform: translate3d(0, 0, 0);
+    background-clip: padding-box;
 
     [data-theme='dark'] & {
         background: rgba(31, 41, 55, 0.7);

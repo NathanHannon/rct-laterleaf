@@ -11,9 +11,12 @@
     box-shadow: 0 8px 32px rgba(var(--related-articles-color-rgb), 0.08);
 
     [data-theme='dark'] & {
-        background: rgba(var(--related-articles-color-rgb), 0.1) !important;
+        // Darker, more opaque background to prevent edge glowing artifacts
+        background: rgba(6, 182, 212, 0.15) !important; // Keep tint but rely on dark base
+        background-color: rgba(15, 23, 42, 0.95) !important; // Dark slate base
         border-color: rgba(var(--related-articles-color-rgb), 0.3);
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+        backdrop-filter: blur(10px);
     }
 }
 

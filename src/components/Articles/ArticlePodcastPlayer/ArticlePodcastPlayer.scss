@@ -13,9 +13,11 @@
     overflow: hidden;
 
     [data-theme='dark'] & {
-        background: rgba(255, 87, 34, 0.15) !important;
+        // Darker, more opaque background to prevent edge glowing artifacts
+        background: rgba(45, 25, 20, 0.95) !important;
         border-color: rgba(255, 87, 34, 0.4);
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+        backdrop-filter: blur(10px);
     }
 
     .player-background-waveform {

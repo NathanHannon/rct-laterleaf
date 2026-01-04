@@ -748,9 +748,11 @@
 }
 
 [data-theme='dark'] .ai-summary-panel {
-    background: rgba(139, 92, 246, 0.15) !important;
+    // Darker, more opaque background to prevent edge glowing artifacts
+    background: rgba(30, 15, 45, 0.95) !important;
     border-color: rgba(139, 92, 246, 0.4);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(10px);
 }
 
 .summary-header {
