@@ -1,4 +1,5 @@
 import React from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faExclamationTriangle, faTimes } from '@fortawesome/free-solid-svg-icons';
@@ -25,7 +26,7 @@ const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
     onCancel,
     variant = 'warning'
 }) => {
-    return (
+    const content = (
         <AnimatePresence>
             {isOpen && (
                 <motion.div
@@ -55,11 +56,11 @@ const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
                                 <FontAwesomeIcon icon={faTimes} />
                             </button>
                         </div>
-                        
+
                         <div className="dialog-content">
                             <p>{message}</p>
                         </div>
-                        
+
                         <div className="dialog-actions">
                             <button
                                 className="cancel-button"
@@ -79,6 +80,8 @@ const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
             )}
         </AnimatePresence>
     );
+
+    return createPortal(content, document.body);
 };
 
 export default ConfirmationDialog;

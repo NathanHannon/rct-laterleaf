@@ -461,7 +461,7 @@
             background-color: #616161; // Lighter gray on hover
         }
 
-        &.favorited {
+        &.bookmarked {
 
             // Deep red bookmark icon to match ribbon
             svg {
@@ -546,6 +546,107 @@
         &:disabled {
             cursor: not-allowed;
             opacity: 0.7;
+        }
+    }
+
+    .button-translate {
+        background-color: #00897b; // Teal color
+        color: white;
+        white-space: nowrap;
+        min-height: 36px;
+        box-sizing: border-box;
+
+        &:hover {
+            background-color: #00796b;
+        }
+
+        &.active {
+            background-color: #00695c;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        &:disabled {
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+    }
+
+    /* Translation Dropdown Styles */
+    .action-dropdown-container {
+        position: relative;
+        display: flex;
+
+        .translation-menu {
+            z-index: 1000;
+            position: absolute;
+            top: calc(100% + 10px);
+            right: 0;
+            width: 200px;
+            max-height: 300px;
+            overflow-y: auto;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            padding: 0.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+
+            [data-theme='dark'] & {
+                border-color: #444;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+            }
+
+            .dropdown-item {
+                width: 100%;
+                border: none;
+                background: none;
+                text-align: left;
+                padding: 0.6rem 1rem;
+                display: flex;
+                align-items: center;
+                border-radius: 6px;
+                color: var(--text-color);
+                cursor: pointer;
+                font-size: 0.9rem;
+
+                &:hover {
+                    background-color: rgba(0, 0, 0, 0.05);
+                }
+
+                [data-theme='dark'] &:hover {
+                    background-color: rgba(255, 255, 255, 0.1);
+                }
+
+                &.active {
+                    color: #00897b;
+                    background-color: rgba(0, 137, 123, 0.1);
+                    font-weight: 600;
+
+                    [data-theme='dark'] & {
+                        color: #4db6ac;
+                        background-color: rgba(77, 182, 172, 0.15);
+                    }
+                }
+
+                .lang-flag {
+                    margin-right: 0.8rem;
+                    font-size: 1.1rem;
+                }
+
+                .check-icon {
+                    margin-left: auto;
+                    font-size: 0.8rem;
+                }
+            }
+
+            .dropdown-divider {
+                height: 1px;
+                background: var(--border-color);
+                margin: 0.3rem 0;
+                opacity: 0.5;
+            }
         }
     }
 

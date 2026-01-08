@@ -5,6 +5,7 @@ import { faPlay, faPause, faSpinner, faPodcast, faCog, faRotateLeft, faRotateRig
 import { useUserStatus } from '../../../hooks/useUserStatus';
 import ConfirmationDialog from '../../Common/ConfirmationDialog/ConfirmationDialog';
 import WaveformAnimation from '../../Common/WaveformAnimation/WaveformAnimation';
+import { LANGUAGES } from '../../../constants/languages';
 import './ArticlePodcastPlayer.scss';
 
 interface VoicePair {
@@ -19,13 +20,15 @@ interface ArticlePodcastPlayerProps {
     title: string;
     className?: string;
     onClose?: () => void;
+    selectedLanguage?: string;
 }
 
 const ArticlePodcastPlayer: React.FC<ArticlePodcastPlayerProps> = ({
     articleId,
     title,
-    className = '',
-    onClose
+    className,
+    onClose,
+    selectedLanguage
 }) => {
     const { getToken } = useAuth();
     const { isPro } = useUserStatus();
@@ -51,6 +54,18 @@ const ArticlePodcastPlayer: React.FC<ArticlePodcastPlayerProps> = ({
         const saved = localStorage.getItem('laterleaf_show_waveform');
         return saved !== null ? JSON.parse(saved) : true;
     });
+
+    // Check supported languages
+    // Allowlist approach is safer than blocklist
+    const supportedLanguageCodes = [
+        'original', 'en', 'es', 'fr', 'de', 'it', 'pt-BR',
+        'nl', 'ru', 'pl', 'tr', 'th', 'vi', 'id', 'ja', 'ko', 'hi'
+    ];
+
+    // Explicitly check if the selected language is in our supported list
+    const isLanguageSupported = !selectedLanguage || supportedLanguageCodes.includes(selectedLanguage);
+
+    console.log(`🎙️ Podcast Player Language Check:`, { selectedLanguage, isLanguageSupported });
 
     // Sync with global settings
     useEffect(() => {
@@ -120,7 +135,45 @@ const ArticlePodcastPlayer: React.FC<ArticlePodcastPlayerProps> = ({
                 const status = await response.json();
                 console.log(`📋 Podcast status data:`, status);
 
-                if (status.hasAudio && status.audioUrl) {
+                // --- STRICT LANGUAGE MATCHING ---
+                // We must ensure the loaded audio matches the user's current view language.
+                // 1. Determine "Expected Name" (e.g., "Spanish", "English")
+                const expectedLanguageName: string | undefined = LANGUAGES.find(l => l.code === selectedLanguage)?.name;
+
+                // 2. Normalize "Stored Name" (Backend defaults to 'en', but frontend needs 'English')
+                let storedAudioLanguage = status.audioLanguage;
+                if (storedAudioLanguage === 'en') storedAudioLanguage = 'English';
+
+                console.log(`🔍 Lang Check: Mode='${selectedLanguage}' | Expected='${expectedLanguageName}' | Stored='${storedAudioLanguage}'`);
+
+                let isMismatch = false;
+
+                if (!selectedLanguage || selectedLanguage === 'original') {
+                    // "Original" Mode: We trust the stored audio matches the article's source language.
+                    // We DO NOT force 'English' here, because the original article might be Spanish.
+                    // This allows Spanish Audio to play when viewing "Original" (Spanish).
+                    // Side effect: If you generated English audio (via translation) and revert to Original (Spanish),
+                    // the player will still show. This is acceptable/safer than hiding valid original audio.
+                    isMismatch = false;
+                } else if (storedAudioLanguage) {
+                    // Translated Mode (e.g. 'es'): Stored MUST match 'Spanish'
+                    if (expectedLanguageName && storedAudioLanguage !== expectedLanguageName) {
+                        isMismatch = true;
+                    }
+                } else {
+                    // Legacy/Undefined audio (assumed English).
+                    // If user wants 'Spanish', but we have undefined (Old English) audio -> Mismatch.
+                    if (expectedLanguageName && expectedLanguageName !== 'English') {
+                        isMismatch = true;
+                    }
+                }
+
+                if (isMismatch) {
+                    console.log(`⚠️ Language mismatch detected. Hiding player.`);
+                    setAudioUrl(null);
+                    setIsPlaying(false);
+                    // Reset internal state so UI shows "Generate"
+                } else if (status.hasAudio && status.audioUrl) {
                     console.log(`🎵 Found existing audio URL: ${status.audioUrl}`);
                     setAudioUrl(status.audioUrl);
 
@@ -291,6 +344,14 @@ const ArticlePodcastPlayer: React.FC<ArticlePodcastPlayerProps> = ({
                 // Derive style from voice pair
                 const derivedStyle = getStyleForVoicePair(selectedVoicePair);
                 params.append('style', derivedStyle);
+            }
+
+            // Add language parameter if selected
+            if (selectedLanguage && selectedLanguage !== 'original') {
+                const langName = LANGUAGES.find(l => l.code === selectedLanguage)?.name;
+                if (langName) {
+                    params.append('language', langName);
+                }
             }
 
             if (forceRegenerate) params.append('force', 'true'); // Add force parameter
@@ -504,7 +565,11 @@ const ArticlePodcastPlayer: React.FC<ArticlePodcastPlayerProps> = ({
             <div className="podcast-header">
                 <div className="podcast-info">
                     <h4>
-                        🎙️ Podcast Discussion
+                        🎙️ Podcast Discussion {selectedLanguage && selectedLanguage !== 'original' && selectedLanguage !== 'en' && (
+                            <span style={{ fontSize: '0.9em', opacity: 0.8, fontWeight: 'normal', marginLeft: '0.5rem' }}>
+                                ({LANGUAGES.find(l => l.code === selectedLanguage)?.name || selectedLanguage})
+                            </span>
+                        )}
                     </h4>
                     <p>Podcast-style conversation about: "{title}"</p>
                 </div>
@@ -648,6 +713,16 @@ const ArticlePodcastPlayer: React.FC<ArticlePodcastPlayerProps> = ({
                                 >
                                     🗑️ Delete Podcast
                                 </button>
+                            </div>
+                        ) : !isLanguageSupported ? (
+                            <div className="unsupported-language-container">
+                                <button className="generate-btn disabled" disabled>
+                                    <FontAwesomeIcon icon={faPodcast} />
+                                    <span>Unavailable in this language</span>
+                                </button>
+                                <p className="unsupported-notice">
+                                    Audio generation is currently not available for {LANGUAGES.find(l => l.code === selectedLanguage)?.name || 'this language'}.
+                                </p>
                             </div>
                         ) : (
                             <button

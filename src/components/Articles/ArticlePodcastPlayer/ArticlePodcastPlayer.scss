@@ -203,6 +203,15 @@
             gap: 0.75rem;
             margin: 0;
             padding: 0;
+
+            // Ensure text is readable in both modes
+            // In glass panel, we need explicit colors
+            color: var(--text-color);
+            font-weight: 500;
+
+            svg {
+                color: var(--primary-color);
+            }
         }
 
         .primary-controls {
@@ -240,6 +249,38 @@
                     font-size: 1.4rem;
                 }
             }
+        }
+    }
+
+    .unsupported-language-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.5rem;
+        width: 100%;
+
+        .generate-btn.disabled {
+            background: rgba(128, 128, 128, 0.2);
+            color: var(--text-color-secondary);
+            border: 1px solid rgba(128, 128, 128, 0.3);
+            box-shadow: none;
+            cursor: not-allowed;
+            opacity: 0.7;
+
+            &:hover {
+                transform: none;
+                box-shadow: none;
+                background: rgba(128, 128, 128, 0.2);
+            }
+        }
+
+        .unsupported-notice {
+            font-size: 0.8rem;
+            color: var(--text-color-secondary);
+            margin: 0;
+            opacity: 0.8;
+            text-align: center;
+            max-width: 90%;
         }
     }
 

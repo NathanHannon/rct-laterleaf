@@ -11,11 +11,12 @@ import RelatedArticles from '../RelatedArticles/RelatedArticles';
 import TagsManager from '../../TagsManager/TagsManager';
 import './ArticleReader.scss';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBookmark as faBookmarkSolid, faArchive, faTrash, faRotateRight, faFolderPlus, faEllipsisV, faGem, faClock, faStarHalfStroke, faPodcast } from '@fortawesome/free-solid-svg-icons';
+import { faBookmark as faBookmarkSolid, faArchive, faTrash, faRotateRight, faFolderPlus, faEllipsisV, faGem, faClock, faStarHalfStroke, faPodcast, faLanguage, faCheck } from '@fortawesome/free-solid-svg-icons';
 import { faBookmark as faBookmarkRegular } from '@fortawesome/free-regular-svg-icons';
 import { hasProAccess } from '../../../utils/tierUtils';
 import { useUserStatus } from '../../../hooks/useUserStatus';
 import { useUserCredits } from '../../../hooks/useUserCredits';
+import { LANGUAGES } from '../../../constants/languages';
 
 const ArticleReader = () => {
     const { articleId } = useParams<{ articleId: string }>();
@@ -39,6 +40,73 @@ const ArticleReader = () => {
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [showDeleteSummaryConfirm, setShowDeleteSummaryConfirm] = useState(false);
     const [useProSummary, setUseProSummary] = useState(false);
+    const [showTranslateDropdown, setShowTranslateDropdown] = useState(false);
+    const [isTranslating, setIsTranslating] = useState(false);
+    const [currentLanguage, setCurrentLanguage] = useState<string>('original');
+
+    const handleTranslate = async (langCode: string) => {
+        if (!articleId) return;
+        setShowTranslateDropdown(false);
+
+        if (langCode === 'original') {
+            setCurrentLanguage('original');
+            return; // Switch back to original content
+        }
+
+        setIsTranslating(true);
+        try {
+            const token = await getToken();
+            const response = await fetch(`/api/articles/${articleId}/translate`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ targetLanguage: langCode })
+            });
+
+            if (!response.ok) throw new Error('Translation failed');
+
+            const data = await response.json();
+
+            // Store translation in local state to display it
+            // We modify the displayed article object temporarily without reloading from DB
+            setArticle(prev => {
+                if (!prev) return null;
+                return {
+                    ...prev,
+                    contentHtml: undefined, // Force markdown rendering for translation
+                    content: data.translation
+                };
+            });
+
+            setCurrentLanguage(langCode);
+        } catch {
+            setError('Translation failed. Please try again.');
+        } finally {
+            setIsTranslating(false);
+        }
+    };
+
+    const handleRestoreOriginal = async () => {
+        // Re-fetch original article to restore content
+        setLoading(true);
+        try {
+            // Basic fetch again to act as "restore"
+            const token = await getToken();
+            const response = await fetch(`/api/articles/${articleId}`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const data = await response.json();
+            setArticle(data);
+            setCurrentLanguage('original');
+        } catch {
+            setError('Failed to restore original text');
+        } finally {
+            setLoading(false);
+        }
+    };
+
     const [summaryMetadata, setSummaryMetadata] = useState<{
         model?: string;
         fallbackUsed?: boolean;
@@ -86,6 +154,20 @@ const ArticleReader = () => {
         window.addEventListener('scroll', handleScroll);
         return () => window.removeEventListener('scroll', handleScroll);
     }, [article]);
+
+    // Close menus on scroll to update UI cleanly
+    useEffect(() => {
+        const handleScroll = () => {
+            if (showTranslateDropdown) setShowTranslateDropdown(false);
+            if (showDropdown) setShowDropdown(false);
+        };
+
+        if (showTranslateDropdown || showDropdown) {
+            window.addEventListener('scroll', handleScroll);
+        }
+
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, [showTranslateDropdown, showDropdown]);
 
     // Calculate reading time when article loads
     useEffect(() => {
@@ -464,6 +546,58 @@ const ArticleReader = () => {
                     <span>{showPodcastPlayer ? 'Hide Podcast' : 'Show Podcast'}</span>
                 </button>
 
+                {/* Translation Dropdown */}
+                <div className="action-dropdown-container">
+                    <button
+                        className={`button-translate ${currentLanguage !== 'original' ? 'active' : ''}`}
+                        onClick={() => setShowTranslateDropdown(!showTranslateDropdown)}
+                        disabled={isTranslating}
+                    >
+                        {isTranslating ? (
+                            <FontAwesomeIcon icon={faRotateRight} spin />
+                        ) : currentLanguage !== 'original' ? (
+                            <span style={{ fontSize: '1.2rem', lineHeight: 1 }}>
+                                {LANGUAGES.find(l => l.code === currentLanguage)?.flag}
+                            </span>
+                        ) : (
+                            <FontAwesomeIcon icon={faLanguage} />
+                        )}
+                        <span>{isTranslating ? 'Translating...' : 'Translate'}</span>
+                    </button>
+
+                    <AnimatePresence>
+                        {showTranslateDropdown && (
+                            <motion.div
+                                className="action-dropdown-menu translation-menu"
+                                initial={{ opacity: 0, y: -10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -10 }}
+                            >
+                                <button
+                                    className={`dropdown-item ${currentLanguage === 'original' ? 'active' : ''}`}
+                                    onClick={() => currentLanguage === 'original' ? setShowTranslateDropdown(false) : handleRestoreOriginal()}
+                                >
+                                    <span className="lang-flag">📄</span>
+                                    Original Text
+                                    {currentLanguage === 'original' && <FontAwesomeIcon icon={faCheck} className="check-icon" />}
+                                </button>
+                                <div className="dropdown-divider" />
+                                {LANGUAGES.map(lang => (
+                                    <button
+                                        key={lang.code}
+                                        className={`dropdown-item ${currentLanguage === lang.code ? 'active' : ''}`}
+                                        onClick={() => handleTranslate(lang.code)}
+                                    >
+                                        <span className="lang-flag">{lang.flag}</span>
+                                        {lang.name}
+                                        {currentLanguage === lang.code && <FontAwesomeIcon icon={faCheck} className="check-icon" />}
+                                    </button>
+                                ))}
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+                </div>
+
                 {/* Pro Summary Toggle for Free Users */}
                 {!userHasProAccess && (
                     <div className="pro-toggle-container">
@@ -720,6 +854,7 @@ const ArticleReader = () => {
                             title={article.title || 'Article Audio'}
                             className="article-podcast-player"
                             onClose={() => setShowPodcastPlayer(false)}
+                            selectedLanguage={currentLanguage}
                         />
                     </motion.div>
                 )}
