@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useAuth } from '@clerk/clerk-react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPlay, faPause, faSpinner, faPodcast, faCog, faRotateLeft, faRotateRight } from '@fortawesome/free-solid-svg-icons';
+import { faPlay, faPause, faSpinner, faPodcast, faCog, faRotateLeft, faRotateRight, faRedo } from '@fortawesome/free-solid-svg-icons';
 import { useUserStatus } from '../../../hooks/useUserStatus';
 import ConfirmationDialog from '../../Common/ConfirmationDialog/ConfirmationDialog';
 import WaveformAnimation from '../../Common/WaveformAnimation/WaveformAnimation';
@@ -42,6 +42,7 @@ const ArticlePodcastPlayer: React.FC<ArticlePodcastPlayerProps> = ({
     const [audioUrl, setAudioUrl] = useState<string | null>(null);
     const [currentTime, setCurrentTime] = useState(0);
     const [duration, setDuration] = useState(0);
+    const [hasEnded, setHasEnded] = useState(false);
 
     // Podcast settings - Simplified for fixed backend voices
     const [showSettings, setShowSettings] = useState(false);
@@ -269,7 +270,10 @@ const ArticlePodcastPlayer: React.FC<ArticlePodcastPlayerProps> = ({
             setDuration(audio.duration);
             updateProgressFill(audio.currentTime, audio.duration);
         };
-        const handleEnd = () => setIsPlaying(false);
+        const handleEnd = () => {
+            setIsPlaying(false);
+            setHasEnded(true);
+        };
         const handleError = () => {
             setError('Audio playback failed');
             setIsPlaying(false);
@@ -460,6 +464,10 @@ const ArticlePodcastPlayer: React.FC<ArticlePodcastPlayerProps> = ({
         } else {
             try {
                 console.log(`▶️ Attempting to play audio`);
+                if (hasEnded) {
+                    audio.currentTime = 0;
+                    setHasEnded(false);
+                }
                 await audio.play();
                 setIsPlaying(true);
                 console.log(`✅ Audio playback started successfully`);
@@ -479,6 +487,7 @@ const ArticlePodcastPlayer: React.FC<ArticlePodcastPlayerProps> = ({
         audio.currentTime = newTime;
         setCurrentTime(newTime);
         updateProgressFill(newTime, duration);
+        setHasEnded(false);
     };
 
     const deletePodcast = async () => {
@@ -527,12 +536,14 @@ const ArticlePodcastPlayer: React.FC<ArticlePodcastPlayerProps> = ({
         const audio = audioRef.current;
         if (!audio) return;
         audio.currentTime = Math.min(audio.currentTime + 10, audio.duration || 0);
+        setHasEnded(false);
     };
 
     const skipBackward = () => {
         const audio = audioRef.current;
         if (!audio) return;
         audio.currentTime = Math.max(audio.currentTime - 10, 0);
+        setHasEnded(false);
     };
 
     // Update progress fill dynamically
@@ -690,10 +701,12 @@ const ArticlePodcastPlayer: React.FC<ArticlePodcastPlayerProps> = ({
                                 <button
                                     onClick={togglePlayback}
                                     className="play-button"
-                                    title={isPlaying ? 'Pause' : 'Play'}
+                                    title={isPlaying ? 'Pause' : hasEnded ? 'Replay' : 'Play'}
                                 >
                                     {isPlaying ? (
                                         <FontAwesomeIcon icon={faPause} />
+                                    ) : hasEnded ? (
+                                        <FontAwesomeIcon icon={faRedo} />
                                     ) : (
                                         <FontAwesomeIcon icon={faPlay} />
                                     )}
