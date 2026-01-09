@@ -882,6 +882,114 @@
     display: flex;
     gap: 0.5rem;
     flex-shrink: 0;
+    align-items: center;
+
+    .summary-language-selector {
+        position: relative;
+        margin-right: 0.5rem;
+
+        .summary-language-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 0.75rem;
+            height: 36px;
+            border-radius: 6px;
+
+            // Match the style of other summary buttons (e.g. refresh button)
+            // But use the teal color #00796B
+            background: rgba(0, 121, 107, 0.1); // Teal tint
+            border: 1px solid #00796B;
+            color: #00796B;
+
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+
+            [data-theme='dark'] & {
+                background: rgba(0, 121, 107, 0.2);
+                color: #2db6a3; // Brighter teal for dark mode text
+                border-color: #2db6a3;
+            }
+
+            &:hover {
+                background: #00796B;
+                color: white;
+                border-color: #00796B;
+
+                [data-theme='dark'] & {
+                    background: #2db6a3;
+                    border-color: #2db6a3;
+                    color: #1a1a1a; // Dark text on bright background
+                }
+
+                svg {
+                    color: inherit;
+                }
+            }
+
+            svg {
+                color: inherit;
+            }
+        }
+
+        .summary-lang-dropdown {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            margin-top: 0.5rem;
+
+            // Solid, opaque background to prevent transparency issues
+            background: var(--card-bg);
+
+            [data-theme='dark'] & {
+                background: #1e1e1e; // Explicit dark grey for dark mode
+                border: 1px solid #333;
+            }
+
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 0.5rem;
+            min-width: 200px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3); // Stronger shadow for depth
+            z-index: 1000; // Increased z-index
+            max-height: 300px;
+            overflow-y: auto;
+
+            button {
+                display: flex;
+                align-items: center;
+                gap: 0.75rem;
+                width: 100%;
+                padding: 0.5rem;
+                border: none;
+                background: none;
+                color: var(--text-color);
+                text-align: left;
+                cursor: pointer;
+                border-radius: 4px;
+                font-size: 0.9rem;
+
+                &:hover {
+                    background: var(--bg-color-hover);
+                }
+
+                &.active {
+                    background: rgba(var(--primary-color-rgb), 0.1);
+                    color: var(--primary-color);
+                    font-weight: 500;
+                }
+
+                .flag {
+                    font-size: 1.25rem;
+                }
+
+                .name {
+                    flex: 1;
+                }
+            }
+        }
+    }
 
     // Shared button styles
     .refresh-summary-button,

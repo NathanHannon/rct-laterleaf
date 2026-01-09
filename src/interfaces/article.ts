@@ -13,6 +13,7 @@ export interface Article {
     isArchived: boolean;
     summary?: string;
     summaryStatus?: 'idle' | 'pending' | 'completed' | 'failed';
+    summaryLanguage?: string;
     audioLocation?: string;
     createdAt: string;
     isUrlOnly?: boolean; // Flag for URL-only entries that failed extraction

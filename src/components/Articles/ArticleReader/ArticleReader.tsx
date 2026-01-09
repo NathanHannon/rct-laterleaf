@@ -11,12 +11,12 @@ import RelatedArticles from '../RelatedArticles/RelatedArticles';
 import TagsManager from '../../TagsManager/TagsManager';
 import './ArticleReader.scss';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBookmark as faBookmarkSolid, faArchive, faTrash, faRotateRight, faFolderPlus, faEllipsisV, faGem, faClock, faStarHalfStroke, faPodcast, faLanguage, faCheck } from '@fortawesome/free-solid-svg-icons';
+import { faBookmark as faBookmarkSolid, faArchive, faTrash, faRotateRight, faFolderPlus, faEllipsisV, faGem, faClock, faStarHalfStroke, faPodcast } from '@fortawesome/free-solid-svg-icons';
 import { faBookmark as faBookmarkRegular } from '@fortawesome/free-regular-svg-icons';
 import { hasProAccess } from '../../../utils/tierUtils';
 import { useUserStatus } from '../../../hooks/useUserStatus';
 import { useUserCredits } from '../../../hooks/useUserCredits';
-import { LANGUAGES } from '../../../constants/languages';
+// import { LANGUAGES } from '../../../constants/languages';
 
 const ArticleReader = () => {
     const { articleId } = useParams<{ articleId: string }>();
@@ -40,9 +40,14 @@ const ArticleReader = () => {
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [showDeleteSummaryConfirm, setShowDeleteSummaryConfirm] = useState(false);
     const [useProSummary, setUseProSummary] = useState(false);
-    const [showTranslateDropdown, setShowTranslateDropdown] = useState(false);
-    const [isTranslating, setIsTranslating] = useState(false);
-    const [currentLanguage, setCurrentLanguage] = useState<string>('original');
+    // const [showTranslateDropdown, setShowTranslateDropdown] = useState(false);
+    // const [showSummaryLangDropdown, setShowSummaryLangDropdown] = useState(false);
+    // const [isTranslating, setIsTranslating] = useState(false);
+    // const [currentLanguage, setCurrentLanguage] = useState<string>('original');
+
+    /* const getLanguageName = (code: string) => {
+        return LANGUAGES.find(l => l.code === code)?.name || 'English';
+    };
 
     const handleTranslate = async (langCode: string) => {
         if (!articleId) return;
@@ -105,7 +110,7 @@ const ArticleReader = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }; */
 
     const [summaryMetadata, setSummaryMetadata] = useState<{
         model?: string;
@@ -158,16 +163,18 @@ const ArticleReader = () => {
     // Close menus on scroll to update UI cleanly
     useEffect(() => {
         const handleScroll = () => {
-            if (showTranslateDropdown) setShowTranslateDropdown(false);
+            // if (showTranslateDropdown) setShowTranslateDropdown(false);
             if (showDropdown) setShowDropdown(false);
         };
 
-        if (showTranslateDropdown || showDropdown) {
+        // if (showTranslateDropdown || showDropdown) {
+        if (showDropdown) {
             window.addEventListener('scroll', handleScroll);
         }
 
         return () => window.removeEventListener('scroll', handleScroll);
-    }, [showTranslateDropdown, showDropdown]);
+        // }, [showTranslateDropdown, showDropdown]);
+    }, [showDropdown]);
 
     // Calculate reading time when article loads
     useEffect(() => {
@@ -231,7 +238,7 @@ const ArticleReader = () => {
             }
 
             const data = await response.json();
-            setArticle(prev => prev ? { ...prev, summary: data.summary, summaryStatus: data.status } : null);
+            setArticle(prev => prev ? { ...prev, summary: data.summary, summaryStatus: data.status, summaryLanguage: 'en' } : null);
             // Store metadata about the summary generation
             setSummaryMetadata({
                 model: data.model,
@@ -246,14 +253,27 @@ const ArticleReader = () => {
         }
     };
 
-    const handleRefreshSummary = async (useProOverride?: boolean) => {
+    const handleRefreshSummary = async (useProOverride?: boolean, languageCode?: string) => {
         if (!articleId || !article) return;
 
+        // Use provided language, or fall back to current summary language, or default to English
+        const targetLangCode = languageCode || article.summaryLanguage || 'en';
+
         setIsGeneratingSummary(true);
+        // if (languageCode) setShowSummaryLangDropdown(false);
+
         try {
             const token = await getToken();
             const effectiveUsePro = typeof useProOverride === 'boolean' ? useProOverride : (useProSummary && !userHasProAccess);
-            const url = `/api/articles/${articleId}/summarize?force=true${effectiveUsePro ? '&usePro=true' : ''}`;
+
+            // Build query params
+            const params = new URLSearchParams({ force: 'true' });
+            if (effectiveUsePro) params.append('usePro', 'true');
+
+            // Send the ISO code (e.g., 'es') directly to the backend
+            if (targetLangCode) params.append('language', targetLangCode);
+
+            const url = `/api/articles/${articleId}/summarize?${params.toString()}`;
             const response = await fetch(url, {
                 method: 'POST',
                 headers: {
@@ -266,7 +286,16 @@ const ArticleReader = () => {
             }
 
             const data = await response.json();
-            setArticle(prev => prev ? { ...prev, summary: data.summary, summaryStatus: data.status } : null);
+            // Optimistically update the language if we requested a specific one
+            const newLang = languageCode || article.summaryLanguage || 'en';
+
+            setArticle(prev => prev ? {
+                ...prev,
+                summary: data.summary,
+                summaryStatus: data.status,
+                summaryLanguage: newLang
+            } : null);
+
             // Update metadata for refreshed summary
             setSummaryMetadata({
                 model: data.model,
@@ -547,7 +576,7 @@ const ArticleReader = () => {
                 </button>
 
                 {/* Translation Dropdown */}
-                <div className="action-dropdown-container">
+                {/* <div className="action-dropdown-container">
                     <button
                         className={`button-translate ${currentLanguage !== 'original' ? 'active' : ''}`}
                         onClick={() => setShowTranslateDropdown(!showTranslateDropdown)}
@@ -596,7 +625,7 @@ const ArticleReader = () => {
                             </motion.div>
                         )}
                     </AnimatePresence>
-                </div>
+                </div> */}
 
                 {/* Pro Summary Toggle for Free Users */}
                 {!userHasProAccess && (
@@ -727,6 +756,33 @@ const ArticleReader = () => {
                             <div className="summary-actions">
                                 {!isChatMode && (
                                     <>
+                                        {/* Summary Language Selector */}
+                                        {/* <div className="summary-language-selector">
+                                            <button
+                                                onClick={() => setShowSummaryLangDropdown(!showSummaryLangDropdown)}
+                                                className="summary-language-btn"
+                                                title="Change summary language"
+                                            >
+                                                <FontAwesomeIcon icon={faLanguage} />
+                                                <span>{getLanguageName(article.summaryLanguage || 'en')}</span>
+                                            </button>
+                                            {showSummaryLangDropdown && (
+                                                <div className="summary-lang-dropdown">
+                                                    {LANGUAGES.map(lang => (
+                                                        <button
+                                                            key={lang.code}
+                                                            onClick={() => handleRefreshSummary(undefined, lang.code)}
+                                                            className={article.summaryLanguage === lang.code ? 'active' : ''}
+                                                        >
+                                                            <span className="flag">{lang.flag}</span>
+                                                            <span className="name">{lang.name}</span>
+                                                            {article.summaryLanguage === lang.code && <FontAwesomeIcon icon={faCheck} />}
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div> */}
+
                                         <button
                                             onClick={() => handleRefreshSummary()}
                                             className="refresh-summary-button"
@@ -854,7 +910,7 @@ const ArticleReader = () => {
                             title={article.title || 'Article Audio'}
                             className="article-podcast-player"
                             onClose={() => setShowPodcastPlayer(false)}
-                            selectedLanguage={currentLanguage}
+                            // selectedLanguage={currentLanguage}
                         />
                     </motion.div>
                 )}
