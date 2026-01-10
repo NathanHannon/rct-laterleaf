@@ -4,7 +4,17 @@ import { ClerkProvider } from '@clerk/clerk-react'
 import App from './App'
 import { ThemeProvider } from './context/themeContext'
 import { UserStatusProvider } from './context/userStatusContext' // Import the UserStatusProvider
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import './index.scss'
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60 * 5, // 5 minutes
+      retry: 1,
+    },
+  },
+})
 
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY
 
@@ -14,12 +24,14 @@ if (!PUBLISHABLE_KEY) {
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <ClerkProvider publishableKey={PUBLISHABLE_KEY}>
-      <UserStatusProvider> {/* Wrap the App with the provider */}
-        <ThemeProvider>
-          <App />
-        </ThemeProvider>
-      </UserStatusProvider>
-    </ClerkProvider>
+    <QueryClientProvider client={queryClient}>
+      <ClerkProvider publishableKey={PUBLISHABLE_KEY}>
+        <UserStatusProvider> {/* Wrap the App with the provider */}
+          <ThemeProvider>
+            <App />
+          </ThemeProvider>
+        </UserStatusProvider>
+      </ClerkProvider>
+    </QueryClientProvider>
   </StrictMode>,
 )

@@ -1,5 +1,6 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@clerk/clerk-react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useSearch } from '../../../hooks/searchHook';
 import { useDebounce } from '../../../hooks/useDebounce'; // Import the new hook
 import type { Article } from '../../../interfaces/article';
@@ -17,84 +18,61 @@ import { motion } from 'motion/react';
 import { useUserStatus } from '../../../hooks/useUserStatus';
 
 const ArticleList = () => {
-    const [articles, setArticles] = useState<Article[]>([]);
-    const { getToken } = useAuth();
+    // const [articles, setArticles] = useState<Article[]>([]);
+    const { getToken, isLoaded, isSignedIn } = useAuth();
     const { searchTerm, searchMode } = useSearch();
-    const { isLoaded, isSignedIn } = useAuth();
     const { isPro } = useUserStatus(); // Use the context for pro status
-    const [isSearching, setIsSearching] = useState(false);
+    // const [isSearching, setIsSearching] = useState(false);
+    const queryClient = useQueryClient();
 
     // Debounce the search term to prevent API calls on every keystroke
     const debouncedSearchTerm = useDebounce(searchTerm, 400); // 400ms delay
 
-    const fetchArticles = useCallback(async () => {
-        if (!isLoaded || !isSignedIn) return;
-
-        try {
+    const { data: articles = [], isLoading } = useQuery({
+        queryKey: ['articles', debouncedSearchTerm, searchMode],
+        enabled: isLoaded && isSignedIn,
+        queryFn: async () => {
             const token = await getToken();
-            const response = await fetch('/api/articles', {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
+            const trimmedSearch = debouncedSearchTerm.trim();
+            let url = '/api/articles';
+
+            // Use search endpoint if term is present (>2 chars for search)
+            if (trimmedSearch.length >= 2) {
+                url = `/api/search?q=${encodeURIComponent(trimmedSearch)}&mode=${searchMode}`;
+            } else if (trimmedSearch.length === 1) {
+                // Return empty if 1 char (mimicking original logic)
+                return [];
+            }
+
+            const response = await fetch(url, {
+                headers: { 'Authorization': `Bearer ${token}` }
             });
 
             if (!response.ok) {
                 const errorText = await response.text();
-                throw new Error(`Network response was not ok: ${errorText}`);
+                throw new Error(`Fetch failed: ${errorText}`);
             }
 
             const data = await response.json();
-            console.log('Fetch articles response:', data);
 
-            const articlesArray = Array.isArray(data) ? data : [];
-            setArticles(articlesArray);
-        } catch (error) {
-            console.error("Failed to fetch articles:", error);
-            setArticles([]);
-        }
-    }, [getToken, isLoaded, isSignedIn]);
+            // Handle search result format wrapper
+            if (trimmedSearch.length >= 2) {
+                return (data?.results && Array.isArray(data.results)) ? data.results : [];
+            }
 
-    // Consolidated data fetching effect
-    useEffect(() => {
-        if (!isLoaded || !isSignedIn) {
-            return; // Wait for user to be loaded
+            return Array.isArray(data) ? data : [];
         }
+    });
 
-        const trimmedSearch = debouncedSearchTerm.trim();
+    // Consolidated data fetching effect - REMOVED in favor of useQuery
+    /* const fetchArticles = useCallback(async () => {
+        // ... (removed)
+    }, [getToken, isLoaded, isSignedIn]); */
 
-        // Case 1: Search term is present and long enough (2+ chars)
-        if (trimmedSearch.length >= 2) {
-            const performSearch = async () => {
-                setIsSearching(true);
-                try {
-                    const token = await getToken();
-                    const response = await fetch(`/api/search?q=${encodeURIComponent(trimmedSearch)}&mode=${searchMode}`, {
-                        headers: { 'Authorization': `Bearer ${token}` }
-                    });
-                    if (!response.ok) throw new Error('Search failed');
-                    const searchResults = await response.json();
-                    const resultsArray = (searchResults?.results && Array.isArray(searchResults.results)) ? searchResults.results : [];
-                    setArticles(resultsArray);
-                } catch (error) {
-                    console.error("Failed to perform search:", error);
-                    setArticles([]);
-                } finally {
-                    setIsSearching(false);
-                }
-            };
-            performSearch();
-        }
-        // Case 2: Search term is empty, fetch the default list
-        else if (trimmedSearch.length === 0) {
-            setIsSearching(false);
-            fetchArticles();
-        }
-        // Case 3: Search term is too short (1 char), clear the list
-        else {
-            setIsSearching(false);
-            setArticles([]);
-        }
-    }, [debouncedSearchTerm, searchMode, isLoaded, isSignedIn, getToken, fetchArticles]);
+    // Original useEffect for search/fetch - REMOVED in favor of useQuery
+    /* useEffect(() => {
+       // ... (removed)
+    }, [debouncedSearchTerm, searchMode, isLoaded, isSignedIn, getToken, fetchArticles]); */
 
     const [sortBy, setSortBy] = useState<SortOption>(() => {
         // Load saved sort preference from localStorage, default to 'newest-first'
@@ -143,36 +121,67 @@ const ArticleList = () => {
         }
     };
 
-    const handleDelete = async (articleId: string) => {
-        setDeleteConfirm({ show: true, articleId });
-    };
+    // Use Mutation for Delete
+    const deleteMutation = useMutation({
+        mutationFn: async (articleId: string) => {
+            return handleAction(articleId, '', 'DELETE');
+        },
+        onSuccess: (_, articleId) => {
+            // Option 1: Invalidate and Refetch (Safest)
+            // queryClient.invalidateQueries({ queryKey: ['articles'] });
+
+            // Option 2: Optimistic Update (Faster)
+            queryClient.setQueryData(['articles', debouncedSearchTerm, searchMode], (old: Article[] | undefined) =>
+                old ? old.filter(a => a.id !== articleId) : []
+            );
+        }
+    });
 
     const confirmDelete = async () => {
         if (!deleteConfirm.articleId) return;
-        const success = await handleAction(deleteConfirm.articleId, '', 'DELETE');
-        if (success) setArticles(prev => prev.filter(a => a.id !== deleteConfirm.articleId));
+
+        await deleteMutation.mutateAsync(deleteConfirm.articleId);
+
         setDeleteConfirm({ show: false, articleId: null });
     };
 
-    const handleArchive = async (articleId: string) => {
-        const success = await handleAction(articleId, 'archive');
-        if (success) {
-            setArticles(prev => prev.map(a =>
-                a.id === articleId ? { ...a, isArchived: !a.isArchived } : a
-            ));
+    // Use Mutation for Archive
+    const archiveMutation = useMutation({
+        mutationFn: async (articleId: string) => {
+            return handleAction(articleId, 'archive');
+        },
+        onSuccess: (_, articleId) => {
+            queryClient.setQueryData(['articles', debouncedSearchTerm, searchMode], (old: Article[] | undefined) =>
+                old ? old.map((a: Article) => a.id === articleId ? { ...a, isArchived: !a.isArchived } : a) : []
+            );
         }
+    });
+
+    const handleArchive = async (articleId: string) => {
+        await archiveMutation.mutateAsync(articleId);
     };
+
+    const handleDelete = (articleId: string) => {
+        setDeleteConfirm({ show: true, articleId });
+    };
+
+    // Use Mutation for Bookmark
+    const bookmarkMutation = useMutation({
+        mutationFn: async (articleId: string) => {
+            return handleAction(articleId, 'bookmark');
+        },
+        onSuccess: (_, articleId) => {
+            queryClient.setQueryData(['articles', debouncedSearchTerm, searchMode], (old: Article[] | undefined) =>
+                old ? old.map((a: Article) => a.id === articleId ? { ...a, isBookmarked: !a.isBookmarked } : a) : []
+            );
+        }
+    });
 
     const handleToggleBookmark = async (articleId: string) => {
-        const success = await handleAction(articleId, 'bookmark');
-        if (success) {
-            setArticles(prev => prev.map(a =>
-                a.id === articleId ? { ...a, isBookmarked: !a.isBookmarked } : a
-            ));
-        }
+        await bookmarkMutation.mutateAsync(articleId);
     };
 
-    if (!isLoaded) {
+    if (!isLoaded || isLoading) {
         return <div className="loading-container"><FontAwesomeIcon icon={faSpinner} spin size="3x" /> Loading...</div>;
     }
 
@@ -180,8 +189,7 @@ const ArticleList = () => {
         return <div>Please sign in to see your articles.</div>;
     }
 
-    const validArticles = Array.isArray(articles) ? articles : [];
-    const sortedArticles = sortArticles(validArticles, sortBy);
+    const sortedArticles = sortArticles(articles, sortBy);
 
     const handleSortChange = (newSortBy: SortOption) => {
         setSortBy(newSortBy);
@@ -193,14 +201,18 @@ const ArticleList = () => {
         setIsSortDropdownOpen(!isSortDropdownOpen);
     };
 
+    const handleArticleAdded = () => {
+        queryClient.invalidateQueries({ queryKey: ['articles'] });
+    };
+
     return (
         <div className="article-list-container">
-            <AddArticleForm onArticleAdded={fetchArticles} />
+            <AddArticleForm onArticleAdded={handleArticleAdded} />
             <div className="list-header">
                 <div className="header-left">
                     <h2 className="list-title">My List</h2>
                     {hasProAccess(isPro) && <span className="premium-badge">Pro Search Enabled <FontAwesomeIcon icon={faGem} className="premium-icon" /></span>}
-                    {isSearching && <><FontAwesomeIcon icon={faSpinner} spin /> Searching...</>}
+                    {isLoading && <><FontAwesomeIcon icon={faSpinner} spin /> Loading...</>}
                 </div>
                 <div className="header-right">
                     <SortDropdown

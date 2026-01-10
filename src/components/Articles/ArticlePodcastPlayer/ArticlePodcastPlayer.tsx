@@ -1,5 +1,6 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useAuth } from '@clerk/clerk-react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlay, faPause, faSpinner, faPodcast, faCog, faRotateLeft, faRotateRight, faRedo } from '@fortawesome/free-solid-svg-icons';
 import { useUserStatus } from '../../../hooks/useUserStatus';
@@ -33,16 +34,17 @@ const ArticlePodcastPlayer: React.FC<ArticlePodcastPlayerProps> = ({
     const { getToken } = useAuth();
     const { isPro } = useUserStatus();
     const audioRef = useRef<HTMLAudioElement>(null);
+    const queryClient = useQueryClient();
 
     // Audio state
-    const [isLoading, setIsLoading] = useState(true); // Start with loading true
-    const [isGenerating, setIsGenerating] = useState(false); // Track active generation
+    // Replaced manual loading/generating state with React Query status
     const [isPlaying, setIsPlaying] = useState(false);
-    const [error, setError] = useState<string | null>(null);
-    const [audioUrl, setAudioUrl] = useState<string | null>(null);
     const [currentTime, setCurrentTime] = useState(0);
     const [duration, setDuration] = useState(0);
     const [hasEnded, setHasEnded] = useState(false);
+
+    // Simple local error state (separate from query error)
+    const [localError, setLocalError] = useState<string | null>(null);
 
     // Podcast settings - Simplified for fixed backend voices
     const [showSettings, setShowSettings] = useState(false);
@@ -50,11 +52,53 @@ const ArticlePodcastPlayer: React.FC<ArticlePodcastPlayerProps> = ({
     const [podcastDuration, setPodcastDuration] = useState<'short' | 'medium' | 'long'>('medium');
     const [selectedVoicePair, setSelectedVoicePair] = useState<string>('zephyr-charon');
     const [speed, setSpeed] = useState(1.0);
-    const [isPolling, setIsPolling] = useState(false);
     const [showWaveform, setShowWaveform] = useState(() => {
         const saved = localStorage.getItem('laterleaf_show_waveform');
         return saved !== null ? JSON.parse(saved) : true;
     });
+
+    // --- QUERY: Get Podcast Status ---
+    const {
+        data: podcastStatus,
+        isLoading: isQueryLoading,
+        error: queryError
+    } = useQuery({
+        queryKey: ['podcast', articleId],
+        queryFn: async () => {
+            console.log(`🎙️ Checking podcast status for article ${articleId}`);
+            const token = await getToken();
+            const response = await fetch(`/api/articles/${articleId}/podcast-status`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (!response.ok) throw new Error('Failed to fetch status');
+            return response.json();
+        },
+        // Poll every 5s ONLY if status is 'pending'
+        refetchInterval: (query) => {
+            const status = query.state.data;
+            if (status?.status === 'pending') return 5000;
+            return false;
+        }
+    });
+
+    // Derived State from Query
+    const audioUrl = podcastStatus?.audioUrl || null;
+    const isGenerating = podcastStatus?.status === 'pending';
+    const isLoading = isQueryLoading || isGenerating;
+    const error = localError || (queryError ? (queryError as Error).message : null);
+
+    // Effect: Handle audio URL updates
+    useEffect(() => {
+        if (podcastStatus?.audioUrl && audioRef.current && !isPlaying && !hasEnded) {
+            // Only set src if it changed or if we are just loading it
+            if (audioRef.current.src !== podcastStatus.audioUrl) {
+                console.log(`🎵 Found existing audio URL: ${podcastStatus.audioUrl}`);
+                audioRef.current.src = podcastStatus.audioUrl;
+                // audioRef.current.load(); // Browser usually auto-loads metadata
+            }
+        }
+    }, [podcastStatus?.audioUrl]);
+
 
     // Check supported languages
     // Allowlist approach is safer than blocklist
@@ -66,7 +110,7 @@ const ArticlePodcastPlayer: React.FC<ArticlePodcastPlayerProps> = ({
     // Explicitly check if the selected language is in our supported list
     const isLanguageSupported = !selectedLanguage || supportedLanguageCodes.includes(selectedLanguage);
 
-    console.log(`🎙️ Podcast Player Language Check:`, { selectedLanguage, isLanguageSupported });
+    // console.log(`🎙️ Podcast Player Language Check:`, { selectedLanguage, isLanguageSupported });
 
     // Sync with global settings
     useEffect(() => {
@@ -118,145 +162,6 @@ const ArticlePodcastPlayer: React.FC<ArticlePodcastPlayerProps> = ({
         }
     ];
 
-    // Check for existing podcast on component mount
-    const checkPodcastStatus = useCallback(async () => {
-        console.log(`🎙️ Checking podcast status for article ${articleId}`);
-        setIsLoading(true); // Set loading true at the start of the check
-        try {
-            const token = await getToken();
-            const response = await fetch(`/api/articles/${articleId}/podcast-status`, {
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                },
-            });
-
-            console.log(`📊 Podcast status response:`, response.status, response.ok);
-
-            if (response.ok) {
-                const status = await response.json();
-                console.log(`📋 Podcast status data:`, status);
-
-                // --- STRICT LANGUAGE MATCHING ---
-                // We must ensure the loaded audio matches the user's current view language.
-                // 1. Determine "Expected Name" (e.g., "Spanish", "English")
-                const expectedLanguageName: string | undefined = LANGUAGES.find(l => l.code === selectedLanguage)?.name;
-
-                // 2. Normalize "Stored Name" (Backend defaults to 'en', but frontend needs 'English')
-                let storedAudioLanguage = status.audioLanguage;
-                if (storedAudioLanguage === 'en') storedAudioLanguage = 'English';
-
-                console.log(`🔍 Lang Check: Mode='${selectedLanguage}' | Expected='${expectedLanguageName}' | Stored='${storedAudioLanguage}'`);
-
-                let isMismatch = false;
-
-                if (!selectedLanguage || selectedLanguage === 'original') {
-                    // "Original" Mode: We trust the stored audio matches the article's source language.
-                    // We DO NOT force 'English' here, because the original article might be Spanish.
-                    // This allows Spanish Audio to play when viewing "Original" (Spanish).
-                    // Side effect: If you generated English audio (via translation) and revert to Original (Spanish),
-                    // the player will still show. This is acceptable/safer than hiding valid original audio.
-                    isMismatch = false;
-                } else if (storedAudioLanguage) {
-                    // Translated Mode (e.g. 'es'): Stored MUST match 'Spanish'
-                    if (expectedLanguageName && storedAudioLanguage !== expectedLanguageName) {
-                        isMismatch = true;
-                    }
-                } else {
-                    // Legacy/Undefined audio (assumed English).
-                    // If user wants 'Spanish', but we have undefined (Old English) audio -> Mismatch.
-                    if (expectedLanguageName && expectedLanguageName !== 'English') {
-                        isMismatch = true;
-                    }
-                }
-
-                if (isMismatch) {
-                    console.log(`⚠️ Language mismatch detected. Hiding player.`);
-                    setAudioUrl(null);
-                    setIsPlaying(false);
-                    // Reset internal state so UI shows "Generate"
-                } else if (status.hasAudio && status.audioUrl) {
-                    console.log(`🎵 Found existing audio URL: ${status.audioUrl}`);
-                    setAudioUrl(status.audioUrl);
-
-                    // Set up audio element
-                    if (audioRef.current) {
-                        audioRef.current.src = status.audioUrl;
-                        audioRef.current.load();
-                        console.log(`🔊 Audio element configured with URL`);
-                    }
-                } else if (status.status === 'pending') {
-                    console.log(`⏳ Podcast is currently generating...`);
-                    setIsPolling(true);
-                    setIsGenerating(true);
-                    setIsLoading(true);
-                } else {
-                    console.log(`❌ No audio found for this article`);
-                    setAudioUrl(null); // Explicitly set to null if no audio
-                }
-            } else {
-                console.warn(`⚠️ Failed to check podcast status:`, response.status);
-                setAudioUrl(null);
-            }
-        } catch (error) {
-            console.error('❌ Error checking podcast status:', error);
-            setAudioUrl(null);
-        } finally {
-            setIsLoading(false); // Set loading false at the end
-        }
-    }, [articleId, getToken]);
-
-    useEffect(() => {
-        checkPodcastStatus();
-    }, [checkPodcastStatus]);
-
-    // Poll for podcast completion
-    useEffect(() => {
-        let pollInterval: NodeJS.Timeout;
-
-        if (isPolling && articleId) {
-            const poll = async () => {
-                try {
-                    const token = await getToken();
-                    const response = await fetch(`/api/articles/${articleId}/podcast-status`, {
-                        headers: { 'Authorization': `Bearer ${token}` }
-                    });
-
-                    if (response.ok) {
-                        const status = await response.json();
-
-                        // Check for completion
-                        if (status.hasAudio && status.audioUrl) {
-                            console.log(`✅ Podcast generation complete: ${status.audioUrl}`);
-                            setAudioUrl(status.audioUrl);
-                            setIsPolling(false);
-                            setIsGenerating(false);
-                            setIsLoading(false);
-
-                            if (audioRef.current) {
-                                audioRef.current.src = status.audioUrl;
-                                audioRef.current.load();
-                            }
-                        }
-                        // Check for failure
-                        else if (status.status === 'failed') {
-                            console.error('❌ Podcast generation failed on server');
-                            setError('Podcast generation failed. Please try again.');
-                            setIsPolling(false);
-                            setIsGenerating(false);
-                            setIsLoading(false);
-                        }
-                    }
-                } catch (err) {
-                    console.error('Error polling podcast status:', err);
-                }
-            };
-
-            // Poll every 5 seconds
-            pollInterval = setInterval(poll, 5000);
-            return () => clearInterval(pollInterval);
-        }
-    }, [isPolling, articleId, getToken]);
-
     // Audio event handlers
     useEffect(() => {
         const audio = audioRef.current;
@@ -275,7 +180,7 @@ const ArticlePodcastPlayer: React.FC<ArticlePodcastPlayerProps> = ({
             setHasEnded(true);
         };
         const handleError = () => {
-            setError('Audio playback failed');
+            setLocalError('Audio playback failed');
             setIsPlaying(false);
         };
 
@@ -292,14 +197,88 @@ const ArticlePodcastPlayer: React.FC<ArticlePodcastPlayerProps> = ({
         };
     }, [audioUrl]);
 
-    // Cleanup audio URL on unmount
-    useEffect(() => {
-        return () => {
-            if (audioUrl) {
-                URL.revokeObjectURL(audioUrl);
+    // --- MUTATION: Generate Podcast ---
+    const generateMutation = useMutation({
+        mutationFn: async (params: { force: boolean, duration: string, voices: string, language?: string, style?: string }) => {
+            const token = await getToken();
+            const queryParams = new URLSearchParams();
+            if (params.duration) queryParams.append('duration', params.duration);
+            if (params.voices) {
+                queryParams.append('voices', params.voices);
+                queryParams.append('personaId', params.voices);
             }
-        };
-    }, [audioUrl]);
+            if (params.style) queryParams.append('style', params.style);
+            if (params.language) queryParams.append('language', params.language);
+            if (params.force) queryParams.append('force', 'true');
+
+            const url = `/api/articles/${articleId}/podcast-audio?${queryParams.toString()}`;
+            console.log(`🌐 generating podcast via: ${url}`);
+
+            const response = await fetch(url, {
+                method: 'GET',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+
+            if (!response.ok) {
+                if (response.status === 402) {
+                    throw new Error('Podcast generation requires a Pro subscription.');
+                }
+                const errText = await response.text();
+                throw new Error(errText || 'Generation failed');
+            }
+            return response.json();
+        },
+        onSuccess: (data) => {
+            console.log(`✅ Generation request successful`, data);
+            queryClient.invalidateQueries({ queryKey: ['podcast', articleId] });
+            if (data.audioUrl && data.audioUrl !== 'processing') {
+                // If we got a URL immediately
+                if (audioRef.current) {
+                    audioRef.current.src = data.audioUrl;
+                }
+            }
+        },
+        onError: (err: Error) => {
+            console.error('❌ Generation error:', err);
+            setLocalError(err.message);
+        }
+    });
+
+    // --- MUTATION: Delete Podcast ---
+    const deleteMutation = useMutation({
+        mutationFn: async () => {
+            const token = await getToken();
+            const response = await fetch(`/api/articles/${articleId}/podcast-audio`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (!response.ok) throw new Error('Failed to delete podcast');
+
+            // Handle 204 No Content or empty bodies gracefully
+            if (response.status === 204) return {};
+            const text = await response.text();
+            return text ? JSON.parse(text) : {};
+        },
+        onSuccess: () => {
+            console.log(`✅ Podcast deleted successfully`);
+            queryClient.setQueryData(['podcast', articleId], null);
+            queryClient.invalidateQueries({ queryKey: ['podcast', articleId] });
+
+            // Reset local player state
+            if (audioRef.current) {
+                audioRef.current.src = '';
+                audioRef.current.load();
+            }
+            setHasEnded(false);
+            setIsPlaying(false);
+            setCurrentTime(0);
+            setDuration(0);
+            setShowDeleteConfirm(false);
+        },
+        onError: (err: Error) => {
+            setLocalError(err.message);
+        }
+    });
 
     const getStyleForVoicePair = (pairId: string): 'casual' | 'professional' | 'educational' => {
         switch (pairId) {
@@ -316,164 +295,46 @@ const ArticlePodcastPlayer: React.FC<ArticlePodcastPlayerProps> = ({
     };
 
     const generatePodcast = async (forceRegenerate = false) => {
-        console.log(`🎙️ generatePodcast started for article ${articleId}, force: ${forceRegenerate}`);
-        console.log(`👤 Pro status: ${isPro}`);
-
-        // Check Pro status first
+        setLocalError(null);
         if (!isPro) {
-            const errorMsg = 'Podcast generation is a Pro-only feature. Please upgrade to access multi-speaker audio generation.';
-            console.warn(`⚠️ ${errorMsg}`);
-            setError(errorMsg);
-            alert(errorMsg); // Add alert to make the error more visible
+            alert('Podcast generation is a Pro-only feature.');
             return;
         }
 
-        setIsLoading(true);
-        setIsGenerating(true);
-        setError(null);
-        console.log(`⏳ Starting podcast generation...`);
+        const langName = (selectedLanguage && selectedLanguage !== 'original')
+            ? LANGUAGES.find(l => l.code === selectedLanguage)?.name
+            : undefined;
 
-        try {
-            const token = await getToken();
-            console.log(`🔑 Got auth token`);
-
-            // Build query parameters - include voice selection
-            const params = new URLSearchParams();
-            if (podcastDuration) params.append('duration', podcastDuration);
-
-            if (selectedVoicePair) {
-                params.append('voices', selectedVoicePair);
-                params.append('personaId', selectedVoicePair);
-
-                // Derive style from voice pair
-                const derivedStyle = getStyleForVoicePair(selectedVoicePair);
-                params.append('style', derivedStyle);
-            }
-
-            // Add language parameter if selected
-            if (selectedLanguage && selectedLanguage !== 'original') {
-                const langName = LANGUAGES.find(l => l.code === selectedLanguage)?.name;
-                if (langName) {
-                    params.append('language', langName);
-                }
-            }
-
-            if (forceRegenerate) params.append('force', 'true'); // Add force parameter
-
-            const queryString = params.toString();
-            const url = `/api/articles/${articleId}/podcast-audio${queryString ? `?${queryString}` : ''}`;
-
-            console.log(`🌐 Making request to: ${url}`);
-
-            const response = await fetch(url, {
-                method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                },
-            });
-
-            console.log(`📡 Response status: ${response.status}, ok: ${response.ok}`);
-
-            if (!response.ok) {
-                const errorText = await response.text();
-                console.error(`❌ Request failed:`, errorText);
-                if (response.status === 402) {
-                    throw new Error('Podcast generation requires a Pro subscription. Please upgrade to access this feature.');
-                }
-                throw new Error(`Podcast generation failed: ${errorText}`);
-            }
-
-            // The response will now be JSON with the public URL
-            const responseText = await response.text();
-            console.log(`📄 Raw response body:`, responseText);
-
-            let result;
-            try {
-                result = JSON.parse(responseText);
-            } catch (parseError) {
-                console.error(`❌ JSON parse error:`, parseError);
-                throw new Error(`Invalid JSON response: ${responseText.substring(0, 200)}`);
-            }
-
-            const newAudioUrl = result.audioUrl;
-
-            // Handle queued status
-            if (newAudioUrl === 'processing') {
-                console.log('⏳ Podcast generation queued, starting polling...');
-                setIsGenerating(true);
-                setIsPolling(true);
-                return;
-            }
-
-            if (!newAudioUrl) {
-                console.error(`❌ Result object:`, result);
-                throw new Error('Server did not return an audio URL.');
-            }
-
-            console.log(`🔗 Received public audio URL: ${newAudioUrl}`);
-
-            // Clean up previous blob URL if it exists
-            if (audioUrl && audioUrl.startsWith('blob:')) {
-                URL.revokeObjectURL(audioUrl);
-            }
-
-            setAudioUrl(newAudioUrl);
-
-            // Set audio source and load
-            if (audioRef.current) {
-                console.log(`🔊 Setting audio src to public URL`);
-                audioRef.current.src = newAudioUrl;
-                audioRef.current.load();
-            }
-
-            // Force loading state off after audio is set
-            setIsLoading(false);
-            setIsGenerating(false);
-
-            console.log(`✅ Podcast generation completed successfully`);
-
-        } catch (error) {
-            console.error('❌ Podcast generation error:', error);
-            setError(error instanceof Error ? error.message : 'Failed to generate podcast');
-            setIsLoading(false);
-            setIsGenerating(false);
-        }
+        generateMutation.mutate({
+            force: forceRegenerate,
+            duration: podcastDuration,
+            voices: selectedVoicePair,
+            style: getStyleForVoicePair(selectedVoicePair),
+            language: langName
+        });
     };
 
     const togglePlayback = async () => {
-        console.log(`🎵 togglePlayback called - audioUrl: ${audioUrl}, isPlaying: ${isPlaying}`);
-
         const audio = audioRef.current;
         if (!audio || !audioUrl) {
-            console.error('❌ No audio element or URL available', { audio: !!audio, audioUrl });
-            setError('No audio available for playback');
+            setLocalError('No audio available for playback');
             return;
         }
 
-        console.log(`🔊 Audio element state:`, {
-            src: audio.src,
-            readyState: audio.readyState,
-            currentTime: audio.currentTime,
-            duration: audio.duration
-        });
-
         if (isPlaying) {
-            console.log(`⏸️ Pausing audio`);
             audio.pause();
             setIsPlaying(false);
         } else {
             try {
-                console.log(`▶️ Attempting to play audio`);
                 if (hasEnded) {
                     audio.currentTime = 0;
                     setHasEnded(false);
                 }
                 await audio.play();
                 setIsPlaying(true);
-                console.log(`✅ Audio playback started successfully`);
             } catch (err) {
-                console.error('❌ Playback error:', err);
-                setError('Audio playback failed');
+                console.error('Playback error:', err);
+                setLocalError('Audio playback failed');
                 setIsPlaying(false);
             }
         }
@@ -482,7 +343,6 @@ const ArticlePodcastPlayer: React.FC<ArticlePodcastPlayerProps> = ({
     const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
         const audio = audioRef.current;
         if (!audio) return;
-
         const newTime = parseFloat(e.target.value);
         audio.currentTime = newTime;
         setCurrentTime(newTime);
@@ -490,46 +350,8 @@ const ArticlePodcastPlayer: React.FC<ArticlePodcastPlayerProps> = ({
         setHasEnded(false);
     };
 
-    const deletePodcast = async () => {
-        setIsLoading(true);
-        setError(null);
-        console.log(`🗑️ Deleting podcast for article ${articleId}`);
-
-        try {
-            const token = await getToken();
-            const response = await fetch(`/api/articles/${articleId}/podcast-audio`, {
-                method: 'DELETE',
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
-
-            if (!response.ok) {
-                const errorText = await response.text();
-                throw new Error(`Failed to delete podcast: ${errorText}`);
-            }
-
-            console.log(`✅ Podcast deleted successfully`);
-
-            // Clear local state
-            setAudioUrl(null);
-            setIsPlaying(false);
-            setCurrentTime(0);
-            setDuration(0);
-            setShowDeleteConfirm(false);
-
-            // Clear audio element
-            if (audioRef.current) {
-                audioRef.current.src = '';
-                audioRef.current.load();
-            }
-
-        } catch (err) {
-            console.error('Delete failed:', err);
-            setError(err instanceof Error ? err.message : 'Failed to delete podcast');
-        } finally {
-            setIsLoading(false);
-        }
+    const deletePodcast = () => {
+        deleteMutation.mutate();
     };
 
     const skipForward = () => {

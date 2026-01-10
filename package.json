@@ -16,6 +16,7 @@
     "@fortawesome/free-solid-svg-icons": "^7.0.0",
     "@fortawesome/react-fontawesome": "^0.2.3",
     "@revenuecat/purchases-js": "^1.14.0",
+    "@tanstack/react-query": "^5.90.16",
     "emoji-picker-react": "^4.13.2",
     "motion": "^12.23.12",
     "posthog-js": "^1.260.1",

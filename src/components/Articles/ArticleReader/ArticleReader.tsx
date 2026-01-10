@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from "@clerk/clerk-react";
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'motion/react';
 import ReactMarkdown from 'react-markdown';
 import type { Article } from '../../../interfaces/article';
@@ -24,9 +25,49 @@ const ArticleReader = () => {
     const { isPro } = useUserStatus();
     const { credits, fetchCredits } = useUserCredits();
     const navigate = useNavigate();
-    const [article, setArticle] = useState<Article | null>(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
+    const queryClient = useQueryClient();
+
+    // Replaced manual fetch with TanStack Query
+    const { data: article, isLoading: loading, error: queryError } = useQuery({
+        queryKey: ['article', articleId],
+        queryFn: async () => {
+            if (!articleId) return null;
+            const token = await getToken();
+            const response = await fetch(`/api/articles/${articleId}`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (!response.ok) throw new Error('Failed to fetch article');
+            const data = await response.json();
+            
+            // Sync summary status with local metadata if needed
+            if (data.summaryStatus === 'pending') {
+                setSummaryMetadata(prev => ({ ...prev, status: 'pending' }));
+                setShowSummary(true);
+            }
+            return data as Article;
+        },
+        enabled: !!articleId,
+        refetchInterval: (query) => {
+            // Poll if summary is pending
+            return query.state.data?.summaryStatus === 'pending' ? 1000 : false;
+        }
+    });
+
+    const [localError, setLocalError] = useState<string | null>(null);
+    const error = localError || (queryError ? (queryError as Error).message : null);
+    const setError = setLocalError;
+
+    // Helper to maintain compatibility with existing handlers that use setArticle
+    // This updates the TanStack Query cache directly
+    const setArticle = (updaterOrValue: Article | null | undefined | ((prev: Article | null | undefined) => Article | null | undefined)) => {
+        queryClient.setQueryData(['article', articleId], (old: Article | null | undefined) => {
+             const newVal = typeof updaterOrValue === 'function'
+                ? (updaterOrValue as (prev: Article | null | undefined) => Article | null | undefined)(old)
+                : updaterOrValue;
+             return newVal === undefined ? old : newVal;
+        });
+    };
+
     const [isGeneratingSummary, setIsGeneratingSummary] = useState(false);
     const [showSummary, setShowSummary] = useState(false);
     const [isBookmarkAnimating, setIsBookmarkAnimating] = useState(false);
@@ -436,86 +477,6 @@ const ArticleReader = () => {
         setChatMessages([]);
     };
 
-    useEffect(() => {
-        const fetchArticle = async () => {
-            if (!articleId) return;
-
-            try {
-                setLoading(true);
-                const token = await getToken();
-                const response = await fetch(`/api/articles/${articleId}`, {
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
-                });
-
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-
-                const data: Article = await response.json();
-                setArticle(data);
-
-                // Initialize summary metadata if pending
-                if (data.summaryStatus === 'pending') {
-                    setSummaryMetadata({ status: 'pending' });
-                    setShowSummary(true);
-                }
-            } catch (err) {
-                setError(err instanceof Error ? err.message : 'An unknown error occurred');
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchArticle();
-    }, [articleId, getToken]);
-
-    // Poll for summary updates if status is pending
-    useEffect(() => {
-        let pollInterval: NodeJS.Timeout;
-
-        if (summaryMetadata.status === 'pending' && articleId) {
-            const poll = async () => {
-                try {
-                    const token = await getToken();
-                    // Add timestamp to prevent caching of the polling request
-                    const response = await fetch(`/api/articles/${articleId}?t=${Date.now()}`, {
-                        headers: {
-                            'Authorization': `Bearer ${token}`
-                        }
-                    });
-
-                    if (response.ok) {
-                        const data = await response.json();
-                        // Check if summary is no longer pending
-                        if (data.summaryStatus === 'completed' || data.summaryStatus === 'failed') {
-                            setArticle(prev => prev ? { ...prev, summary: data.summary, summaryStatus: data.summaryStatus } : null);
-                            setSummaryMetadata(prev => ({ ...prev, status: data.summaryStatus === 'completed' ? 'completed' : 'pending' })); // Keep pending if failed? No, should handle failed.
-                        }
-
-                        if (data.summaryStatus === 'completed') {
-                            setSummaryMetadata(prev => ({ ...prev, status: 'completed' }));
-                        }
-                    }
-                } catch (err) {
-                    console.error('Error polling for summary:', err);
-                }
-            };
-
-            // Initial poll after 1 second
-            const initialTimeout = setTimeout(poll, 1000);
-
-            // Then poll every 1 second for snappy updates
-            pollInterval = setInterval(poll, 1000);
-
-            return () => {
-                clearTimeout(initialTimeout);
-                clearInterval(pollInterval);
-            };
-        }
-    }, [summaryMetadata.status, articleId, getToken]);
-
     if (loading) {
         return <div>Loading article...</div>;
     }
@@ -561,7 +522,7 @@ const ArticleReader = () => {
                     <FontAwesomeIcon icon={faStarHalfStroke} />
                     <span>
                         {isGeneratingSummary ? 'Generating...' :
-                            article.summary ? (showSummary ? 'Hide Summary' : 'Show Summary') :
+                            (article.summary || article.summaryStatus === 'pending') ? (showSummary ? 'Hide Summary' : 'Show Summary') :
                                 'Summarize'}
                     </span>
                 </button>
@@ -722,7 +683,7 @@ const ArticleReader = () => {
 
             {/* AI Summary Panel */}
             <AnimatePresence>
-                {showSummary && article.summary && (
+                {showSummary && (article.summary || article.summaryStatus === 'pending') && (
                     <motion.div
                         className="ai-summary-panel"
                         initial={{ opacity: 0, height: 0, marginBottom: 0 }}
@@ -736,12 +697,12 @@ const ArticleReader = () => {
                                 <div className="summary-subtitle">
                                     <small>Generated by AI • Not editorial judgment</small>
                                     {/* Status indicators */}
-                                    {summaryMetadata.status === 'pending' && (
+                                    {article.summaryStatus === 'pending' && (
                                         <span className="status-badge pending">
                                             ⏳ Processing in background
                                         </span>
                                     )}
-                                    {summaryMetadata.fallbackUsed && summaryMetadata.status === 'completed' && (
+                                    {summaryMetadata.fallbackUsed && article.summaryStatus === 'completed' && (
                                         <span className="status-badge fallback" title="Primary AI model was busy, used backup model">
                                             🔄 Backup model used
                                         </span>
@@ -823,7 +784,7 @@ const ArticleReader = () => {
                         </div>
                         <div className="summary-content">
                             {/* Show pending message if status is pending */}
-                            {summaryMetadata.status === 'pending' ? (
+                            {article.summaryStatus === 'pending' ? (
                                 <div className="pending-summary">
                                     <div className="pending-animation">
                                         <div className="spinner"></div>

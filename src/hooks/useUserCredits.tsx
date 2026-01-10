@@ -1,16 +1,16 @@
-import { useState } from 'react';
 import { useAuth } from '@clerk/clerk-react';
+import { useQuery } from '@tanstack/react-query';
 
 interface UserCredits {
-    basicCreditsUsed: number;
-    basicCreditsLimit: number;
-    basicCreditsRemaining: number;
-    proCreditsUsed: number;
-    proCreditsLimit: number;
-    proCreditsRemaining: number;
-    resetAt: string;
-    daysUntilReset: number;
-    needsReset: boolean;
+  basicCreditsUsed: number;
+  basicCreditsLimit: number;
+  basicCreditsRemaining: number;
+  proCreditsUsed: number;
+  proCreditsLimit: number;
+  proCreditsRemaining: number;
+  resetAt: string;
+  daysUntilReset: number;
+  needsReset: boolean;
 }
 
 /**
@@ -19,18 +19,16 @@ interface UserCredits {
  */
 export const useUserCredits = () => {
   const { getToken, isLoaded, isSignedIn } = useAuth();
-  const [credits, setCredits] = useState<UserCredits | null>(null);
-  const [isPro, setIsPro] = useState(false); // Add state for pro status
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
-  const fetchCredits = async () => {
-    if (!isLoaded || !isSignedIn) return;
-
-    try {
-      setLoading(true);
-      setError(null);
-
+  const {
+    data,
+    isLoading: loading,
+    error: queryError,
+    refetch,
+  } = useQuery({
+    queryKey: ['user', 'credits'],
+    enabled: isLoaded && isSignedIn,
+    queryFn: async () => {
       const token = await getToken();
       const response = await fetch('/api/users/me', {
         headers: {
@@ -42,26 +40,20 @@ export const useUserCredits = () => {
         throw new Error('Failed to fetch user credits');
       }
 
-      const data = await response.json();
-      setCredits(data.credits);
-      setIsPro(data.hasProAccess); // Set pro status from the response
-    } catch (err) {
-      setError(
-        err instanceof Error ? err.message : 'Unknown error occurred',
-      );
-      console.error('Error fetching user credits:', err);
-      setIsPro(false); // Default to false on error
-    } finally {
-      setLoading(false);
-    }
-  };
+      return response.json();
+    },
+  });
+
+  const credits: UserCredits | null = data?.credits || null;
+  const isPro: boolean = data?.hasProAccess || false;
+  const error: string | null = queryError instanceof Error ? queryError.message : queryError ? 'Unknown error occurred' : null;
 
   return {
     credits,
-    isPro, // Return the pro status
+    isPro,
     loading,
     error,
-    fetchCredits,
-    refetch: fetchCredits,
+    fetchCredits: refetch,
+    refetch,
   };
 };
