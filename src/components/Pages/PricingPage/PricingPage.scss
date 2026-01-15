@@ -113,15 +113,18 @@
         top: -15px;
         left: 50%;
         transform: translateX(-50%);
-        background-color: var(--primary-color);
+        background: linear-gradient(135deg, var(--primary-color) 0%, #9333ea 100%);
         color: white;
         padding: 0.5rem 1rem;
         border-radius: 20px;
         font-size: 0.9rem;
-        font-weight: 600;
+        font-weight: 700;
         display: flex;
         align-items: center;
         gap: 0.5rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        box-shadow: 0 4px 10px rgba(var(--primary-color-rgb), 0.3);
     }
 }
 

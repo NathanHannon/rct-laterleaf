@@ -38,7 +38,7 @@ const ArticleReader = () => {
             });
             if (!response.ok) throw new Error('Failed to fetch article');
             const data = await response.json();
-            
+
             // Sync summary status with local metadata if needed
             if (data.summaryStatus === 'pending') {
                 setSummaryMetadata(prev => ({ ...prev, status: 'pending' }));
@@ -61,10 +61,10 @@ const ArticleReader = () => {
     // This updates the TanStack Query cache directly
     const setArticle = (updaterOrValue: Article | null | undefined | ((prev: Article | null | undefined) => Article | null | undefined)) => {
         queryClient.setQueryData(['article', articleId], (old: Article | null | undefined) => {
-             const newVal = typeof updaterOrValue === 'function'
+            const newVal = typeof updaterOrValue === 'function'
                 ? (updaterOrValue as (prev: Article | null | undefined) => Article | null | undefined)(old)
                 : updaterOrValue;
-             return newVal === undefined ? old : newVal;
+            return newVal === undefined ? old : newVal;
         });
     };
 
@@ -871,7 +871,7 @@ const ArticleReader = () => {
                             title={article.title || 'Article Audio'}
                             className="article-podcast-player"
                             onClose={() => setShowPodcastPlayer(false)}
-                            // selectedLanguage={currentLanguage}
+                        // selectedLanguage={currentLanguage}
                         />
                     </motion.div>
                 )}
