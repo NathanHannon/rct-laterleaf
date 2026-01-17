@@ -61,13 +61,11 @@ const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(({ isOpen, onClose }, r
                             </button>
                         )}
                     </div>
-                    {/* Only show search mode toggle if user is signed in and pro */}
+                    {/* Show search mode toggle for everyone since semantic search is free */}
                     <SignedIn>
-                        {userHasProAccess && (
-                            <div className="search-mode-container">
-                                <SearchModeToggle />
-                            </div>
-                        )}
+                        <div className="search-mode-container">
+                            <SearchModeToggle />
+                        </div>
                     </SignedIn>
                 </div>
 

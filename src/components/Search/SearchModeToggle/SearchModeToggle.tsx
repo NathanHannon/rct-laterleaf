@@ -9,7 +9,7 @@ const SearchModeToggle = () => {
             <button
                 className={`toggle-option ${searchMode === 'semantic' ? 'active' : ''}`}
                 onClick={() => setSearchMode('semantic')}
-                title="Concept Search: Understands the meaning and context behind your query. (Pro feature)"
+                title="Concept Search: Understands the meaning and context behind your query."
             >
                 Concept Search
             </button>
