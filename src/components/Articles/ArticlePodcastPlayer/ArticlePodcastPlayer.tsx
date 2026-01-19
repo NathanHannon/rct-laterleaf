@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useAuth } from '@clerk/clerk-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPlay, faPause, faSpinner, faPodcast, faCog, faRotateLeft, faRotateRight, faRedo } from '@fortawesome/free-solid-svg-icons';
+import { faPlay, faPause, faSpinner, faPodcast, faCog, faRotateLeft, faRotateRight, faRedo, faDownload } from '@fortawesome/free-solid-svg-icons';
 import { useUserStatus } from '../../../hooks/useUserStatus';
 import ConfirmationDialog from '../../Common/ConfirmationDialog/ConfirmationDialog';
 import WaveformAnimation from '../../Common/WaveformAnimation/WaveformAnimation';
@@ -86,6 +86,44 @@ const ArticlePodcastPlayer: React.FC<ArticlePodcastPlayerProps> = ({
     const isGenerating = podcastStatus?.status === 'pending';
     const isLoading = isQueryLoading || isGenerating;
     const error = localError || (queryError ? (queryError as Error).message : null);
+
+    const handleDownload = async () => {
+        if (!audioUrl) return;
+
+        try {
+            const token = await getToken();
+
+            // Determine extension from URL (or default to mp3)
+            const urlExt = audioUrl.split('.').pop()?.split('?')[0]?.toLowerCase();
+            const extension = (urlExt && ['mp3', 'wav', 'm4a', 'aac', 'ogg'].includes(urlExt)) ? urlExt : 'mp3';
+
+            // Use the Backend Proxy Endpoint
+            const response = await fetch(`/api/articles/${articleId}/podcast-download`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (!response.ok) throw new Error('Download failed');
+
+            const blob = await response.blob();
+            const blobUrl = window.URL.createObjectURL(blob);
+
+            const link = document.createElement('a');
+            link.href = blobUrl;
+            link.download = `${title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_overview.${extension}`;
+            document.body.appendChild(link);
+            link.click();
+
+            // Cleanup
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(blobUrl);
+        } catch (err) {
+            console.error('Download failed:', err);
+            // Last resort fallback
+            if (audioUrl) window.open(audioUrl, '_blank');
+        }
+    };
 
     // Effect: Handle audio URL updates
     useEffect(() => {
@@ -406,6 +444,15 @@ const ArticlePodcastPlayer: React.FC<ArticlePodcastPlayerProps> = ({
                     </h4>
                     <p>Podcast-style conversation about: "{title}"</p>
                 </div>
+                {audioUrl && (
+                    <button
+                        onClick={handleDownload}
+                        className="download-button"
+                        title="Download Audio"
+                    >
+                        <FontAwesomeIcon icon={faDownload} />
+                    </button>
+                )}
                 <button
                     onClick={() => setShowSettings(!showSettings)}
                     className="settings-toggle"
