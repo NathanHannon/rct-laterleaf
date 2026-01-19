@@ -123,6 +123,10 @@ const Settings = () => {
                         <span>Reader Mode</span>
                     </div>
                     <div className="feature-item">
+                        <FontAwesomeIcon icon={faCheckCircle} className="text-success" />
+                        <span>Advanced Semantic Search</span>
+                    </div>
+                    <div className="feature-item">
                         <FontAwesomeIcon icon={isPro ? faCheckCircle : faTimesCircle} className={isPro ? "text-success" : "text-muted"} />
                         <span>Unlimited AI Summaries</span>
                         <span className="pro-badge">Pro</span>
@@ -130,11 +134,6 @@ const Settings = () => {
                     <div className="feature-item">
                         <FontAwesomeIcon icon={isPro ? faCheckCircle : faTimesCircle} className={isPro ? "text-success" : "text-muted"} />
                         <span>AI Podcast Generation</span>
-                        <span className="pro-badge">Pro</span>
-                    </div>
-                    <div className="feature-item">
-                        <FontAwesomeIcon icon={isPro ? faCheckCircle : faTimesCircle} className={isPro ? "text-success" : "text-muted"} />
-                        <span>Advanced Search</span>
                         <span className="pro-badge">Pro</span>
                     </div>
                 </div>
