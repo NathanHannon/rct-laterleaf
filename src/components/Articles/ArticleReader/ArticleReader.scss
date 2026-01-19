@@ -771,8 +771,8 @@
             position: absolute;
             top: 100%;
             right: 0;
-            background: white;
-            border: 1px solid #ddd;
+            background: var(--card-bg); // Use theme variable
+            border: 1px solid var(--border-color); // Use theme variable
             border-radius: 8px;
             box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
             z-index: 1000;
@@ -791,30 +791,38 @@
                 align-items: center;
                 gap: 0.75rem;
                 transition: background-color 0.2s;
-                color: #333;
+                color: var(--text-color); // Use theme variable
                 font-size: 0.9rem;
 
                 &:hover {
-                    background: #f8f9fa;
+                    background: var(--bg-secondary); // Use theme variable
                 }
 
                 &.archive-item {
+                    &:hover {
+                        background: rgba(76, 175, 80, 0.1);
+                    }
+
                     svg {
                         color: #4CAF50;
                     }
                 }
 
                 &.collection-item {
+                    &:hover {
+                        background: rgba(255, 152, 0, 0.1);
+                    }
+
                     svg {
                         color: #FF9800;
                     }
                 }
 
                 &.delete-item {
-                    color: #dc3545;
+                    color: var(--text-color);
 
                     &:hover {
-                        background: #f8d7da;
+                        background: rgba(220, 53, 69, 0.1); // Use transparency for dark mode compat
                     }
 
                     svg {
