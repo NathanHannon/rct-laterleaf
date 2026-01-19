@@ -444,15 +444,14 @@ const ArticlePodcastPlayer: React.FC<ArticlePodcastPlayerProps> = ({
                     </h4>
                     <p>Podcast-style conversation about: "{title}"</p>
                 </div>
-                {audioUrl && (
-                    <button
-                        onClick={handleDownload}
-                        className="download-button"
-                        title="Download Audio"
-                    >
-                        <FontAwesomeIcon icon={faDownload} />
-                    </button>
-                )}
+                <button
+                    onClick={handleDownload}
+                    className="download-button"
+                    title={audioUrl ? "Download Audio" : "Generate podcast to download"}
+                    disabled={!audioUrl}
+                >
+                    <FontAwesomeIcon icon={faDownload} />
+                </button>
                 <button
                     onClick={() => setShowSettings(!showSettings)}
                     className="settings-toggle"
