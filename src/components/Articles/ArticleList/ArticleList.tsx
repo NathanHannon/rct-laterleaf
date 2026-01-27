@@ -7,10 +7,11 @@ import type { Article } from '../../../interfaces/article';
 import ArticleCard from '../ArticleCard/ArticleCard';
 import SortDropdown from '../SortDropdown/SortDropdown';
 import ConfirmationDialog from '../../Common/ConfirmationDialog/ConfirmationDialog';
+import LoadingSpinner from '../../Common/LoadingSpinner/LoadingSpinner';
 import type { SortOption } from '../../../interfaces/sort';
 import './ArticleList.scss';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faSpinner, faGem } from '@fortawesome/free-solid-svg-icons';
+import { faGem } from '@fortawesome/free-solid-svg-icons';
 import AddArticleForm from '../AddArticleForm/AddArticleForm';
 import { hasProAccess } from '../../../utils/tierUtils';
 import { sortArticles } from '../../../utils/sortUtils';
@@ -182,7 +183,7 @@ const ArticleList = () => {
     };
 
     if (!isLoaded || isLoading) {
-        return <div className="loading-container"><FontAwesomeIcon icon={faSpinner} spin size="3x" /> Loading...</div>;
+        return <LoadingSpinner size="large" label="Loading your library..." />;
     }
 
     if (!isSignedIn) {
@@ -212,7 +213,7 @@ const ArticleList = () => {
                 <div className="header-left">
                     <h2 className="list-title">My List</h2>
                     {hasProAccess(isPro) && <span className="premium-badge">Pro Search Enabled <FontAwesomeIcon icon={faGem} className="premium-icon" /></span>}
-                    {isLoading && <><FontAwesomeIcon icon={faSpinner} spin /> Loading...</>}
+                    {isLoading && <LoadingSpinner size="small" layout="horizontal" label="Loading..." />}
                 </div>
                 <div className="header-right">
                     <SortDropdown

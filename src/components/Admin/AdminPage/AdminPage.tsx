@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@clerk/clerk-react';
 import { motion } from 'framer-motion';
+import LoadingSpinner from '../../Common/LoadingSpinner/LoadingSpinner';
 import './AdminPage.scss';
 import type { AdminAccess, BlockedDomain, AdminStats, AdminUser, QueueStats } from '../../../interfaces/admin';
 
@@ -141,14 +142,7 @@ const AdminPage: React.FC = () => {
     );
 
     if (loading) {
-        return (
-            <div className="admin-page">
-                <div className="admin-loading">
-                    <div className="spinner"></div>
-                    <p>Verifying admin access...</p>
-                </div>
-            </div>
-        );
+        return <LoadingSpinner size="large" label="Verifying admin access..." />;
     }
 
     if (!adminAccess?.isAdmin) {

@@ -7,6 +7,7 @@ import ReactMarkdown from 'react-markdown';
 import type { Article } from '../../../interfaces/article';
 import CollectionSelector from '../../Collections/CollectionSelector/CollectionSelector';
 import ConfirmationDialog from '../../Common/ConfirmationDialog/ConfirmationDialog';
+import LoadingSpinner from '../../Common/LoadingSpinner/LoadingSpinner';
 import ArticlePodcastPlayer from '../ArticlePodcastPlayer/ArticlePodcastPlayer';
 import RelatedArticles from '../RelatedArticles/RelatedArticles';
 import TagsManager from '../../TagsManager/TagsManager';
@@ -478,7 +479,7 @@ const ArticleReader = () => {
     };
 
     if (loading) {
-        return <div>Loading article...</div>;
+        return <LoadingSpinner size="large" label="Loading article..." />;
     }
 
     if (error) {
