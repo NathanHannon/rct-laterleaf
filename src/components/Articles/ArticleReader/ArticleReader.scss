@@ -446,10 +446,18 @@
         display: flex;
         align-items: center;
         gap: 8px;
+
+        &.disabled,
+        &:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            filter: grayscale(100%);
+            pointer-events: none;
+        }
     }
 
     .button-favorite {
-        background-color: #424242; // Warm dark gray to match card
+        background-color: var(--primary-color);
         color: white;
         position: relative;
         overflow: hidden;
@@ -458,10 +466,15 @@
         box-sizing: border-box;
 
         &:hover {
-            background-color: #616161; // Lighter gray on hover
+            background-color: var(--primary-hover);
         }
 
         &.bookmarked {
+            background-color: #424242; // Warm dark gray for "Remove" state
+
+            &:hover {
+                background-color: #616161;
+            }
 
             // Deep red bookmark icon to match ribbon
             svg {

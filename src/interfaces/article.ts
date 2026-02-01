@@ -17,6 +17,7 @@ export interface Article {
     audioLocation?: string;
     createdAt: string;
     isUrlOnly?: boolean; // Flag for URL-only entries that failed extraction
+    hasContent?: boolean; // Flag indicating if the user has access to the full content
 
     // Rich metadata fields
     siteName?: string;

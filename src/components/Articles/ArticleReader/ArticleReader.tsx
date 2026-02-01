@@ -517,8 +517,9 @@ const ArticleReader = () => {
 
                 <button
                     onClick={handleSummarize}
-                    className={`button-summarize ${article.summary ? 'has-summary' : ''} ${isGeneratingSummary ? 'loading' : ''}`}
-                    disabled={isGeneratingSummary}
+                    className={`button-summarize ${article.summary ? 'has-summary' : ''} ${isGeneratingSummary ? 'loading' : ''} ${article.hasContent === false ? 'disabled' : ''}`}
+                    disabled={isGeneratingSummary || article.hasContent === false}
+                    title={article.hasContent === false ? "Summary unavailable for paywalled content" : "Generate AI Summary"}
                 >
                     <FontAwesomeIcon icon={faStarHalfStroke} />
                     <span>
@@ -531,7 +532,9 @@ const ArticleReader = () => {
                 {/* Podcast Player Toggle Button */}
                 <button
                     onClick={() => setShowPodcastPlayer(!showPodcastPlayer)}
-                    className="button-podcast"
+                    className={`button-podcast ${article.hasContent === false ? 'disabled' : ''}`}
+                    disabled={article.hasContent === false}
+                    title={article.hasContent === false ? "Audio unavailable for paywalled content" : "Listen to this article"}
                 >
                     <FontAwesomeIcon icon={faPodcast} />
                     <span>{showPodcastPlayer ? 'Hide Podcast' : 'Show Podcast'}</span>
