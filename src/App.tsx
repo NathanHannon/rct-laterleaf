@@ -15,6 +15,7 @@ import { ToastProvider } from './context/toastContext';
 import AboutPage from './components/Pages/StaticPages/AboutPage/AboutPage';
 import ContactPage from './components/Pages/StaticPages/ContactPage/ContactPage';
 import PrivacyPage from './components/Pages/StaticPages/PrivacyPage/PrivacyPage';
+import TermsPage from './components/Pages/StaticPages/TermsPage/TermsPage';
 import FAQPage from './components/Pages/StaticPages/FAQPage/FAQPage';
 import ExportPage from './components/Pages/ExportPage/ExportPage';
 import DiscoverPage from './components/Pages/DiscoverPage/DiscoverPage';
@@ -49,6 +50,7 @@ function App() {
                         <Route path="/about" element={<AboutPage />} />
                         <Route path="/contact" element={<ContactPage />} />
                         <Route path="/privacy" element={<PrivacyPage />} />
+                        <Route path="/terms" element={<TermsPage />} />
                         <Route path="/faq" element={<FAQPage />} />
                         <Route path="/export" element={<ExportPage />} />
                         <Route path="/discover" element={<DiscoverPage />} />
@@ -64,6 +66,7 @@ function App() {
                         <Route path="/about" element={<AboutPage />} />
                         <Route path="/contact" element={<ContactPage />} />
                         <Route path="/privacy" element={<PrivacyPage />} />
+                        <Route path="/terms" element={<TermsPage />} />
                         <Route path="/faq" element={<FAQPage />} />
                         <Route path="*" element={
                           // <div className="signed-out-message">
