@@ -212,7 +212,6 @@ const ArticleList = () => {
             <div className="list-header">
                 <div className="header-left">
                     <h2 className="list-title">My List</h2>
-                    {hasProAccess(isPro) && <span className="premium-badge">Pro Search Enabled <FontAwesomeIcon icon={faGem} className="premium-icon" /></span>}
                     {isLoading && <LoadingSpinner size="small" layout="horizontal" label="Loading..." />}
                 </div>
                 <div className="header-right">
