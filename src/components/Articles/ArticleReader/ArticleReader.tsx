@@ -9,11 +9,12 @@ import CollectionSelector from '../../Collections/CollectionSelector/CollectionS
 import ConfirmationDialog from '../../Common/ConfirmationDialog/ConfirmationDialog';
 import LoadingSpinner from '../../Common/LoadingSpinner/LoadingSpinner';
 import ArticlePodcastPlayer from '../ArticlePodcastPlayer/ArticlePodcastPlayer';
+import ArticleAudioPlayer from '../ArticleAudioPlayer/ArticleAudioPlayer';
 import RelatedArticles from '../RelatedArticles/RelatedArticles';
 import TagsManager from '../../TagsManager/TagsManager';
 import './ArticleReader.scss';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBookmark as faBookmarkSolid, faArchive, faTrash, faRotateRight, faFolderPlus, faEllipsisV, faGem, faClock, faStarHalfStroke, faPodcast } from '@fortawesome/free-solid-svg-icons';
+import { faBookmark as faBookmarkSolid, faArchive, faTrash, faRotateRight, faFolderPlus, faEllipsisV, faGem, faClock, faStarHalfStroke, faPodcast, faHeadphones } from '@fortawesome/free-solid-svg-icons';
 import { faBookmark as faBookmarkRegular } from '@fortawesome/free-regular-svg-icons';
 import { hasProAccess } from '../../../utils/tierUtils';
 import { useUserStatus } from '../../../hooks/useUserStatus';
@@ -73,6 +74,7 @@ const ArticleReader = () => {
     const [showSummary, setShowSummary] = useState(false);
     const [isBookmarkAnimating, setIsBookmarkAnimating] = useState(false);
     const [showPodcastPlayer, setShowPodcastPlayer] = useState(false);
+    const [showAudioPlayer, setShowAudioPlayer] = useState(false);
     const [isChatMode, setIsChatMode] = useState(false);
     const [chatMessages, setChatMessages] = useState<{ role: 'user' | 'assistant', content: string, timestamp?: string }[]>([]);
     const [isGeneratingChat, setIsGeneratingChat] = useState(false);
@@ -540,6 +542,17 @@ const ArticleReader = () => {
                     <span>{showPodcastPlayer ? 'Hide Podcast' : 'Show Podcast'}</span>
                 </button>
 
+                {/* Read Aloud Toggle Button */}
+                <button
+                    onClick={() => setShowAudioPlayer(!showAudioPlayer)}
+                    className={`button-audio ${article.hasContent === false ? 'disabled' : ''}`}
+                    disabled={article.hasContent === false}
+                    title={article.hasContent === false ? "Audio unavailable for paywalled content" : "Read article aloud"}
+                >
+                    <FontAwesomeIcon icon={faHeadphones} />
+                    <span>{showAudioPlayer ? 'Hide Reader' : 'Read Aloud'}</span>
+                </button>
+
                 {/* Translation Dropdown */}
                 {/* <div className="action-dropdown-container">
                     <button
@@ -876,6 +889,25 @@ const ArticleReader = () => {
                             className="article-podcast-player"
                             onClose={() => setShowPodcastPlayer(false)}
                         // selectedLanguage={currentLanguage}
+                        />
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* Standard TTS Player - Read Aloud */}
+            <AnimatePresence>
+                {articleId && showAudioPlayer && (
+                    <motion.div
+                        className="article-audio-section"
+                        initial={{ opacity: 0, height: 0, marginBottom: 0 }}
+                        animate={{ opacity: 1, height: 'auto', marginBottom: '1.5rem' }}
+                        exit={{ opacity: 0, height: 0, marginBottom: 0 }}
+                        transition={{ duration: 0.3, ease: "easeOut" }}
+                    >
+                        <ArticleAudioPlayer
+                            articleId={articleId}
+                            content={article.content}
+                            className="article-audio-player"
                         />
                     </motion.div>
                 )}

@@ -271,11 +271,6 @@ const ArticleAudioPlayer: React.FC<ArticleAudioPlayerProps> = ({
                                 <small>🎵 Free tier - {availableVoices.length} voices available</small>
                             </div>
                         )}
-                        {isPro && availableVoices.length > 0 && (
-                            <div className="tier-info">
-                                <small>✨ Pro tier - {availableVoices.length} premium voices available</small>
-                            </div>
-                        )}
                     </div>
                 </div>
 

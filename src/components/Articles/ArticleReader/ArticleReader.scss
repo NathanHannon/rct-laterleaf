@@ -562,6 +562,36 @@
         }
     }
 
+    .button-audio {
+        background-color: #00897b; // Teal 600
+        color: white;
+        white-space: nowrap;
+        min-height: 36px;
+        box-sizing: border-box;
+
+        &:hover {
+            background-color: #00796b; // Teal 700
+        }
+
+        &.active {
+            background-color: #00695c; // Teal 800
+        }
+
+        &.loading {
+            background-color: #bdbdbd;
+            cursor: not-allowed;
+
+            svg {
+                animation: spin 1s linear infinite;
+            }
+        }
+
+        &:disabled {
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+    }
+
     .button-translate {
         background-color: #00897b; // Teal color
         color: white;
