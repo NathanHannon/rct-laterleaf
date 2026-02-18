@@ -15,6 +15,8 @@ export interface Article {
     summaryStatus?: 'idle' | 'pending' | 'completed' | 'failed';
     summaryLanguage?: string;
     audioLocation?: string;
+    narrationLocation?: string;
+    narrationStatus?: string;
     createdAt: string;
     isUrlOnly?: boolean; // Flag for URL-only entries that failed extraction
     hasContent?: boolean; // Flag indicating if the user has access to the full content

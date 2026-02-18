@@ -908,6 +908,8 @@ const ArticleReader = () => {
                             articleId={articleId}
                             content={article.content}
                             className="article-audio-player"
+                            audioLocation={article.narrationLocation}
+                            onClose={() => setShowAudioPlayer(false)}
                         />
                     </motion.div>
                 )}

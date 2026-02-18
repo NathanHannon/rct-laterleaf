@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@clerk/clerk-react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPlay, faPause, faSpinner, faCog } from '@fortawesome/free-solid-svg-icons';
+import { faPlay, faPause, faSpinner, faCog, faRedo, faRotateLeft, faRotateRight, faTimes, faDownload, faVolumeUp } from '@fortawesome/free-solid-svg-icons';
 import { useUserStatus } from '../../../hooks/useUserStatus';
 import WaveformAnimation from '../../Common/WaveformAnimation/WaveformAnimation';
 import './ArticleAudioPlayer.scss';
@@ -9,7 +9,9 @@ import './ArticleAudioPlayer.scss';
 interface ArticleAudioPlayerProps {
     articleId: string;
     content: string;
+    audioLocation?: string;
     className?: string;
+    onClose?: () => void;
 }
 
 interface TTSVoice {
@@ -21,7 +23,9 @@ interface TTSVoice {
 const ArticleAudioPlayer: React.FC<ArticleAudioPlayerProps> = ({
     articleId,
     content,
-    className = ''
+    audioLocation,
+    className = '',
+    onClose
 }) => {
     const { getToken } = useAuth();
     const { isPro } = useUserStatus();
@@ -31,12 +35,14 @@ const ArticleAudioPlayer: React.FC<ArticleAudioPlayerProps> = ({
     const [isLoading, setIsLoading] = useState(false);
     const [isPlaying, setIsPlaying] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [audioUrl, setAudioUrl] = useState<string | null>(null);
+    const [audioUrl, setAudioUrl] = useState<string | null>(audioLocation || null);
     const [currentTime, setCurrentTime] = useState(0);
     const [duration, setDuration] = useState(0);
 
     // Audio controls
     const [selectedVoice, setSelectedVoice] = useState<string>('');
+    const [showSettings, setShowSettings] = useState(false);
+    const [downloadUrl, setDownloadUrl] = useState<string | null>(audioLocation || null); // Initialize with prop
     const [speed, setSpeed] = useState(1.0);
     const [availableVoices, setAvailableVoices] = useState<TTSVoice[]>([]);
     const [showWaveform, setShowWaveform] = useState(() => {
@@ -44,57 +50,46 @@ const ArticleAudioPlayer: React.FC<ArticleAudioPlayerProps> = ({
         return saved !== null ? JSON.parse(saved) : true;
     });
 
-    // Sync with global settings
-    useEffect(() => {
-        const handleSettingsChange = () => {
-            const saved = localStorage.getItem('laterleaf_show_waveform');
-            setShowWaveform(saved !== null ? JSON.parse(saved) : true);
-        };
-        window.addEventListener('laterleaf_waveform_settings_changed', handleSettingsChange);
-        return () => window.removeEventListener('laterleaf_waveform_settings_changed', handleSettingsChange);
-    }, []);
-
-    const handleToggleWaveform = (value: boolean) => {
-        setShowWaveform(value);
-        localStorage.setItem('laterleaf_show_waveform', JSON.stringify(value));
-        window.dispatchEvent(new Event('laterleaf_waveform_settings_changed'));
+    const skipBackward = () => {
+        if (audioRef.current) {
+            audioRef.current.currentTime = Math.max(0, audioRef.current.currentTime - 10);
+        }
     };
 
-    // Fetch available voices on component mount
+    const skipForward = () => {
+        if (audioRef.current) {
+            const d = audioRef.current.duration || duration;
+            audioRef.current.currentTime = Math.min(d, audioRef.current.currentTime + 10);
+        }
+    };
+
+    // Remove verbose event listeners since we use React props on <audio> now
+    // But we still need to manage speed
     useEffect(() => {
-        fetchAvailableVoices();
-    }, []);
+        if (audioRef.current) {
+            audioRef.current.playbackRate = speed;
+        }
+    }, [speed, audioUrl]);
 
-    // Audio event handlers
+    // Handle audioLocation prop changes
     useEffect(() => {
-        const audio = audioRef.current;
-        if (!audio) return;
+        if (audioLocation) {
+            setAudioUrl(audioLocation);
+            setDownloadUrl(audioLocation);
+        }
+    }, [audioLocation]);
 
-        const updateTime = () => setCurrentTime(audio.currentTime);
-        const updateDuration = () => setDuration(audio.duration);
-        const handleEnd = () => setIsPlaying(false);
-        const handleError = () => {
-            setError('Audio playback failed');
-            setIsPlaying(false);
-        };
+    // Fetch voices when settings panel opens
+    useEffect(() => {
+        if (showSettings && availableVoices.length === 0) {
+            fetchAvailableVoices();
+        }
+    }, [showSettings]);
 
-        audio.addEventListener('timeupdate', updateTime);
-        audio.addEventListener('loadedmetadata', updateDuration);
-        audio.addEventListener('ended', handleEnd);
-        audio.addEventListener('error', handleError);
-
+    // Cleanup audio URL on unmount if blob
+    useEffect(() => {
         return () => {
-            audio.removeEventListener('timeupdate', updateTime);
-            audio.removeEventListener('loadedmetadata', updateDuration);
-            audio.removeEventListener('ended', handleEnd);
-            audio.removeEventListener('error', handleError);
-        };
-    }, [audioUrl]);
-
-    // Cleanup audio URL on unmount
-    useEffect(() => {
-        return () => {
-            if (audioUrl) {
+            if (audioUrl && audioUrl.startsWith('blob:')) {
                 URL.revokeObjectURL(audioUrl);
             }
         };
@@ -122,6 +117,7 @@ const ArticleAudioPlayer: React.FC<ArticleAudioPlayerProps> = ({
         }
     };
 
+    // Generate Audio Function - Updated to just set URL
     const generateAudio = async () => {
         if (!content?.trim()) {
             setError('No content available for audio generation');
@@ -161,16 +157,14 @@ const ArticleAudioPlayer: React.FC<ArticleAudioPlayerProps> = ({
             const audioBlob = await response.blob();
             const url2 = URL.createObjectURL(audioBlob);
 
-            // Clean up previous URL
-            if (audioUrl) {
+            // Clean up previous URL if it was a blob URL
+            if (audioUrl && audioUrl.startsWith('blob:')) {
                 URL.revokeObjectURL(audioUrl);
             }
 
             setAudioUrl(url2);
-
-            // Set audio source and load
+            // We rely on the src prop update now, but we can force load if needed
             if (audioRef.current) {
-                audioRef.current.src = url2;
                 audioRef.current.load();
             }
 
@@ -235,79 +229,79 @@ const ArticleAudioPlayer: React.FC<ArticleAudioPlayerProps> = ({
     return (
         <div className={`article-audio-player ${className}`}>
             {showWaveform && <WaveformAnimation isPlaying={isPlaying} className="player-background-waveform" />}
-            <audio ref={audioRef} preload="metadata" />
 
-            <div className="audio-controls">
-                <div className="primary-controls">
-                    <button
-                        onClick={togglePlayback}
-                        disabled={isLoading}
-                        className="play-button"
-                        title={audioUrl ? (isPlaying ? 'Pause' : 'Play') : 'Generate Audio'}
-                    >
-                        {isLoading ? (
-                            <FontAwesomeIcon icon={faSpinner} spin />
-                        ) : isPlaying ? (
-                            <FontAwesomeIcon icon={faPause} />
-                        ) : (
-                            <FontAwesomeIcon icon={faPlay} />
-                        )}
-                    </button>
-
-                    <div className="audio-info">
-                        <div className="time-display">
-                            {audioUrl ? (
-                                <>
-                                    <span>{formatTime(currentTime)}</span>
-                                    <span>/</span>
-                                    <span>{formatTime(duration)}</span>
-                                </>
-                            ) : (
-                                <span>Listen to article</span>
-                            )}
-                        </div>
-                        {!isPro && availableVoices.length > 0 && (
-                            <div className="tier-info">
-                                <small>🎵 Free tier - {availableVoices.length} voices available</small>
-                            </div>
-                        )}
+            <div className="player-header">
+                <div className="player-title">
+                    <div className="icon-wrapper">
+                        <FontAwesomeIcon icon={faVolumeUp} />
+                    </div>
+                    <div>
+                        <h4>Read Aloud</h4>
                     </div>
                 </div>
 
-                {audioUrl && (
-                    <div className="progress-controls">
-                        <input
-                            type="range"
-                            min="0"
-                            max={duration || 0}
-                            value={currentTime}
-                            onChange={handleSeek}
-                            className="progress-slider"
-                        />
-                    </div>
-                )}
-
-                <div className="audio-settings">
-                    {/* Voice Selection */}
-                    {availableVoices.length > 0 && (
-                        <div className="voice-selector">
-                            <select
-                                value={selectedVoice}
-                                onChange={(e) => setSelectedVoice(e.target.value)}
-                                disabled={isLoading}
-                            >
-                                {availableVoices.map((voice) => (
-                                    <option key={voice.voice} value={voice.voice}>
-                                        {voice.voice} - {voice.description}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
+                <div className="player-actions">
+                    {downloadUrl && (
+                        <a
+                            href={downloadUrl}
+                            download={`article-audio-${articleId}.mp3`}
+                            className="action-icon-button"
+                            title="Download Audio"
+                        >
+                            <FontAwesomeIcon icon={faDownload} />
+                        </a>
                     )}
+                    <button
+                        className={`action-icon-button settings-toggle ${showSettings ? 'active' : ''}`}
+                        onClick={() => setShowSettings(!showSettings)}
+                        title={showSettings ? "Hide Settings" : "Audio Settings"}
+                    >
+                        <FontAwesomeIcon icon={faCog} />
+                    </button>
+                    {onClose && (
+                        <button
+                            className="action-icon-button close-button"
+                            onClick={onClose}
+                            title="Close Player"
+                        >
+                            <FontAwesomeIcon icon={faTimes} />
+                        </button>
+                    )}
+                </div>
+            </div>
 
-                    {/* Speed Control */}
-                    <div className="speed-controls">
-                        <label>Speed:</label>
+            <audio
+                ref={audioRef}
+                src={audioUrl || undefined}
+                preload="metadata"
+                onTimeUpdate={(e) => setCurrentTime(e.currentTarget.currentTime)}
+                onLoadedMetadata={(e) => setDuration(e.currentTarget.duration)}
+                onEnded={() => setIsPlaying(false)}
+                onError={() => {
+                    setError('Audio playback failed');
+                    setIsPlaying(false);
+                }}
+            />
+
+            {showSettings && (
+                <div className="audio-settings-panel">
+                    <div className="setting-group">
+                        <label>Voice</label>
+                        <select
+                            value={selectedVoice}
+                            onChange={(e) => setSelectedVoice(e.target.value)}
+                            disabled={isLoading}
+                        >
+                            {availableVoices.map((voice) => (
+                                <option key={voice.voice} value={voice.voice}>
+                                    {voice.voice}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+
+                    <div className="setting-group">
+                        <label>Speed</label>
                         <select
                             value={speed}
                             onChange={(e) => handleSpeedChange(parseFloat(e.target.value))}
@@ -320,9 +314,8 @@ const ArticleAudioPlayer: React.FC<ArticleAudioPlayerProps> = ({
                         </select>
                     </div>
 
-                    {/* Waveform Toggle */}
-                    <div className="waveform-control">
-                        <label>Waveform:</label>
+                    <div className="setting-group">
+                        <label>Waveform</label>
                         <select
                             value={showWaveform ? 'show' : 'hide'}
                             onChange={(e) => handleToggleWaveform(e.target.value === 'show')}
@@ -332,19 +325,66 @@ const ArticleAudioPlayer: React.FC<ArticleAudioPlayerProps> = ({
                             <option value="hide">Hide</option>
                         </select>
                     </div>
-
-                    {/* Regenerate Button */}
-                    {audioUrl && (
-                        <button
-                            onClick={generateAudio}
-                            disabled={isLoading}
-                            className="regenerate-button"
-                            title="Regenerate with current settings"
-                        >
-                            🔄
-                        </button>
-                    )}
                 </div>
+            )}
+
+            <div className="audio-main-row">
+                <div className="playback-controls">
+                    <button
+                        onClick={skipBackward}
+                        disabled={isLoading || !audioUrl}
+                        className="skip-button"
+                        title="Skip Back 10s"
+                    >
+                        <FontAwesomeIcon icon={faRotateLeft} />
+                    </button>
+
+                    <button
+                        onClick={togglePlayback}
+                        disabled={isLoading}
+                        className={`main-play-button ${audioUrl ? 'compact' : ''}`}
+                        title={audioUrl ? (isPlaying ? 'Pause' : 'Play') : 'Generate Audio'}
+                    >
+                        {isLoading ? (
+                            <FontAwesomeIcon icon={faSpinner} spin />
+                        ) : isPlaying ? (
+                            <FontAwesomeIcon icon={faPause} />
+                        ) : (
+                            <FontAwesomeIcon icon={audioUrl ? (currentTime >= duration && duration > 0 ? faRedo : faPlay) : faPlay} />
+                        )}
+                        {!audioUrl && !isLoading && <span className="generate-text">Generate Audio</span>}
+                    </button>
+
+                    <button
+                        onClick={skipForward}
+                        disabled={isLoading || !audioUrl}
+                        className="skip-button"
+                        title="Skip Forward 10s"
+                    >
+                        <FontAwesomeIcon icon={faRotateRight} />
+                    </button>
+                </div>
+
+                {audioUrl && (
+                    <div className="time-display-group">
+                        <div className="time-text">
+                            <span className="current">{formatTime(currentTime)}</span>
+                            <span className="separator">/</span>
+                            <span className="total">{formatTime(duration)}</span>
+                        </div>
+                        <div className="progress-container">
+                            <input
+                                type="range"
+                                min="0"
+                                max={duration || 0}
+                                value={currentTime}
+                                onChange={handleSeek}
+                                className="progress-slider"
+                                style={{ '--progress': `${(currentTime / (duration || 1)) * 100}%` } as React.CSSProperties}
+                            />
+                        </div>
+                    </div>
+                )}
             </div>
 
             {error && (
