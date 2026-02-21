@@ -14,12 +14,12 @@ import RelatedArticles from '../RelatedArticles/RelatedArticles';
 import TagsManager from '../../TagsManager/TagsManager';
 import './ArticleReader.scss';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBookmark as faBookmarkSolid, faArchive, faTrash, faRotateRight, faFolderPlus, faEllipsisV, faGem, faClock, faStarHalfStroke, faPodcast, faHeadphones } from '@fortawesome/free-solid-svg-icons';
+import { faBookmark as faBookmarkSolid, faArchive, faTrash, faRotateRight, faFolderPlus, faEllipsisV, faGem, faClock, faStarHalfStroke, faPodcast, faHeadphones, faLanguage, faCheck } from '@fortawesome/free-solid-svg-icons';
 import { faBookmark as faBookmarkRegular } from '@fortawesome/free-regular-svg-icons';
 import { hasProAccess } from '../../../utils/tierUtils';
 import { useUserStatus } from '../../../hooks/useUserStatus';
 import { useUserCredits } from '../../../hooks/useUserCredits';
-// import { LANGUAGES } from '../../../constants/languages';
+import { LANGUAGES } from '../../../constants/languages';
 
 const ArticleReader = () => {
     const { articleId } = useParams<{ articleId: string }>();
@@ -84,12 +84,12 @@ const ArticleReader = () => {
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [showDeleteSummaryConfirm, setShowDeleteSummaryConfirm] = useState(false);
     const [useProSummary, setUseProSummary] = useState(false);
-    // const [showTranslateDropdown, setShowTranslateDropdown] = useState(false);
-    // const [showSummaryLangDropdown, setShowSummaryLangDropdown] = useState(false);
-    // const [isTranslating, setIsTranslating] = useState(false);
-    // const [currentLanguage, setCurrentLanguage] = useState<string>('original');
+    const [showTranslateDropdown, setShowTranslateDropdown] = useState(false);
+    const [showSummaryLangDropdown, setShowSummaryLangDropdown] = useState(false);
+    const [isTranslating, setIsTranslating] = useState(false);
+    const [currentLanguage, setCurrentLanguage] = useState<string>('original');
 
-    /* const getLanguageName = (code: string) => {
+    const getLanguageName = (code: string) => {
         return LANGUAGES.find(l => l.code === code)?.name || 'English';
     };
 
@@ -139,22 +139,14 @@ const ArticleReader = () => {
 
     const handleRestoreOriginal = async () => {
         // Re-fetch original article to restore content
-        setLoading(true);
         try {
-            // Basic fetch again to act as "restore"
-            const token = await getToken();
-            const response = await fetch(`/api/articles/${articleId}`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            const data = await response.json();
-            setArticle(data);
+            // Invalidate the query to trigger a refetch
+            await queryClient.invalidateQueries({ queryKey: ['article', articleId] });
             setCurrentLanguage('original');
         } catch {
             setError('Failed to restore original text');
-        } finally {
-            setLoading(false);
         }
-    }; */
+    };
 
     const [summaryMetadata, setSummaryMetadata] = useState<{
         model?: string;
@@ -207,18 +199,16 @@ const ArticleReader = () => {
     // Close menus on scroll to update UI cleanly
     useEffect(() => {
         const handleScroll = () => {
-            // if (showTranslateDropdown) setShowTranslateDropdown(false);
+            if (showTranslateDropdown) setShowTranslateDropdown(false);
             if (showDropdown) setShowDropdown(false);
         };
 
-        // if (showTranslateDropdown || showDropdown) {
-        if (showDropdown) {
+        if (showTranslateDropdown || showDropdown) {
             window.addEventListener('scroll', handleScroll);
         }
 
         return () => window.removeEventListener('scroll', handleScroll);
-        // }, [showTranslateDropdown, showDropdown]);
-    }, [showDropdown]);
+    }, [showTranslateDropdown, showDropdown]);
 
     // Calculate reading time when article loads
     useEffect(() => {
@@ -304,7 +294,7 @@ const ArticleReader = () => {
         const targetLangCode = languageCode || article.summaryLanguage || 'en';
 
         setIsGeneratingSummary(true);
-        // if (languageCode) setShowSummaryLangDropdown(false);
+        if (languageCode) setShowSummaryLangDropdown(false);
 
         try {
             const token = await getToken();
@@ -505,71 +495,68 @@ const ArticleReader = () => {
             <div className="article-actions">
                 <motion.button
                     onClick={handleFavorite}
-                    className={`button-favorite ${article.isBookmarked ? 'bookmarked' : ''}`}
+                    className={`action-icon-btn button-favorite ${article.isBookmarked ? 'bookmarked' : ''}`}
                     whileTap={{ scale: 0.95 }}
                     animate={isBookmarkAnimating ? {
                         scale: [1, 1.1, 1],
                         rotateZ: [0, 5, -5, 0]
                     } : {}}
                     transition={{ duration: 0.3 }}
+                    title={article.isBookmarked ? 'Remove bookmark' : 'Bookmark'}
                 >
                     <FontAwesomeIcon icon={article.isBookmarked ? faBookmarkSolid : faBookmarkRegular} />
-                    <span>{article.isBookmarked ? 'Remove' : 'Bookmark'}</span>
                 </motion.button>
 
                 <button
                     onClick={handleSummarize}
-                    className={`button-summarize ${article.summary ? 'has-summary' : ''} ${isGeneratingSummary ? 'loading' : ''} ${article.hasContent === false ? 'disabled' : ''}`}
+                    className={`action-icon-btn button-summarize ${article.summary ? 'has-summary' : ''} ${isGeneratingSummary ? 'loading' : ''} ${article.hasContent === false ? 'disabled' : ''}`}
                     disabled={isGeneratingSummary || article.hasContent === false}
-                    title={article.hasContent === false ? "Summary unavailable for paywalled content" : "Generate AI Summary"}
+                    title={article.hasContent === false ? 'Summary unavailable for paywalled content' :
+                        isGeneratingSummary ? 'Generating summary...' :
+                            (article.summary || article.summaryStatus === 'pending') ? (showSummary ? 'Hide summary' : 'Show summary') :
+                                'Generate AI summary'}
                 >
                     <FontAwesomeIcon icon={faStarHalfStroke} />
-                    <span>
-                        {isGeneratingSummary ? 'Generating...' :
-                            (article.summary || article.summaryStatus === 'pending') ? (showSummary ? 'Hide Summary' : 'Show Summary') :
-                                'Summarize'}
-                    </span>
+                    {article.summary && article.summaryStatus !== 'pending' && <span className="ready-dot" />}
                 </button>
 
-                {/* Podcast Player Toggle Button */}
                 <button
                     onClick={() => setShowPodcastPlayer(!showPodcastPlayer)}
-                    className={`button-podcast ${article.hasContent === false ? 'disabled' : ''}`}
+                    className={`action-icon-btn button-podcast ${showPodcastPlayer ? 'active' : ''} ${article.hasContent === false ? 'disabled' : ''}`}
                     disabled={article.hasContent === false}
-                    title={article.hasContent === false ? "Audio unavailable for paywalled content" : "Listen to this article"}
+                    title={article.hasContent === false ? 'Audio unavailable for paywalled content' : (showPodcastPlayer ? 'Hide podcast' : 'Podcast')}
                 >
                     <FontAwesomeIcon icon={faPodcast} />
-                    <span>{showPodcastPlayer ? 'Hide Podcast' : 'Show Podcast'}</span>
+                    {article.audioLocation && <span className="ready-dot" />}
                 </button>
 
-                {/* Read Aloud Toggle Button */}
                 <button
                     onClick={() => setShowAudioPlayer(!showAudioPlayer)}
-                    className={`button-audio ${article.hasContent === false ? 'disabled' : ''}`}
+                    className={`action-icon-btn button-audio ${showAudioPlayer ? 'active' : ''} ${article.narrationLocation ? 'has-narration' : ''} ${article.hasContent === false ? 'disabled' : ''}`}
                     disabled={article.hasContent === false}
-                    title={article.hasContent === false ? "Audio unavailable for paywalled content" : "Read article aloud"}
+                    title={article.hasContent === false ? 'Audio unavailable for paywalled content' : (showAudioPlayer ? 'Hide reader' : 'Read aloud')}
                 >
                     <FontAwesomeIcon icon={faHeadphones} />
-                    <span>{showAudioPlayer ? 'Hide Reader' : 'Read Aloud'}</span>
+                    {article.narrationLocation && <span className="ready-dot" />}
                 </button>
 
                 {/* Translation Dropdown */}
-                {/* <div className="action-dropdown-container">
+                <div className="action-dropdown-container">
                     <button
-                        className={`button-translate ${currentLanguage !== 'original' ? 'active' : ''}`}
+                        className={`action-icon-btn button-translate ${currentLanguage !== 'original' ? 'active' : ''}`}
                         onClick={() => setShowTranslateDropdown(!showTranslateDropdown)}
                         disabled={isTranslating}
+                        title={isTranslating ? 'Translating...' : 'Translate article'}
                     >
                         {isTranslating ? (
                             <FontAwesomeIcon icon={faRotateRight} spin />
                         ) : currentLanguage !== 'original' ? (
-                            <span style={{ fontSize: '1.2rem', lineHeight: 1 }}>
+                            <span className="flag-icon">
                                 {LANGUAGES.find(l => l.code === currentLanguage)?.flag}
                             </span>
                         ) : (
                             <FontAwesomeIcon icon={faLanguage} />
                         )}
-                        <span>{isTranslating ? 'Translating...' : 'Translate'}</span>
                     </button>
 
                     <AnimatePresence>
@@ -603,16 +590,12 @@ const ArticleReader = () => {
                             </motion.div>
                         )}
                     </AnimatePresence>
-                </div> */}
+                </div>
 
                 {/* Pro Summary Toggle for Free Users */}
                 {!userHasProAccess && (
                     <div className="pro-toggle-container">
-                        <span className="toggle-label">
-                            <FontAwesomeIcon icon={faGem} />
-                            Pro Summary
-                        </span>
-                        <label className="toggle-switch">
+                        <label className="toggle-switch" title="Use Pro model for summaries">
                             <input
                                 id="pro-toggle"
                                 type="checkbox"
@@ -622,25 +605,17 @@ const ArticleReader = () => {
                             />
                             <span className="slider round"></span>
                         </label>
-
-                        {/* Credit Counters for Free Users */}
-                        {credits && (
-                            <div className="credit-counters">
-                                <div className="credit-item" title="Pro summaries remaining this month">
-                                    <span className="credit-label">Pro:</span>
-                                    <span className={`credit-value ${credits.proCreditsRemaining === 0 ? 'empty' : ''}`}>
-                                        {credits.proCreditsRemaining}
-                                    </span>
-                                </div>
-                            </div>
-                        )}
+                        <span className="toggle-label">
+                            <FontAwesomeIcon icon={faGem} />
+                            {credits && <span className={`credit-badge ${credits.proCreditsRemaining === 0 ? 'empty' : ''}`}>{credits.proCreditsRemaining}</span>}
+                        </span>
                     </div>
                 )}
 
                 <div className="actions-dropdown">
                     <button
                         onClick={() => setShowDropdown(!showDropdown)}
-                        className="dropdown-toggle"
+                        className="action-icon-btn dropdown-toggle"
                     >
                         <FontAwesomeIcon icon={faEllipsisV} />
                     </button>
@@ -735,7 +710,7 @@ const ArticleReader = () => {
                                 {!isChatMode && (
                                     <>
                                         {/* Summary Language Selector */}
-                                        {/* <div className="summary-language-selector">
+                                        <div className="summary-language-selector">
                                             <button
                                                 onClick={() => setShowSummaryLangDropdown(!showSummaryLangDropdown)}
                                                 className="summary-language-btn"
@@ -759,7 +734,7 @@ const ArticleReader = () => {
                                                     ))}
                                                 </div>
                                             )}
-                                        </div> */}
+                                        </div>
 
                                         <button
                                             onClick={() => handleRefreshSummary()}
@@ -906,7 +881,7 @@ const ArticleReader = () => {
                     >
                         <ArticleAudioPlayer
                             articleId={articleId}
-                            content={article.content}
+                            content={article.content || ''}
                             className="article-audio-player"
                             audioLocation={article.narrationLocation}
                             onClose={() => setShowAudioPlayer(false)}
