@@ -419,6 +419,7 @@
                         border-radius: 2px;
                         width: 100%;
                     }
+
                     .preview-line.short {
                         width: 60%;
                     }
@@ -426,19 +427,31 @@
                     &.default-preview {
                         background: var(--card-bg);
                         border: 1px solid var(--card-border);
-                        .preview-line { background: var(--text-color-secondary); opacity: 0.3; }
+
+                        .preview-line {
+                            background: var(--text-color-secondary);
+                            opacity: 0.3;
+                        }
                     }
 
                     &.sepia-preview {
                         background: #f4ecd8;
                         border: 1px solid #e0d5bc;
-                        .preview-line { background: #5b4636; opacity: 0.3; }
+
+                        .preview-line {
+                            background: #5b4636;
+                            opacity: 0.3;
+                        }
                     }
 
                     &.black-preview {
                         background: #000000;
                         border: 1px solid #333;
-                        .preview-line { background: #e0e0e0; opacity: 0.3; }
+
+                        .preview-line {
+                            background: #e0e0e0;
+                            opacity: 0.3;
+                        }
                     }
                 }
 
@@ -467,7 +480,10 @@
                 [data-theme='light'] & {
                     background: #f4ecd8;
                     border-color: #e0d5bc;
-                    p { color: #5b4636; }
+
+                    p {
+                        color: #5b4636;
+                    }
                 }
             }
 
@@ -475,7 +491,10 @@
                 [data-theme='dark'] & {
                     background: #000000;
                     border-color: #333;
-                    p { color: #e0e0e0; }
+
+                    p {
+                        color: #e0e0e0;
+                    }
                 }
             }
         }

@@ -1561,23 +1561,39 @@
     [data-theme='light'] &.theme-sepia {
         background-color: #f4ecd8;
         color: #5b4636;
-        
+
         .article-header h1,
         .article-meta,
         .article-content {
             color: #5b4636;
         }
-        
-        hr { border-top-color: #e0d5bc; }
-        
+
+        hr {
+            border-top-color: #e0d5bc;
+        }
+
         .article-content {
-            a { color: #8b5a2b; }
-            pre { background-color: #e8dfc8; color: #5b4636; border-color: #d4c8b0; }
-            blockquote { 
-                border-left-color: #8b5a2b; 
+            a {
+                color: #8b5a2b;
+            }
+
+            pre {
+                background-color: #e8dfc8;
+                color: #5b4636;
+                border-color: #d4c8b0;
+            }
+
+            blockquote {
+                border-left-color: #8b5a2b;
                 background: rgba(139, 90, 43, 0.05);
-                &::before { color: #8b5a2b; }
-                &::after { background: linear-gradient(180deg, #8b5a2b 0%, rgba(139, 90, 43, 0.5) 100%); }
+
+                &::before {
+                    color: #8b5a2b;
+                }
+
+                &::after {
+                    background: linear-gradient(180deg, #8b5a2b 0%, rgba(139, 90, 43, 0.5) 100%);
+                }
             }
         }
     }
@@ -1587,17 +1603,22 @@
         color: #e0e0e0;
         box-shadow: none;
         border: 1px solid #222;
-        
+
         .article-header h1,
         .article-meta,
         .article-content {
             color: #e0e0e0;
         }
-        
-        hr { border-top-color: #222; }
-        
+
+        hr {
+            border-top-color: #222;
+        }
+
         .article-content {
-            pre { background-color: #111; border-color: #333; }
+            pre {
+                background-color: #111;
+                border-color: #333;
+            }
         }
     }
 }
