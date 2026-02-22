@@ -19,6 +19,7 @@ import { faBookmark as faBookmarkRegular } from '@fortawesome/free-regular-svg-i
 import { hasProAccess } from '../../../utils/tierUtils';
 import { useUserStatus } from '../../../hooks/useUserStatus';
 import { useUserCredits } from '../../../hooks/useUserCredits';
+import { useReadingPreferences } from '../../../hooks/useReadingPreferences';
 import { LANGUAGES } from '../../../constants/languages';
 
 const ArticleReader = () => {
@@ -26,6 +27,7 @@ const ArticleReader = () => {
     const { getToken } = useAuth();
     const { isPro } = useUserStatus();
     const { credits, fetchCredits } = useUserCredits();
+    const { readingTheme, currentFontOption } = useReadingPreferences();
     const navigate = useNavigate();
     const queryClient = useQueryClient();
 
@@ -88,7 +90,6 @@ const ArticleReader = () => {
     const [showSummaryLangDropdown, setShowSummaryLangDropdown] = useState(false);
     const [isTranslating, setIsTranslating] = useState(false);
     const [currentLanguage, setCurrentLanguage] = useState<string>('original');
-
     const getLanguageName = (code: string) => {
         return LANGUAGES.find(l => l.code === code)?.name || 'English';
     };
@@ -483,7 +484,7 @@ const ArticleReader = () => {
     }
 
     return (
-        <div className="article-reader">
+        <div className={`article-reader theme-${readingTheme}`}>
             {/* Reading Progress Bar */}
             <div className="reading-progress-bar">
                 <div
@@ -902,6 +903,7 @@ const ArticleReader = () => {
             <div
                 ref={contentRef}
                 className="article-content"
+                style={{ fontFamily: currentFontOption.cssFamily }}
                 dangerouslySetInnerHTML={{ __html: displayContent }}
             />
 
