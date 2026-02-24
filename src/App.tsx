@@ -27,13 +27,13 @@ import Settings from './components/Pages/Settings/Settings';
 import AdminPage from './components/Admin/AdminPage/AdminPage';
 
 function App() {
-  const { theme } = useTheme();
+  const { activeTheme } = useTheme();
   return (
     <ToastProvider>
       <CollectionAnimationProvider>
         <SearchProvider>
           <BrowserRouter>
-            <div className={`app ${theme}`}>
+            <div className={`app ${activeTheme}`}>
               <div className="layout-container">
                 <Header />
                 <main className="main-content">
