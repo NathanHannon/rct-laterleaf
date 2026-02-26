@@ -431,22 +431,37 @@
 }
 
 .article-actions {
+    // Positioned in the left whitespace outside the reader
+    position: fixed;
+    left: calc(50% - 400px - 70px); // Center minus half reader width minus gutter
+    top: 140px;
     display: flex;
-    justify-content: flex-end;
+    flex-direction: column;
     align-items: center;
-    gap: 6px;
-    margin-bottom: 20px;
+    gap: 10px;
+    z-index: 50;
+
+    // Fallback for narrower viewports where sidebar won't fit
+    @media (max-width: 1100px) {
+        position: relative;
+        left: auto;
+        top: auto;
+        flex-direction: row;
+        justify-content: flex-end;
+        gap: 6px;
+        margin-bottom: 20px;
+    }
 
     // Compact icon-only action buttons
     .action-icon-btn {
-        width: 36px;
-        height: 36px;
+        width: 40px;
+        height: 40px;
         padding: 0;
         border: none;
-        border-radius: 8px;
+        border-radius: 10px;
         cursor: pointer;
         font-size: 15px;
-        transition: background-color 0.2s, transform 0.1s, box-shadow 0.2s;
+        transition: background-color 0.2s, transform 0.15s, box-shadow 0.2s;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -462,8 +477,8 @@
         }
 
         &:hover:not(:disabled) {
-            transform: translateY(-1px);
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
         }
 
         &:active:not(:disabled) {
@@ -485,6 +500,13 @@
             background-color: #4caf50;
             box-shadow: 0 0 6px rgba(76, 175, 80, 0.7);
             pointer-events: none;
+        }
+
+        // Smaller on mobile row
+        @media (max-width: 1100px) {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
         }
     }
 
@@ -588,8 +610,8 @@
         .translation-menu {
             z-index: 1000;
             position: absolute;
-            top: calc(100% + 10px);
-            right: 0;
+            top: 0;
+            left: calc(100% + 10px); // Open to the right of the sidebar
             width: 200px;
             max-height: 300px;
             overflow-y: auto;
@@ -601,6 +623,14 @@
             display: flex;
             flex-direction: column;
             gap: 2px;
+
+            // On mobile (horizontal bar), open upwards instead
+            @media (max-width: 1100px) {
+                top: auto;
+                bottom: calc(100% + 10px);
+                left: auto;
+                right: 0;
+            }
 
             [data-theme='dark'] & {
                 border-color: #444;

@@ -430,7 +430,7 @@ const ArticlePodcastPlayer: React.FC<ArticlePodcastPlayerProps> = ({
 
     return (
         <div className={`article-podcast-player ${className} ${isLoading ? 'is-loading' : ''}`}>
-            {showWaveform && <WaveformAnimation isPlaying={isPlaying} className="player-background-waveform" />}
+            {showWaveform && !isLoading && <WaveformAnimation isPlaying={isPlaying} className="player-background-waveform" />}
             <audio ref={audioRef} preload="metadata" />
 
             <div className="podcast-header">
@@ -442,16 +442,25 @@ const ArticlePodcastPlayer: React.FC<ArticlePodcastPlayerProps> = ({
                             </span>
                         )}
                     </h4>
-                    <p>Podcast-style conversation about: "{title}"</p>
+                    {isLoading ? (
+                        <p className="loading-status">
+                            <FontAwesomeIcon icon={faSpinner} spin />
+                            {isGenerating ? ' Generating podcast...' : ' Loading...'}
+                        </p>
+                    ) : (
+                        <p>Podcast-style conversation about: "{title}"</p>
+                    )}
                 </div>
-                <button
-                    onClick={handleDownload}
-                    className="download-button"
-                    title={audioUrl ? "Download Audio" : "Generate podcast to download"}
-                    disabled={!audioUrl}
-                >
-                    <FontAwesomeIcon icon={faDownload} />
-                </button>
+                {!isLoading && (
+                    <button
+                        onClick={handleDownload}
+                        className="download-button"
+                        title={audioUrl ? "Download Audio" : "Generate podcast to download"}
+                        disabled={!audioUrl}
+                    >
+                        <FontAwesomeIcon icon={faDownload} />
+                    </button>
+                )}
                 <button
                     onClick={() => setShowSettings(!showSettings)}
                     className="settings-toggle"
@@ -470,7 +479,7 @@ const ArticlePodcastPlayer: React.FC<ArticlePodcastPlayerProps> = ({
                 )}
             </div>
 
-            {showSettings && (
+            {showSettings && !isLoading && (
                 <div className="podcast-settings">
                     <div className="setting-group">
                         <label>Duration:</label>

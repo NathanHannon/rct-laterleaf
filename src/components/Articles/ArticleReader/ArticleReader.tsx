@@ -849,7 +849,7 @@ const ArticleReader = () => {
                 )}
             </AnimatePresence>
 
-            {/* AI Podcast Player - Enhanced audio experience */}
+            {/* AI Podcast Player */}
             <AnimatePresence>
                 {article.content && articleId && showPodcastPlayer && (
                     <motion.div
@@ -864,13 +864,12 @@ const ArticleReader = () => {
                             title={article.title || 'Article Audio'}
                             className="article-podcast-player"
                             onClose={() => setShowPodcastPlayer(false)}
-                        // selectedLanguage={currentLanguage}
                         />
                     </motion.div>
                 )}
             </AnimatePresence>
 
-            {/* Standard TTS Player - Read Aloud */}
+            {/* Standard TTS Player */}
             <AnimatePresence>
                 {articleId && showAudioPlayer && (
                     <motion.div
