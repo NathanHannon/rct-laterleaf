@@ -105,19 +105,19 @@ const DiscoverPage: React.FC = () => {
     // We can simplify the variants. The container no longer needs to control staggering.
     const itemVariants: Variants = {
         initial: { opacity: 0, y: 30, scale: 0.95, filter: 'blur(4px)' },
-        animate: { 
-            opacity: 1, 
-            y: 0, 
-            scale: 1, 
+        animate: {
+            opacity: 1,
+            y: 0,
+            scale: 1,
             filter: 'blur(0px)',
             transition: {
                 duration: 0.6,
                 ease: [0.23, 1, 0.32, 1]
             }
         },
-        exit: { 
-            opacity: 0, 
-            scale: 0.95, 
+        exit: {
+            opacity: 0,
+            scale: 0.95,
             filter: 'blur(4px)',
             transition: { duration: 0.3 }
         },
@@ -144,7 +144,7 @@ const DiscoverPage: React.FC = () => {
 
     return (
         <div className="discover-page">
-            <motion.div 
+            <motion.div
                 className="discover-header"
                 initial="initial"
                 animate="animate"
@@ -168,7 +168,7 @@ const DiscoverPage: React.FC = () => {
 
             {recommendations.length > 0 ? (
                 <>
-                    <motion.div 
+                    <motion.div
                         className="discover-grid-header"
                         initial={{ opacity: 0, y: 15 }}
                         whileInView={{ opacity: 1, y: 0 }}
@@ -187,14 +187,14 @@ const DiscoverPage: React.FC = () => {
                                     initial="initial"
                                     animate="animate"
                                     exit="exit"
-                                    whileHover={{ 
-                                        y: -10, 
-                                        transition: { duration: 0.4, ease: [0.23, 1, 0.32, 1] } 
+                                    whileHover={{
+                                        y: -10,
+                                        transition: { duration: 0.4, ease: [0.23, 1, 0.32, 1] }
                                     }}
                                     whileTap={{ scale: 0.98 }}
-                                    transition={{ 
-                                        delay: (index % 12) * 0.07, 
-                                        ease: [0.23, 1, 0.32, 1] 
+                                    transition={{
+                                        delay: (index % 12) * 0.07,
+                                        ease: [0.23, 1, 0.32, 1]
                                     }}
                                 >
                                     <RecommendationCard

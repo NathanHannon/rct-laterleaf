@@ -1,6 +1,6 @@
 .recommendation-card {
-    background-color: var(--card-bg); 
-    border: 1px solid var(--card-border); 
+    background-color: var(--card-bg);
+    border: 1px solid var(--card-border);
     border-radius: 12px; // Match ArticleCard rounded style
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
     overflow: hidden;
@@ -11,7 +11,7 @@
 
     &:hover {
         box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12);
-        
+
         .card-image {
             transform: scale(1.08);
         }
