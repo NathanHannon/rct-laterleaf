@@ -1,6 +1,7 @@
 import React from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faSort, faCalendarAlt, faArrowDownAZ, faArrowDownZA, faBookmark } from '@fortawesome/free-solid-svg-icons';
+import { faSort, faCalendarAlt, faArrowDownAZ, faArrowDownZA, faBookmark, faChevronDown } from '@fortawesome/free-solid-svg-icons';
+import { motion, AnimatePresence } from 'motion/react';
 import type { SortOption } from '../../../interfaces/sort';
 import './SortDropdown.scss';
 
@@ -60,40 +61,64 @@ const SortDropdown: React.FC<SortDropdownProps> = ({
     return (
         <div className="sort-dropdown">
             <button
-                className="sort-trigger"
+                className={`sort-trigger ${isOpen ? 'active' : ''}`}
                 onClick={onToggle}
                 aria-expanded={isOpen}
                 aria-haspopup="true"
             >
-                <FontAwesomeIcon icon={faSort} />
-                <span className="sort-label">
-                    Sort: {currentSort?.label || 'Newest First'}
-                </span>
-                <span className={`dropdown-arrow ${isOpen ? 'open' : ''}`}>▼</span>
+                <div className="trigger-icon-group">
+                    <FontAwesomeIcon icon={faSort} className="main-sort-icon" />
+                    <span className="sort-label">
+                        Sort: {currentSort?.label || 'Newest First'}
+                    </span>
+                </div>
+                <motion.span 
+                    className="dropdown-arrow"
+                    animate={{ rotate: isOpen ? 180 : 0 }}
+                    transition={{ duration: 0.3, ease: [0.23, 1, 0.32, 1] }}
+                >
+                    <FontAwesomeIcon icon={faChevronDown} />
+                </motion.span>
             </button>
 
-            {isOpen && (
-                <div className="sort-dropdown-menu">
-                    {sortOptions.map((option) => (
-                        <button
-                            key={option.value}
-                            className={`sort-option ${sortBy === option.value ? 'active' : ''}`}
-                            onClick={() => handleOptionClick(option.value)}
-                        >
-                            <div className="option-icon">
-                                <FontAwesomeIcon icon={option.icon} />
-                            </div>
-                            <div className="option-content">
-                                <div className="option-label">{option.label}</div>
-                                <div className="option-description">{option.description}</div>
-                            </div>
-                            {sortBy === option.value && (
-                                <div className="check-icon">✓</div>
-                            )}
-                        </button>
-                    ))}
-                </div>
-            )}
+            <AnimatePresence>
+                {isOpen && (
+                    <motion.div 
+                        className="sort-dropdown-menu"
+                        initial={{ opacity: 0, scale: 0.95, y: -10, transformOrigin: 'top right' }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.95, y: -10 }}
+                        transition={{ duration: 0.2, ease: [0.23, 1, 0.32, 1] }}
+                    >
+                        {sortOptions.map((option, index) => (
+                            <motion.button
+                                key={option.value}
+                                className={`sort-option ${sortBy === option.value ? 'active' : ''}`}
+                                onClick={() => handleOptionClick(option.value)}
+                                initial={{ opacity: 0, x: -10 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ delay: index * 0.05 }}
+                                whileHover={{ x: 5, backgroundColor: 'var(--hover-bg)' }}
+                            >
+                                <div className="option-icon">
+                                    <FontAwesomeIcon icon={option.icon} />
+                                </div>
+                                <div className="option-content">
+                                    <div className="option-label">{option.label}</div>
+                                    <div className="option-description">{option.description}</div>
+                                </div>
+                                {sortBy === option.value && (
+                                    <motion.div 
+                                        className="check-icon"
+                                        initial={{ scale: 0 }}
+                                        animate={{ scale: 1 }}
+                                    >✓</motion.div>
+                                )}
+                            </motion.button>
+                        ))}
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     );
 };

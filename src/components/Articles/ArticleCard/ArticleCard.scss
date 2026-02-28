@@ -6,29 +6,28 @@
     color: inherit;
     background-color: var(--card-bg); // Use theme background
     border: 1px solid var(--card-border); // Use theme border
-    border-radius: 8px;
+    border-radius: 12px; // Slightly rounder for modern feel
     overflow: hidden;
-    transition: box-shadow 0.3s ease, transform 0.2s ease;
-    height: 400px; // Fixed height for uniform cards
+    height: 400px;
+    transition: border-color 0.3s cubic-bezier(0.23, 1, 0.32, 1);
 
+    // Framer Motion handles transform and shadow more smoothly now
     &:hover {
-        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
-        transform: translateY(-2px);
+        border-color: var(--primary-color);
 
         .article-card-actions {
             opacity: 1;
             transform: translateY(0);
         }
+
+        .card-image {
+            transform: scale(1.08); // Subtle zoom on hover
+        }
     }
 
     // On mobile, always show a subtle card elevation for better touch feedback
     @media (max-width: 768px) {
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-
-        &:active {
-            transform: translateY(1px);
-            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
-        }
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
     }
 
     // For touch devices, use :active instead of :hover
@@ -99,7 +98,7 @@
         min-height: 180px !important;
         max-height: 180px !important;
         object-fit: cover !important;
-        transition: transform 0.3s ease;
+        transition: transform 0.8s cubic-bezier(0.23, 1, 0.32, 1);
         display: block !important;
     }
 

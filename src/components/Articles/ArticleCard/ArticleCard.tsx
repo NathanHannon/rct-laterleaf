@@ -83,13 +83,21 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
         <>
             <motion.div
                 className={`article-card-wrapper ${isArchived ? 'archived' : ''}`}
-                animate={isBookmarkAnimating ? {
-                    scale: [1, 1.02, 1],
-                    rotateY: [0, 2, 0]
-                } : {}}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{
+                    opacity: 1,
+                    y: 0,
+                    scale: isBookmarkAnimating ? [1, 1.02, 1] : 1,
+                    rotateY: isBookmarkAnimating ? [0, 5, 0] : 0
+                }}
+                whileHover={{
+                    y: -8,
+                    transition: { duration: 0.3, ease: "easeOut" }
+                }}
+                whileTap={{ scale: 0.98 }}
                 transition={{
-                    duration: 0.6,
-                    ease: "easeInOut"
+                    duration: 0.5,
+                    ease: [0.23, 1, 0.32, 1]
                 }}
             >
                 <AnimatePresence>
