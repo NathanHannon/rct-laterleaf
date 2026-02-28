@@ -1,6 +1,7 @@
 import React, { useRef } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronLeft, faChevronRight } from '@fortawesome/free-solid-svg-icons';
+import { motion } from 'motion/react';
 import type { Article } from '../../../interfaces/article';
 import RecommendationCard from '../../Articles/RecommendationCard/RecommendationCard';
 import './RecommendationCarousel.scss';
@@ -36,13 +37,32 @@ const RecommendationCarousel: React.FC<RecommendationCarouselProps> = ({ title, 
                     <FontAwesomeIcon icon={faChevronLeft} />
                 </button>
                 <div className="carousel-scroll-area" ref={scrollRef}>
-                    {articles.map(article => (
-                        <div key={article.id} className="carousel-item">
+                    {articles.map((article, index) => (
+                        <motion.div 
+                            key={article.id} 
+                            className="carousel-item"
+                            initial={{ opacity: 0, x: 50, scale: 0.95 }}
+                            whileInView={{ 
+                                opacity: 1, 
+                                x: 0, 
+                                scale: 1,
+                                transition: { 
+                                    duration: 0.6, 
+                                    delay: index * 0.1,
+                                    ease: [0.23, 1, 0.32, 1] 
+                                }
+                            }}
+                            viewport={{ once: true, margin: "0px 200px 0px 0px" }}
+                            whileHover={{ 
+                                scale: 1.02,
+                                transition: { duration: 0.3, ease: [0.23, 1, 0.32, 1] } 
+                            }}
+                        >
                             <RecommendationCard
                                 article={article}
                                 onAddToLibrary={() => onAddToLibrary(article.id)}
                             />
-                        </div>
+                        </motion.div>
                     ))}
                 </div>
                 <button className="scroll-button right" onClick={() => scroll('right')} aria-label="Scroll right">

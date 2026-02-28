@@ -104,9 +104,28 @@ const DiscoverPage: React.FC = () => {
 
     // We can simplify the variants. The container no longer needs to control staggering.
     const itemVariants: Variants = {
-        initial: { opacity: 0, y: 20 },
-        animate: { opacity: 1, y: 0 },
-        exit: { opacity: 0, y: -20 },
+        initial: { opacity: 0, y: 30, scale: 0.95, filter: 'blur(4px)' },
+        animate: { 
+            opacity: 1, 
+            y: 0, 
+            scale: 1, 
+            filter: 'blur(0px)',
+            transition: {
+                duration: 0.6,
+                ease: [0.23, 1, 0.32, 1]
+            }
+        },
+        exit: { 
+            opacity: 0, 
+            scale: 0.95, 
+            filter: 'blur(4px)',
+            transition: { duration: 0.3 }
+        },
+    };
+
+    const headerVariants: Variants = {
+        initial: { opacity: 0, y: -20 },
+        animate: { opacity: 1, y: 0, transition: { duration: 0.8, ease: [0.23, 1, 0.32, 1] } }
     };
 
     const title = recommendationType === 'popular' ? 'Popular Articles' : 'Recommended for You';
@@ -125,35 +144,58 @@ const DiscoverPage: React.FC = () => {
 
     return (
         <div className="discover-page">
-            <div className="discover-header">
+            <motion.div 
+                className="discover-header"
+                initial="initial"
+                animate="animate"
+                variants={headerVariants}
+            >
                 <h1>Discover New Articles</h1>
                 <p>Find your next favorite read from the web and our community.</p>
-            </div>
+            </motion.div>
 
-            <RecommendationCarousel
-                title="New from Around the Web"
-                articles={discoveredArticles}
-                onAddToLibrary={handleAddToLibrary}
-            />
+            <motion.div
+                initial={{ opacity: 0, x: -30 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.8, delay: 0.2, ease: [0.23, 1, 0.32, 1] }}
+            >
+                <RecommendationCarousel
+                    title="New from Around the Web"
+                    articles={discoveredArticles}
+                    onAddToLibrary={handleAddToLibrary}
+                />
+            </motion.div>
 
             {recommendations.length > 0 ? (
                 <>
-                    <div className="discover-grid-header">
+                    <motion.div 
+                        className="discover-grid-header"
+                        initial={{ opacity: 0, y: 15 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 0.6, ease: [0.23, 1, 0.32, 1], delay: 0.3 }}
+                    >
                         <h2>{title}</h2>
                         <p>{subtitle}</p>
-                    </div>
+                    </motion.div>
                     <div className="discover-grid">
-                        {/* 2. Wrap the list with AnimatePresence */}
                         <AnimatePresence>
                             {recommendations.filter(article => article && article.id).map((article, index) => (
-                                // 3. Apply animation props directly to the motion.div
                                 <motion.div
                                     key={article.id}
                                     variants={itemVariants}
                                     initial="initial"
                                     animate="animate"
                                     exit="exit"
-                                    transition={{ duration: 0.4, delay: (index % 12) * 0.07, ease: 'easeOut' }}
+                                    whileHover={{ 
+                                        y: -10, 
+                                        transition: { duration: 0.4, ease: [0.23, 1, 0.32, 1] } 
+                                    }}
+                                    whileTap={{ scale: 0.98 }}
+                                    transition={{ 
+                                        delay: (index % 12) * 0.07, 
+                                        ease: [0.23, 1, 0.32, 1] 
+                                    }}
                                 >
                                     <RecommendationCard
                                         article={article}

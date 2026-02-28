@@ -72,7 +72,7 @@ const SortDropdown: React.FC<SortDropdownProps> = ({
                         Sort: {currentSort?.label || 'Newest First'}
                     </span>
                 </div>
-                <motion.span 
+                <motion.span
                     className="dropdown-arrow"
                     animate={{ rotate: isOpen ? 180 : 0 }}
                     transition={{ duration: 0.3, ease: [0.23, 1, 0.32, 1] }}
@@ -83,7 +83,7 @@ const SortDropdown: React.FC<SortDropdownProps> = ({
 
             <AnimatePresence>
                 {isOpen && (
-                    <motion.div 
+                    <motion.div
                         className="sort-dropdown-menu"
                         initial={{ opacity: 0, scale: 0.95, y: -10, transformOrigin: 'top right' }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -108,7 +108,7 @@ const SortDropdown: React.FC<SortDropdownProps> = ({
                                     <div className="option-description">{option.description}</div>
                                 </div>
                                 {sortBy === option.value && (
-                                    <motion.div 
+                                    <motion.div
                                         className="check-icon"
                                         initial={{ scale: 0 }}
                                         animate={{ scale: 1 }}
