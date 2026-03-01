@@ -18,7 +18,7 @@ interface HelpModalProps {
     onClose: () => void;
 }
 
-const WELCOME_AUDIO_URL = 'https://media.laterleaf.com/audio/welcome-overview.mp3';
+const WELCOME_AUDIO_URL = 'https://pub-b40f193b840d468fbddd1218629f7460.r2.dev/podcasts/sample/sample.m4a';
 
 const SLIDES = [
     {
