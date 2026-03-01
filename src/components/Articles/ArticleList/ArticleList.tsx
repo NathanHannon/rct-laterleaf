@@ -10,10 +10,7 @@ import ConfirmationDialog from '../../Common/ConfirmationDialog/ConfirmationDial
 import LoadingSpinner from '../../Common/LoadingSpinner/LoadingSpinner';
 import type { SortOption } from '../../../interfaces/sort';
 import './ArticleList.scss';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faGem } from '@fortawesome/free-solid-svg-icons';
 import AddArticleForm from '../AddArticleForm/AddArticleForm';
-import { hasProAccess } from '../../../utils/tierUtils';
 import { sortArticles } from '../../../utils/sortUtils';
 import { motion } from 'motion/react';
 import { useUserStatus } from '../../../hooks/useUserStatus';
@@ -209,20 +206,36 @@ const ArticleList = () => {
     return (
         <div className="article-list-container">
             <AddArticleForm onArticleAdded={handleArticleAdded} />
-            <div className="list-header">
-                <div className="header-left">
-                    <h2 className="list-title">My List</h2>
-                    {isLoading && <LoadingSpinner size="small" layout="horizontal" label="Loading..." />}
+
+            <motion.header
+                className="list-header-premium"
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, ease: [0.23, 1, 0.32, 1] }}
+            >
+                <div className="header-top">
+                    <div className="header-left">
+                        <h1 className="list-title">My List</h1>
+                        <div className="header-meta">
+                            {isLoading ? (
+                                <LoadingSpinner size="small" layout="horizontal" label="Syncing..." />
+                            ) : (
+                                <span className="article-count">{sortedArticles.length} curated reads</span>
+                            )}
+                        </div>
+                    </div>
+                    <div className="header-right">
+                        <SortDropdown
+                            sortBy={sortBy}
+                            onSortChange={handleSortChange}
+                            isOpen={isSortDropdownOpen}
+                            onToggle={toggleSortDropdown}
+                        />
+                    </div>
                 </div>
-                <div className="header-right">
-                    <SortDropdown
-                        sortBy={sortBy}
-                        onSortChange={handleSortChange}
-                        isOpen={isSortDropdownOpen}
-                        onToggle={toggleSortDropdown}
-                    />
-                </div>
-            </div>
+                <p className="list-subtitle">Your personal library of knowledge, saved for later.</p>
+            </motion.header>
+
             <motion.div
                 className="article-grid"
                 initial="hidden"

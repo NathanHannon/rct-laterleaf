@@ -1,32 +1,81 @@
 .discover-page {
     width: 100%;
-    padding: 1rem 0;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem;
 }
 
 .discover-header {
-    text-align: center;
-    margin-bottom: 2.5rem;
+    text-align: left;
+    margin-bottom: 4rem;
+    position: relative;
+    padding: 6rem 0 3rem 0; // Increased padding for atmosphere
+    border-bottom: 1px solid var(--card-border);
+    overflow: hidden;
+
+    // Atmospheric background effect
+    &::before {
+        content: '';
+        position: absolute;
+        top: -150px;
+        right: -150px;
+        width: 600px;
+        height: 600px;
+        background: radial-gradient(circle, var(--primary-color-faint, rgba(0, 123, 255, 0.08)) 0%, transparent 70%);
+        z-index: -1;
+        border-radius: 50%;
+    }
+
+    &::after {
+        content: '';
+        position: absolute;
+        bottom: -1px;
+        left: 0;
+        width: 60px;
+        height: 2px;
+        background: var(--primary-color);
+    }
 
     h1 {
-        font-size: 2.5rem;
+        font-family: 'Instrument Serif', serif;
+        font-size: 3.5rem;
         color: var(--text-color);
-        margin-bottom: 0.5rem;
+        margin: 0 0 1rem 0;
+        letter-spacing: -0.02em;
+        line-height: 1.1;
     }
 
     p {
-        font-size: 1.1rem;
+        font-size: 1.25rem;
         color: var(--text-color-secondary);
-        max-width: 600px;
-        margin: 0 auto;
+        max-width: 550px;
+        margin: 0;
+        line-height: 1.5;
+    }
+}
+
+.discover-grid-header {
+    margin-top: 4rem;
+    margin-bottom: 2rem;
+
+    h2 {
+        font-family: 'Instrument Serif', serif;
+        font-size: 2rem;
+        margin: 0 0 0.5rem 0;
+        color: var(--text-color);
+    }
+
+    p {
+        color: var(--text-color-secondary);
+        font-size: 1rem;
     }
 }
 
 .discover-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 1.5rem;
-    padding: 0 1rem;
-    /* Add padding to the grid container */
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 2rem;
+    padding: 0;
 }
 
 .discover-footer {

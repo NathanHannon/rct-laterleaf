@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useClerk } from '@clerk/clerk-react';
 import { useNavigate } from 'react-router-dom';
+import { motion } from 'motion/react';
 import { useUserCredits } from '../../../hooks/useUserCredits';
 import { useUserStatus } from '../../../hooks/useUserStatus';
 import { useReadingPreferences, READING_FONTS } from '../../../hooks/useReadingPreferences';
@@ -40,9 +41,23 @@ const Settings = () => {
 
     return (
         <div className="settings-page">
-            <h1>Settings & Account</h1>
+            <motion.header
+                className="premium-header"
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, ease: [0.23, 1, 0.32, 1] }}
+            >
+                <div className="header-eyebrow">Preferences</div>
+                <h1 className="header-title">Settings & Account</h1>
+                <div className="header-mesh"></div>
+            </motion.header>
 
-            <div className="settings-grid">
+            <motion.div
+                className="settings-grid"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1, duration: 0.6, ease: [0.23, 1, 0.32, 1] }}
+            >
                 <div className="settings-column">
                     <div className="settings-section subscription-section">
                         <h2>Subscription Plan</h2>
@@ -255,7 +270,7 @@ const Settings = () => {
                         </div>
                     </div>
                 </div>
-            </div>
+            </motion.div>
         </div>
     );
 };

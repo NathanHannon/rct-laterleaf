@@ -234,17 +234,30 @@ const CollectionsList: React.FC = () => {
     }
 
     return (
-        <div className="collections-container">
-            <div className="collections-header">
-                <h1>My Collections</h1>
-                <button
-                    onClick={openCreateModal}
-                    className="create-collection-btn"
-                >
-                    <FontAwesomeIcon icon={faPlus} />
-                    New Collection
-                </button>
-            </div>
+        <div className="collections-container-premium">
+            <motion.header
+                className="collections-header-premium"
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, ease: [0.23, 1, 0.32, 1] }}
+            >
+                <div className="header-top">
+                    <div className="header-left">
+                        <h1 className="collections-title">Collections</h1>
+                        <span className="collections-count">{collections.length} Curated Archives</span>
+                    </div>
+                    <div className="header-right">
+                        <button
+                            onClick={openCreateModal}
+                            className="create-collection-btn"
+                        >
+                            <FontAwesomeIcon icon={faPlus} />
+                            New Collection
+                        </button>
+                    </div>
+                </div>
+                <p className="collections-subtitle">Organize your readings into meaningful thematic spaces.</p>
+            </motion.header>
 
             {(loadingSuggestions || suggestedCollections.length > 0) && (
                 <div className="suggestions-section">
@@ -285,10 +298,12 @@ const CollectionsList: React.FC = () => {
                 initial="hidden"
                 animate="visible"
                 variants={{
-                    hidden: {},
+                    hidden: { opacity: 0 },
                     visible: {
+                        opacity: 1,
                         transition: {
-                            staggerChildren: 0.1
+                            staggerChildren: 0.08,
+                            delayChildren: 0.1
                         }
                     }
                 }}
@@ -297,10 +312,18 @@ const CollectionsList: React.FC = () => {
                     <motion.div
                         key={collection.id}
                         variants={{
-                            hidden: { opacity: 0 },
-                            visible: { opacity: 1 }
+                            hidden: { opacity: 0, y: 30, scale: 0.95, filter: 'blur(4px)' },
+                            visible: {
+                                opacity: 1,
+                                y: 0,
+                                scale: 1,
+                                filter: 'blur(0px)',
+                                transition: {
+                                    duration: 0.6,
+                                    ease: [0.23, 1, 0.32, 1]
+                                }
+                            }
                         }}
-                        transition={{ duration: 0.5 }}
                     >
                         <CollectionCard
                             collection={collection}

@@ -222,7 +222,7 @@ const ArticleReader = () => {
     // Fetch user credits on mount
     useEffect(() => {
         fetchCredits();
-    }, []);
+    }, [fetchCredits]);
 
     const handleFavorite = async () => {
         if (!articleId || !article) return;

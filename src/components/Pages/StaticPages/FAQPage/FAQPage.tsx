@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronDown } from '@fortawesome/free-solid-svg-icons';
 import './FAQPage.scss';
@@ -9,6 +10,26 @@ const FAQPage: React.FC = () => {
 
     const toggleItem = (id: string) => {
         setOpenId(openId === id ? null : id);
+    };
+
+    const containerVariants = {
+        hidden: { opacity: 0 },
+        visible: {
+            opacity: 1,
+            transition: {
+                staggerChildren: 0.05
+            }
+        }
+    };
+
+    const itemVariants = {
+        hidden: { opacity: 0, y: 15, filter: 'blur(4px)' },
+        visible: {
+            opacity: 1,
+            y: 0,
+            filter: 'blur(0px)',
+            transition: { duration: 0.4, ease: [0.23, 1, 0.32, 1] }
+        }
     };
 
     const faqData = [
@@ -130,18 +151,37 @@ const FAQPage: React.FC = () => {
     return (
         <div className="faq-page">
             <div className="page-container">
-                <h1>Frequently Asked Questions</h1>
+                <motion.header
+                    className="premium-header"
+                    initial={{ opacity: 0, y: -20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.8, ease: [0.23, 1, 0.32, 1] }}
+                >
+                    <div className="header-eyebrow">Support</div>
+                    <h1 className="header-title">Frequently Asked Questions</h1>
+                    <div className="header-mesh"></div>
+                </motion.header>
 
-                <section className="intro">
+                <motion.section
+                    className="intro"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.2 }}
+                >
                     <p>
                         Find answers to common questions about LaterLeaf. If you can't find what you're looking for,
                         feel free to <a href="/contact">contact our support team</a>.
                     </p>
-                </section>
+                </motion.section>
 
-                <div className="faq-content">
+                <motion.div
+                    className="faq-content"
+                    variants={containerVariants}
+                    initial="hidden"
+                    animate="visible"
+                >
                     {categories.map((category, categoryIndex) => (
-                        <div key={categoryIndex} className="faq-category">
+                        <motion.div key={categoryIndex} className="faq-category" variants={itemVariants}>
                             <h2>{category.title}</h2>
                             <div className="faq-items">
                                 {category.items.map((item) => (
@@ -155,22 +195,35 @@ const FAQPage: React.FC = () => {
                                             aria-expanded={openId === item.id ? 'true' : 'false'}
                                         >
                                             <span>{item.question}</span>
-                                            <FontAwesomeIcon
-                                                icon={faChevronDown}
-                                                className={`chevron-icon ${openId === item.id ? 'up' : ''}`}
-                                            />
+                                            <motion.span
+                                                animate={{ rotate: openId === item.id ? 180 : 0 }}
+                                                transition={{ duration: 0.3, ease: [0.23, 1, 0.32, 1] }}
+                                            >
+                                                <FontAwesomeIcon
+                                                    icon={faChevronDown}
+                                                    className={`chevron-icon ${openId === item.id ? 'up' : ''}`}
+                                                />
+                                            </motion.span>
                                         </button>
-                                        {openId === item.id && (
-                                            <div className="faq-answer">
-                                                <p>{item.answer}</p>
-                                            </div>
-                                        )}
+                                        <AnimatePresence>
+                                            {openId === item.id && (
+                                                <motion.div
+                                                    className="faq-answer"
+                                                    initial={{ height: 0, opacity: 0 }}
+                                                    animate={{ height: 'auto', opacity: 1 }}
+                                                    exit={{ height: 0, opacity: 0 }}
+                                                    transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
+                                                >
+                                                    <p>{item.answer}</p>
+                                                </motion.div>
+                                            )}
+                                        </AnimatePresence>
                                     </div>
                                 ))}
                             </div>
-                        </div>
+                        </motion.div>
                     ))}
-                </div>
+                </motion.div>
 
                 <div className="contact-section">
                     <h2>Ready to Go Pro?</h2>

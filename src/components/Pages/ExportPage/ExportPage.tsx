@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '@clerk/clerk-react';
+import { motion } from 'motion/react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faDownload, faSpinner, faFileExport, faFileCsv, faFileCode } from '@fortawesome/free-solid-svg-icons';
 import './ExportPage.scss';
@@ -86,15 +87,45 @@ const ExportPage: React.FC = () => {
     return (
         <div className="export-page">
             <div className="page-container">
-                <div className="export-header">
-                    <FontAwesomeIcon icon={faFileExport} className="header-icon" />
-                    <h1>Export Your Data</h1>
-                    <p>Download your saved articles, collections, and tags in various formats</p>
-                </div>
+                <motion.header
+                    className="premium-header"
+                    initial={{ opacity: 0, y: -20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.8, ease: [0.23, 1, 0.32, 1] }}
+                >
+                    <div className="header-eyebrow">Data & Portability</div>
+                    <h1 className="header-title">Export Your Data</h1>
+                    <p className="header-subtitle">Download your saved articles, collections, and tags in various formats</p>
+                    <div className="header-mesh"></div>
+                </motion.header>
 
-                <div className="export-formats">
+                <motion.div
+                    className="export-formats"
+                    initial="hidden"
+                    animate="visible"
+                    variants={{
+                        hidden: {},
+                        visible: {
+                            transition: {
+                                staggerChildren: 0.1
+                            }
+                        }
+                    }}
+                >
                     {exportFormats.map((format) => (
-                        <div key={format.id} className="export-card">
+                        <motion.div
+                            key={format.id}
+                            className="export-card"
+                            variants={{
+                                hidden: { opacity: 0, y: 20, filter: 'blur(4px)' },
+                                visible: {
+                                    opacity: 1,
+                                    y: 0,
+                                    filter: 'blur(0px)',
+                                    transition: { duration: 0.5, ease: [0.23, 1, 0.32, 1] }
+                                }
+                            }}
+                        >
                             <div className="card-header">
                                 <FontAwesomeIcon
                                     icon={format.icon}
@@ -129,11 +160,17 @@ const ExportPage: React.FC = () => {
                                     </>
                                 )}
                             </button>
-                        </div>
+                        </motion.div>
                     ))}
-                </div>
+                </motion.div>
 
-                <div className="export-info">
+                <motion.div
+                    className="export-info"
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.6, delay: 0.2 }}
+                >
                     <h2>What's Included in Your Export</h2>
                     <div className="info-grid">
                         <div className="info-item">
@@ -161,9 +198,15 @@ const ExportPage: React.FC = () => {
                             <p>Only your data - export is private and secure</p>
                         </div>
                     </div>
-                </div>
+                </motion.div>
 
-                <div className="compatibility-info">
+                <motion.div
+                    className="compatibility-info"
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.6, delay: 0.3 }}
+                >
                     <h2>Service Compatibility</h2>
                     <div className="compatibility-grid">
                         <div className="compatibility-item">
@@ -179,15 +222,21 @@ const ExportPage: React.FC = () => {
                             <span>Custom applications, developers, future imports</span>
                         </div>
                     </div>
-                </div>
+                </motion.div>
 
-                <div className="privacy-note">
+                <motion.div
+                    className="privacy-note"
+                    initial={{ opacity: 0 }}
+                    whileInView={{ opacity: 1 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 1, delay: 0.5 }}
+                >
                     <p>
                         <strong>Privacy Note:</strong> Your export contains only your personal data.
                         No user information from other accounts is included. The export is generated
                         securely and downloaded directly to your device.
                     </p>
-                </div>
+                </motion.div>
             </div>
         </div>
     );

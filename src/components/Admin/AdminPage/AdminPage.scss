@@ -1,18 +1,73 @@
-.admin-page {
-    padding: 2rem;
-    max-width: 1200px;
+.admin-page-premium {
+    padding: 2rem 1.5rem;
+    max-width: 1400px;
     margin: 0 auto;
 
-    .admin-header {
-        margin-bottom: 2rem;
+    .admin-header-premium {
+        text-align: left;
+        margin-bottom: 4rem;
+        position: relative;
+        padding: 4rem 0 2rem 0;
+        border-bottom: 1px solid var(--card-border);
+        overflow: hidden;
 
-        h1 {
-            font-size: 2rem;
-            margin-bottom: 0.5rem;
+        &::before {
+            content: '';
+            position: absolute;
+            top: -150px;
+            right: -150px;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, var(--primary-color-faint, rgba(0, 123, 255, 0.08)) 0%, transparent 70%);
+            z-index: -1;
+            border-radius: 50%;
         }
 
-        p {
+        &::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            width: 60px;
+            height: 2px;
+            background: var(--primary-color);
+        }
+
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-bottom: 1rem;
+        }
+
+        .admin-title {
+            font-family: 'Instrument Serif', serif;
+            font-size: 3.5rem;
+            color: var(--text-color);
+            margin: 0;
+            letter-spacing: -0.02em;
+            line-height: 1.1;
+        }
+
+        .admin-status-badge {
+            font-size: 0.9rem;
+            color: var(--primary-color);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-weight: 600;
+            display: inline-block;
+            margin-top: 0.5rem;
+            background: var(--primary-color-faint);
+            padding: 4px 12px;
+            border-radius: 20px;
+        }
+
+        .admin-subtitle {
+            font-size: 1.25rem;
             color: var(--text-color-secondary);
+            max-width: 650px;
+            margin: 1rem 0 0 0;
+            line-height: 1.5;
         }
     }
 

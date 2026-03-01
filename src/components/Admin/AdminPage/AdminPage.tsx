@@ -161,16 +161,21 @@ const AdminPage: React.FC = () => {
     }
 
     return (
-        <motion.div
-            className="admin-page"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4 }}
-        >
-            <div className="admin-header">
-                <h1>LaterLeaf Admin Panel</h1>
-                <p>System Overview & Management</p>
-            </div>
+        <div className="admin-page-premium">
+            <motion.header
+                className="admin-header-premium"
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, ease: [0.23, 1, 0.32, 1] }}
+            >
+                <div className="header-top">
+                    <div className="header-left">
+                        <h1 className="admin-title">Admin Console</h1>
+                        <span className="admin-status-badge">System Root Access</span>
+                    </div>
+                </div>
+                <p className="admin-subtitle">Advanced management, system statistics, and content moderation.</p>
+            </motion.header>
 
             {error && (
                 <motion.div
@@ -359,7 +364,7 @@ const AdminPage: React.FC = () => {
                     </motion.div>
                 )}
             </div>
-        </motion.div>
+        </div>
     );
 };
 

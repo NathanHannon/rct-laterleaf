@@ -99,7 +99,17 @@ const BookmarkedArticles: React.FC = () => {
 
     return (
         <div className="article-list-container">
-            <h2 className="list-title">Bookmarked Articles</h2>
+            <motion.header
+                className="premium-header"
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, ease: [0.23, 1, 0.32, 1] }}
+            >
+                <div className="header-eyebrow">Personal Collection</div>
+                <h1 className="header-title">Bookmarked Articles</h1>
+                <div className="header-mesh"></div>
+            </motion.header>
+
             <motion.div
                 className="article-grid"
                 initial="hidden"
@@ -108,7 +118,7 @@ const BookmarkedArticles: React.FC = () => {
                     hidden: {},
                     visible: {
                         transition: {
-                            staggerChildren: 0.1
+                            staggerChildren: 0.08
                         }
                     }
                 }}
@@ -117,10 +127,18 @@ const BookmarkedArticles: React.FC = () => {
                     <motion.div
                         key={article.id}
                         variants={{
-                            hidden: { opacity: 0 },
-                            visible: { opacity: 1 }
+                            hidden: { opacity: 0, y: 30, scale: 0.95, filter: 'blur(4px)' },
+                            visible: {
+                                opacity: 1,
+                                y: 0,
+                                scale: 1,
+                                filter: 'blur(0px)',
+                                transition: {
+                                    duration: 0.6,
+                                    ease: [0.23, 1, 0.32, 1]
+                                }
+                            }
                         }}
-                        transition={{ duration: 0.4 }}
                     >
                         <ArticleCard
                             article={article}

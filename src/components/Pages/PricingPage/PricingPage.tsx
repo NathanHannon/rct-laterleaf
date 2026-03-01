@@ -1,24 +1,15 @@
-import { PricingTable } from '@clerk/clerk-react'
+import { PricingTable } from '@clerk/clerk-react';
+import { motion } from 'motion/react';
 
 export default function PricingScreen() {
-//     const freePlanFeatures = [
-//     "Save unlimited articles",
-//     "15 standard summaries / month",
-//     "3 Pro summaries / month",
-//     "Basic keyword search"
-// ];
-
-// const proPlanFeatures = [
-//     "Everything in Free, plus:",
-//     "<strong>Unlimited</strong> Pro summaries",
-//     "Full-text semantic search",
-//     "Personalized AI Summaries",
-//     "<em>(Coming Soon)</em> Chat with your articles",
-//     "<em>(Coming Soon)</em> Offline mode"
-// ];
     return (
-        <div style={{ maxWidth: '800px', margin: '0 auto', padding: '0 1rem' }}>
+        <motion.div
+            style={{ maxWidth: '800px', margin: '0 auto', padding: '0 1rem' }}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, ease: [0.23, 1, 0.32, 1] }}
+        >
             <PricingTable />
-        </div>
+        </motion.div>
     )
 }

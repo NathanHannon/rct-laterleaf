@@ -1,12 +1,14 @@
 .recommendation-carousel {
     width: 100%;
-    margin-bottom: 2.5rem;
+    margin-bottom: 4rem;
 
     h2 {
-        font-size: 1.5rem;
+        font-family: 'Instrument Serif', serif;
+        font-size: 2rem;
         color: var(--text-color);
-        margin-bottom: 1rem;
-        padding: 0 1rem;
+        margin-bottom: 2rem;
+        padding: 0;
+        letter-spacing: -0.01em;
     }
 
     .carousel-container {

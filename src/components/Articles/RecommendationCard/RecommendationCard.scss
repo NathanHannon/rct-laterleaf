@@ -60,22 +60,28 @@
 
     .card-actions {
         display: flex;
-        gap: 10px;
+        gap: 8px;
         margin-top: auto;
+
+        @media (max-width: 480px) {
+            flex-direction: column;
+        }
     }
 
     .action-button {
         display: flex;
         align-items: center;
         justify-content: center;
-        gap: 8px;
-        padding: 10px 14px;
+        gap: 6px;
+        padding: 10px 12px;
         border: none;
         border-radius: 8px;
-        font-size: 0.85rem;
+        font-size: 0.8rem;
         font-weight: 600;
         cursor: pointer;
+        flex: 1;
         transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+        white-space: nowrap;
 
         &.add-button {
             background-color: var(--primary-color);
@@ -95,9 +101,11 @@
         &.view-button {
             background-color: var(--hover-bg, #f0f0f0);
             color: var(--text-color);
+            border: 1px solid var(--card-border);
 
             &:hover {
-                background-color: var(--border-color, #e0e0e0);
+                background-color: var(--border-color);
+                border-color: var(--text-color-secondary);
                 transform: translateY(-2px);
             }
 
