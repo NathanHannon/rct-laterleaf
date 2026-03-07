@@ -1,12 +1,13 @@
 import { forwardRef, useState } from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
-import { useAuth, SignedIn } from '@clerk/clerk-react';
+import { NavLink } from 'react-router-dom';
+import { SignedIn } from '@clerk/clerk-react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faInbox, faBookmark, faArchive, faFolderOpen, faFileExport, faCompass, faTimes, faSearch, faCog, faQuestionCircle } from '@fortawesome/free-solid-svg-icons';
+import { faInbox, faBookmark, faArchive, faFolderOpen, faFileExport, faCompass, faTimes, faSearch, faCog, faQuestionCircle, faGift } from '@fortawesome/free-solid-svg-icons';
 import { useSearch } from '../../../hooks/searchHook';
 import { hasProAccess } from '../../../utils/tierUtils';
 import SearchModeToggle from '../../Search/SearchModeToggle/SearchModeToggle';
 import HelpModal from '../../Common/HelpModal/HelpModal';
+import Wrapped from '../../Wrapped/Wrapped';
 import './Sidebar.scss';
 import logo from '../../../assets/logo/icon-transparent.png';
 import { useUserStatus } from '../../../hooks/useUserStatus';
@@ -19,18 +20,25 @@ interface SidebarProps {
 
 const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(({ isOpen, onClose }, ref) => {
     const { searchTerm, setSearchTerm } = useSearch();
-    const { getToken } = useAuth();
-    const navigate = useNavigate();
     // Use the UserStatusProvider for pro status
     const { isPro, isLoading } = useUserStatus();
 
     // Help Modal State
     const [isHelpModalOpen, setIsHelpModalOpen] = useState(false);
 
+    // Wrapped State
+    const [isWrappedOpen, setIsWrappedOpen] = useState(false);
+
     const handleHelpClick = (e: React.MouseEvent) => {
         e.preventDefault();
         setIsHelpModalOpen(true);
         onClose(); // Close sidebar when opening modal
+    };
+
+    const handleWrappedClick = (e: React.MouseEvent) => {
+        e.preventDefault();
+        setIsWrappedOpen(true);
+        onClose();
     };
 
     // The hasProAccess utility now correctly receives a boolean
@@ -114,6 +122,10 @@ const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(({ isOpen, onClose }, r
                                 <FontAwesomeIcon icon={faFileExport} />
                                 <span>Export</span>
                             </NavLink>
+                            <a href="#" onClick={handleWrappedClick} className="wrapped-link nav-link">
+                                <FontAwesomeIcon icon={faGift} />
+                                <span>Your Review</span>
+                            </a>
                             <NavLink to="/settings" onClick={onClose} className="nav-link">
                                 <FontAwesomeIcon icon={faCog} />
                                 <span>Settings</span>
@@ -138,6 +150,9 @@ const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(({ isOpen, onClose }, r
             </div>
             {/* Render Help Modal outside the sidebar container but triggered by it */}
             <HelpModal isOpen={isHelpModalOpen} onClose={() => setIsHelpModalOpen(false)} />
+
+            {/* Render Wrapped Overlay */}
+            {isWrappedOpen && <Wrapped onClose={() => setIsWrappedOpen(false)} />}
         </>
     );
 });
