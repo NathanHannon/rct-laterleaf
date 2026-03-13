@@ -4,7 +4,7 @@ import { faMicrochip, faDownload, faCheckCircle, faTimesCircle, faSpinner } from
 import { getNanoStatus, downloadNanoModel } from '../../../services/nanoAiService';
 
 export const OfflineModelSettings: React.FC = () => {
-    const [status, setStatus] = useState<'readily' | 'after-download' | 'no'>('no');
+    const [status, setStatus] = useState<'readily' | 'after-download' | 'no' | 'unsupported'>('unsupported');
     const [isDownloading, setIsDownloading] = useState(false);
     const [progress, setProgress] = useState(0);
 
@@ -27,15 +27,19 @@ export const OfflineModelSettings: React.FC = () => {
         }
     };
 
-    if (status === 'no') {
+    if (status === 'unsupported' || status === 'no') {
         return (
             <div className="preference-item model-settings-item disabled">
                 <div className="preference-info">
                     <div className="pref-title">
                         <FontAwesomeIcon icon={faTimesCircle} className="text-muted" />
-                        <span>Offline AI Model</span>
+                        <span>Offline AI Model {status === 'no' ? '(Not Ready)' : '(Unsupported)'}</span>
                     </div>
-                    <p>Your browser does not support Chrome's Built-in AI (Gemini Nano) or it is not enabled in flags.</p>
+                    {status === 'unsupported' ? (
+                        <p>Your browser does not support Chrome's Built-in AI (Gemini Nano) or the experimental flag "#prompt-api-for-gemini-nano" is not enabled.</p>
+                    ) : (
+                        <p>Chrome's AI APIs are available, but the model cannot run right now. Please ensure "Enable optimization guide on device" flag is set correctly in Chrome, and check chrome://components to ensure "Optimization Guide On Device Model" is downloaded.</p>
+                    )}
                 </div>
             </div>
         );
