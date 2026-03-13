@@ -14,13 +14,14 @@ import RelatedArticles from '../RelatedArticles/RelatedArticles';
 import TagsManager from '../../TagsManager/TagsManager';
 import './ArticleReader.scss';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBookmark as faBookmarkSolid, faArchive, faTrash, faRotateRight, faFolderPlus, faEllipsisV, faGem, faClock, faStarHalfStroke, faPodcast, faHeadphones, faLanguage, faCheck } from '@fortawesome/free-solid-svg-icons';
+import { faBookmark as faBookmarkSolid, faArchive, faTrash, faRotateRight, faFolderPlus, faEllipsisV, faGem, faClock, faStarHalfStroke, faPodcast, faHeadphones, faLanguage, faCheck, faCloudArrowDown, faCloud } from '@fortawesome/free-solid-svg-icons';
 import { faBookmark as faBookmarkRegular } from '@fortawesome/free-regular-svg-icons';
 import { hasProAccess } from '../../../utils/tierUtils';
 import { useUserStatus } from '../../../hooks/useUserStatus';
 import { useUserCredits } from '../../../hooks/useUserCredits';
 import { useReadingPreferences } from '../../../hooks/useReadingPreferences';
 import { LANGUAGES } from '../../../constants/languages';
+import { saveOfflineArticle, removeOfflineArticle, isArticleOffline, getOfflineArticle } from '../../../services/offlineStorageService';
 
 const ArticleReader = () => {
     const { articleId } = useParams<{ articleId: string }>();
@@ -36,12 +37,29 @@ const ArticleReader = () => {
         queryKey: ['article', articleId],
         queryFn: async () => {
             if (!articleId) return null;
+
+            // Optional offline-first or offline-fallback behavior
+            const savedOffline = await isArticleOffline(articleId);
+
+            if (!navigator.onLine) {
+                if (savedOffline) {
+                    const offlineData = await getOfflineArticle(articleId);
+                    if (offlineData) return offlineData;
+                }
+                throw new Error('You are offline and this article is not saved for offline reading.');
+            }
+
             const token = await getToken();
             const response = await fetch(`/api/articles/${articleId}`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             if (!response.ok) throw new Error('Failed to fetch article');
             const data = await response.json();
+
+            // Intercept and update IDB if they already chose to save it offline
+            if (savedOffline) {
+                await saveOfflineArticle(data);
+            }
 
             // Sync summary status with local metadata if needed
             if (data.summaryStatus === 'pending') {
@@ -90,6 +108,35 @@ const ArticleReader = () => {
     const [showSummaryLangDropdown, setShowSummaryLangDropdown] = useState(false);
     const [isTranslating, setIsTranslating] = useState(false);
     const [currentLanguage, setCurrentLanguage] = useState<string>('original');
+
+    // Offline status
+    const [isAvailableOffline, setIsAvailableOffline] = useState(false);
+    const [isSavingOffline, setIsSavingOffline] = useState(false);
+
+    useEffect(() => {
+        if (articleId) {
+            isArticleOffline(articleId).then(setIsAvailableOffline);
+        }
+    }, [articleId]);
+
+    const handleToggleOffline = async () => {
+        if (!article || !articleId) return;
+        setIsSavingOffline(true);
+        try {
+            if (isAvailableOffline) {
+                await removeOfflineArticle(articleId);
+                setIsAvailableOffline(false);
+            } else {
+                await saveOfflineArticle(article);
+                setIsAvailableOffline(true);
+            }
+        } catch (err) {
+            console.error('Failed to toggle offline setting', err);
+        } finally {
+            setIsSavingOffline(false);
+        }
+    };
+
     const getLanguageName = (code: string) => {
         return LANGUAGES.find(l => l.code === code)?.name || 'English';
     };
@@ -495,6 +542,16 @@ const ArticleReader = () => {
 
             <div className="article-actions">
                 <motion.button
+                    onClick={handleToggleOffline}
+                    className={`action-icon-btn button-offline ${isAvailableOffline ? 'active' : ''}`}
+                    disabled={isSavingOffline}
+                    whileTap={{ scale: 0.95 }}
+                    title={isAvailableOffline ? 'Available offline (Click to remove)' : 'Download for offline reading'}
+                >
+                    <FontAwesomeIcon icon={isSavingOffline ? faRotateRight : isAvailableOffline ? faCloud : faCloudArrowDown} spin={isSavingOffline} />
+                </motion.button>
+
+                <motion.button
                     onClick={handleFavorite}
                     className={`action-icon-btn button-favorite ${article.isBookmarked ? 'bookmarked' : ''}`}
                     whileTap={{ scale: 0.95 }}
@@ -657,7 +714,7 @@ const ArticleReader = () => {
                 </div>
             </div>
 
-            {article.userArticleId && <TagsManager userArticleId={article.userArticleId} />}
+            {article.userArticleId && <TagsManager userArticleId={article.userArticleId} articleTitle={article.title} articleContent={displayContent} />}
 
             <div className="article-header">
                 <h1>{article.title}</h1>

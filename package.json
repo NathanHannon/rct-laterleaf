@@ -19,6 +19,7 @@
     "@revenuecat/purchases-js": "^1.14.0",
     "@tanstack/react-query": "^5.90.16",
     "emoji-picker-react": "^4.13.2",
+    "idb": "^8.0.3",
     "motion": "^12.23.12",
     "posthog-js": "^1.260.1",
     "react": "^19.2.1",

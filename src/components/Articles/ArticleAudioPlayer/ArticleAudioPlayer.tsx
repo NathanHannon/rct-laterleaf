@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@clerk/clerk-react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlay, faPause, faSpinner, faCog, faRedo, faRotateLeft, faRotateRight, faTimes, faDownload, faVolumeUp } from '@fortawesome/free-solid-svg-icons';
-import { useUserStatus } from '../../../hooks/useUserStatus';
 import WaveformAnimation from '../../Common/WaveformAnimation/WaveformAnimation';
 import './ArticleAudioPlayer.scss';
 
@@ -28,7 +27,6 @@ const ArticleAudioPlayer: React.FC<ArticleAudioPlayerProps> = ({
     onClose
 }) => {
     const { getToken } = useAuth();
-    const { isPro } = useUserStatus();
     const audioRef = useRef<HTMLAudioElement>(null);
 
     // Audio state
@@ -318,7 +316,11 @@ const ArticleAudioPlayer: React.FC<ArticleAudioPlayerProps> = ({
                         <label>Waveform</label>
                         <select
                             value={showWaveform ? 'show' : 'hide'}
-                            onChange={(e) => handleToggleWaveform(e.target.value === 'show')}
+                            onChange={(e) => {
+                                const val = e.target.value === 'show';
+                                setShowWaveform(val);
+                                localStorage.setItem('laterleaf_show_waveform', JSON.stringify(val));
+                            }}
                             disabled={isLoading}
                         >
                             <option value="show">Show</option>

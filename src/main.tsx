@@ -5,7 +5,15 @@ import App from './App'
 import { ThemeProvider } from './context/themeContext'
 import { UserStatusProvider } from './context/userStatusContext' // Import the UserStatusProvider
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { registerSW } from 'virtual:pwa-register'
 import './index.scss'
+
+registerSW({
+  onNeedRefresh() { },
+  onOfflineReady() {
+    console.log('App ready to work offline')
+  },
+})
 
 const queryClient = new QueryClient({
   defaultOptions: {

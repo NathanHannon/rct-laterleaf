@@ -510,6 +510,22 @@
         }
     }
 
+    .button-offline {
+        background-color: #0288d1; // Light Blue
+
+        &:hover:not(:disabled) {
+            background-color: #0277bd;
+        }
+
+        &.active {
+            background-color: #2e7d32; // Green when downloaded
+
+            &:hover:not(:disabled) {
+                background-color: #1b5e20;
+            }
+        }
+    }
+
     .button-favorite {
         background-color: var(--primary-color);
 

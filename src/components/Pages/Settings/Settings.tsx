@@ -4,10 +4,11 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { useUserCredits } from '../../../hooks/useUserCredits';
 import { useUserStatus } from '../../../hooks/useUserStatus';
-import { useReadingPreferences, READING_FONTS } from '../../../hooks/useReadingPreferences';
+import { useReadingPreferences } from '../../../hooks/useReadingPreferences';
 import { useTheme } from '../../../context/themeContext';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faGem, faCoins, faCheckCircle, faTimesCircle, faUserShield, faWaveSquare, faBook, faCheck } from '@fortawesome/free-solid-svg-icons';
+import { OfflineModelSettings } from './OfflineModelSettings';
 import './Settings.scss';
 
 const Settings = () => {
@@ -191,6 +192,8 @@ const Settings = () => {
                                 </button>
                             </div>
                         </div>
+
+                        <OfflineModelSettings />
                     </div>
 
                     <div className="settings-section reading-section">

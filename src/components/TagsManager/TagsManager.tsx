@@ -1,5 +1,6 @@
 import React, { useState, useEffect, type FormEvent, useCallback } from 'react';
 import { useAuth } from '@clerk/clerk-react';
+import { useNanoTags } from '../../hooks/useNanoTags';
 import './TagsManager.scss';
 
 interface Tag {
@@ -9,9 +10,11 @@ interface Tag {
 
 interface TagsManagerProps {
     userArticleId: string;
+    articleTitle?: string;
+    articleContent?: string;
 }
 
-const TagsManager: React.FC<TagsManagerProps> = ({ userArticleId }) => {
+const TagsManager: React.FC<TagsManagerProps> = ({ userArticleId, articleTitle, articleContent }) => {
     const [tags, setTags] = useState<Tag[]>([]);
     const [suggestedTags, setSuggestedTags] = useState<Tag[]>([]);
     const [newTagName, setNewTagName] = useState('');
@@ -19,36 +22,65 @@ const TagsManager: React.FC<TagsManagerProps> = ({ userArticleId }) => {
     const [error, setError] = useState<string | null>(null);
     const { getToken } = useAuth();
 
+    const { isAvailable: isNanoAvailable, generateTags } = useNanoTags();
+
     const fetchAllTags = useCallback(async () => {
         if (!userArticleId) return;
         setIsLoading(true);
         try {
             const token = await getToken();
-            // Fetch existing and suggested tags in parallel
-            const [tagsResponse, suggestedTagsResponse] = await Promise.all([
+            const fetchActions = [
                 fetch(`/api/user-articles/${userArticleId}/tags`, {
                     headers: { 'Authorization': `Bearer ${token}` },
-                }),
-                fetch(`/api/tags/suggest/${userArticleId}`, {
-                    headers: { 'Authorization': `Bearer ${token}` },
-                }),
-            ]);
+                })
+            ];
+
+            // If we are offline, or if the user wants to save server resources, 
+            // we skip server suggestions. But for now we just use navigator to check.
+            if (navigator.onLine) {
+                fetchActions.push(
+                    fetch(`/api/tags/suggest/${userArticleId}`, {
+                        headers: { 'Authorization': `Bearer ${token}` },
+                    })
+                );
+            }
+
+            const responses = await Promise.all(fetchActions);
+            const tagsResponse = responses[0];
+            const suggestedTagsResponse = responses[1]; // might be undefined
 
             if (!tagsResponse.ok) throw new Error('Failed to fetch tags.');
-            if (!suggestedTagsResponse.ok) throw new Error('Failed to fetch suggestions.');
-
             const tagsData: Tag[] = await tagsResponse.json();
-            const suggestedTagsData: Tag[] = await suggestedTagsResponse.json();
-
             setTags(tagsData);
-            setSuggestedTags(suggestedTagsData);
+
+            // Handle suggestions
+            let serverSuggestedData: Tag[] = [];
+            if (suggestedTagsResponse && suggestedTagsResponse.ok) {
+                serverSuggestedData = await suggestedTagsResponse.json();
+            }
+
+            // Fallback to offline Nano AI if unavailable from server
+            if (!navigator.onLine && isNanoAvailable && articleTitle && articleContent) {
+                const nanoSuggested = await generateTags(articleTitle, articleContent, 3);
+                // Convert array of strings into fake objects so the UI can render them
+                serverSuggestedData = nanoSuggested.map(t => ({ id: `nano-${t}`, name: t }));
+            }
+
+            setSuggestedTags(serverSuggestedData);
             setError(null);
         } catch (err) {
-            setError(err instanceof Error ? err.message : 'An unknown error occurred.');
+            // If completely offline and fetch throws, gracefully fallback to local Nano
+            if (!navigator.onLine && isNanoAvailable && articleTitle && articleContent) {
+                const nanoSuggested = await generateTags(articleTitle, articleContent, 3);
+                setSuggestedTags(nanoSuggested.map(t => ({ id: `nano-${t}`, name: t })));
+                setError(null);
+            } else {
+                setError(err instanceof Error ? err.message : 'An unknown error occurred.');
+            }
         } finally {
             setIsLoading(false);
         }
-    }, [userArticleId, getToken]);
+    }, [userArticleId, getToken, isNanoAvailable, articleTitle, articleContent, generateTags]);
 
     useEffect(() => {
         fetchAllTags();
@@ -56,6 +88,11 @@ const TagsManager: React.FC<TagsManagerProps> = ({ userArticleId }) => {
 
     const addTag = async (tagName: string) => {
         if (!tagName.trim()) return;
+
+        if (!navigator.onLine) {
+            setError('Cannot add tags while offline. Please connect to the internet.');
+            return;
+        }
 
         try {
             const token = await getToken();
@@ -92,6 +129,11 @@ const TagsManager: React.FC<TagsManagerProps> = ({ userArticleId }) => {
     };
 
     const handleRemoveTag = async (tagId: string) => {
+        if (!navigator.onLine) {
+            setError('Cannot remove tags while offline. Please connect to the internet.');
+            return;
+        }
+
         try {
             const token = await getToken();
             const where = JSON.stringify({ id: tagId });

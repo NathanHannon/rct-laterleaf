@@ -2,7 +2,7 @@ import { forwardRef, useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import { SignedIn } from '@clerk/clerk-react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faInbox, faBookmark, faArchive, faFolderOpen, faFileExport, faCompass, faTimes, faSearch, faCog, faQuestionCircle, faGift } from '@fortawesome/free-solid-svg-icons';
+import { faInbox, faBookmark, faArchive, faFolderOpen, faFileExport, faCompass, faTimes, faSearch, faCog, faQuestionCircle } from '@fortawesome/free-solid-svg-icons';
 import { useSearch } from '../../../hooks/searchHook';
 import { hasProAccess } from '../../../utils/tierUtils';
 import SearchModeToggle from '../../Search/SearchModeToggle/SearchModeToggle';
@@ -35,11 +35,11 @@ const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(({ isOpen, onClose }, r
         onClose(); // Close sidebar when opening modal
     };
 
-    const handleWrappedClick = (e: React.MouseEvent) => {
-        e.preventDefault();
-        setIsWrappedOpen(true);
-        onClose();
-    };
+    // const handleWrappedClick = (e: React.MouseEvent) => {
+    //     e.preventDefault();
+    //     setIsWrappedOpen(true);
+    //     onClose();
+    // };
 
     // The hasProAccess utility now correctly receives a boolean
     const userHasProAccess = hasProAccess(isPro);
@@ -122,10 +122,12 @@ const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(({ isOpen, onClose }, r
                                 <FontAwesomeIcon icon={faFileExport} />
                                 <span>Export</span>
                             </NavLink>
+                            {/* 
                             <a href="#" onClick={handleWrappedClick} className="wrapped-link nav-link">
                                 <FontAwesomeIcon icon={faGift} />
                                 <span>Your Review</span>
                             </a>
+                            */}
                             <NavLink to="/settings" onClick={onClose} className="nav-link">
                                 <FontAwesomeIcon icon={faCog} />
                                 <span>Settings</span>
