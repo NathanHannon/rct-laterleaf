@@ -67,7 +67,7 @@ const DiscoverPage: React.FC = () => {
     const fetchDiscoveredArticles = async () => {
         try {
             // This is a public endpoint, no token needed
-            const response = await fetch('/api/discovered-articles?limit=12');
+            const response = await fetch('/api/curated-articles?limit=12');
             if (!response.ok) {
                 throw new Error('Failed to fetch discovered articles');
             }
