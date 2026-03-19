@@ -19,6 +19,7 @@ import TermsPage from './components/Pages/StaticPages/TermsPage/TermsPage';
 import FAQPage from './components/Pages/StaticPages/FAQPage/FAQPage';
 import ExportPage from './components/Pages/ExportPage/ExportPage';
 import DiscoverPage from './components/Pages/DiscoverPage/DiscoverPage';
+import FeedsPage from './components/Pages/FeedsPage/FeedsPage';
 import BulkImporter from './components/Developer/BulkImporter/BulkImporter';
 import { useTheme } from './context/themeContext';
 import HeroPage from './components/Pages/HeroPage/HeroPage';
@@ -54,6 +55,7 @@ function App() {
                         <Route path="/faq" element={<FAQPage />} />
                         <Route path="/export" element={<ExportPage />} />
                         <Route path="/discover" element={<DiscoverPage />} />
+                        <Route path="/feeds" element={<FeedsPage />} />
                         <Route path="/import" element={<BulkImporter />} />
                         <Route path="/pricing" element={<PricingPage />} />
                         <Route path="/settings" element={<Settings />} />
