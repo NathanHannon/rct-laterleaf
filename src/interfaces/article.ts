@@ -29,4 +29,9 @@ export interface Article {
     themeColor?: string;
     ogType?: string;
     metadataScrapedAt?: string;
+
+    // Feed specific fields
+    feedTitle?: string;
+    feedUrl?: string;
+    feedId?: string;
 }

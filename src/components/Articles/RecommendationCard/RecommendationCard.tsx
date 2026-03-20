@@ -1,7 +1,7 @@
 import { forwardRef } from 'react';
 import type { Article } from '../../../interfaces/article';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPlus, faExternalLinkAlt, faNewspaper } from '@fortawesome/free-solid-svg-icons';
+import { faPlus, faExternalLinkAlt, faNewspaper, faRss } from '@fortawesome/free-solid-svg-icons';
 import { getGradientForString } from '../../../utils/colorUtils';
 import './RecommendationCard.scss';
 
@@ -33,8 +33,14 @@ const RecommendationCard = forwardRef<HTMLDivElement, RecommendationCardProps>(
                     )}
                 </div>
                 <div className="card-content">
+                    {article.feedTitle && (
+                        <div className="card-feed-title">
+                            <FontAwesomeIcon icon={faRss} className="feed-icon" />
+                            {article.feedTitle}
+                        </div>
+                    )}
                     <h3 className="card-title">{article.title}</h3>
-                    <p className="card-author">{article.author}</p>
+                    {article.author && <p className="card-author">{article.author}</p>}
                     <div className="card-actions">
                         <button onClick={() => article.id && onAddToLibrary(article.id)} className="action-button add-button">
                             <FontAwesomeIcon icon={faPlus} /> Add to Library

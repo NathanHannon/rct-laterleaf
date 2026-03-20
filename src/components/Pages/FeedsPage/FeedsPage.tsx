@@ -32,7 +32,16 @@ const FeedsPage: React.FC = () => {
             });
             if (!response.ok) throw new Error('Failed to fetch feeds');
             const data = await response.json();
-            setFeeds(data);
+            
+            // Map UserFeed[] to RssFeed[]
+            const mappedFeeds: RssFeed[] = data.map((item: any) => ({
+                id: item.id, // We need the junction ID to delete it
+                name: item.titleOverride || item.feed?.title || 'Unknown Feed',
+                url: item.feed?.url || '',
+                createdAt: item.feed?.createdAt
+            }));
+            
+            setFeeds(mappedFeeds);
         } catch {
             // Silently fail — feeds list is secondary
         }
@@ -75,9 +84,16 @@ const FeedsPage: React.FC = () => {
                 const err = await response.json().catch(() => ({}));
                 throw new Error(err.error?.message || 'Failed to add feed');
             }
-            const newFeed = await response.json();
-            setFeeds(prev => [...prev, newFeed]);
-            showSuccess('Feed Added!', `You're now subscribed to "${newFeed.name || url}".`);
+            const item = await response.json();
+            const mappedNewFeed: RssFeed = {
+                id: item.id,
+                name: item.titleOverride || item.feed?.title || 'Unknown Feed',
+                url: item.feed?.url || '',
+                createdAt: item.feed?.createdAt
+            };
+
+            setFeeds(prev => [...prev, mappedNewFeed]);
+            showSuccess('Feed Added!', `You're now subscribed to "${mappedNewFeed.name || url}".`);
             // Refresh articles to include the new feed
             fetchFeedArticles();
         } catch {
