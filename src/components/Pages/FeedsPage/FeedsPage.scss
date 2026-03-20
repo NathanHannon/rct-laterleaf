@@ -44,6 +44,8 @@
             font-size: 3.5rem;
             color: var(--text-color);
             margin: 0 0 1rem 0;
+            padding-left: 4px;
+            /* Give room for Instrument Serif left-extending glyphs like 'Y' */
             letter-spacing: -0.02em;
             line-height: 1.1;
         }

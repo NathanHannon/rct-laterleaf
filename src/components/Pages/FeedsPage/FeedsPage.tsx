@@ -16,10 +16,27 @@ export interface RssFeed {
     createdAt?: string;
 }
 
+export interface FeedArticle extends Article {
+    feedId?: string;
+    feedTitle?: string;
+    feedUrl?: string;
+}
+
+export interface FeedItem {
+    id: string;
+    titleOverride?: string
+    feed: {
+        id: string;
+        title: string;
+        url: string;
+        createdAt?: string;
+    };
+}
+
 const FeedsPage: React.FC = () => {
     const { getToken } = useAuth();
     const { showSuccess, showError } = useToast();
-    const [feedArticles, setFeedArticles] = useState<Article[]>([]);
+    const [feedArticles, setFeedArticles] = useState<FeedArticle[]>([]);
     const [feeds, setFeeds] = useState<RssFeed[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isManageOpen, setIsManageOpen] = useState(false);
@@ -32,15 +49,15 @@ const FeedsPage: React.FC = () => {
             });
             if (!response.ok) throw new Error('Failed to fetch feeds');
             const data = await response.json();
-            
+
             // Map UserFeed[] to RssFeed[]
-            const mappedFeeds: RssFeed[] = data.map((item: any) => ({
+            const mappedFeeds: RssFeed[] = data.map((item: FeedItem) => ({
                 id: item.id, // We need the junction ID to delete it
                 name: item.titleOverride || item.feed?.title || 'Unknown Feed',
                 url: item.feed?.url || '',
                 createdAt: item.feed?.createdAt
             }));
-            
+
             setFeeds(mappedFeeds);
         } catch {
             // Silently fail — feeds list is secondary
