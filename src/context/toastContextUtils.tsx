@@ -1,10 +1,11 @@
 import { createContext, useContext } from 'react';
+import type { ToastAction } from '../components/Common/Toast/Toast';
 
 interface ToastContextType {
-    showSuccess: (title: string, message?: string, duration?: number) => string;
-    showError: (title: string, message?: string, duration?: number) => string;
-    showWarning: (title: string, message?: string, duration?: number) => string;
-    showInfo: (title: string, message?: string, duration?: number) => string;
+    showSuccess: (title: string, message?: string, duration?: number, action?: ToastAction) => string;
+    showError: (title: string, message?: string, duration?: number, action?: ToastAction) => string;
+    showWarning: (title: string, message?: string, duration?: number, action?: ToastAction) => string;
+    showInfo: (title: string, message?: string, duration?: number, action?: ToastAction) => string;
     dismissToast: (id: string) => void;
     clearToasts: () => void;
 }

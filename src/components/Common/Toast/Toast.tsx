@@ -6,12 +6,18 @@ import './Toast.scss';
 
 export type ToastType = 'success' | 'error' | 'warning' | 'info';
 
+export interface ToastAction {
+    label: string;
+    onClick: () => void;
+}
+
 export interface Toast {
     id: string;
     type: ToastType;
     title: string;
     message?: string;
     duration?: number;
+    action?: ToastAction;
 }
 
 interface ToastProps {
@@ -50,6 +56,17 @@ const Toast: React.FC<ToastProps> = ({ toast, onDismiss }) => {
             <div className="toast-content">
                 <div className="toast-title">{toast.title}</div>
                 {toast.message && <div className="toast-message">{toast.message}</div>}
+                {toast.action && (
+                    <button
+                        className="toast-action"
+                        onClick={() => {
+                            toast.action!.onClick();
+                            onDismiss(toast.id);
+                        }}
+                    >
+                        {toast.action.label}
+                    </button>
+                )}
             </div>
             <button
                 className="toast-close"

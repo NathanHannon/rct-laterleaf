@@ -15,7 +15,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
     onDelete,
     onArchive,
     onToggleBookmark,
-    onAddToLibrary, // Destructure new prop
+    onAddToLibrary,
 }) => {
     // Destructure both standard and metadata fields
     const {

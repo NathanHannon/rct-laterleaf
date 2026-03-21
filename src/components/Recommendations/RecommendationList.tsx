@@ -65,7 +65,6 @@ const RecommendationList: React.FC = () => {
 
         } catch (err) {
             console.error('Error adding article to library:', err);
-            // Optionally, show a user-facing error message
         }
     };
 

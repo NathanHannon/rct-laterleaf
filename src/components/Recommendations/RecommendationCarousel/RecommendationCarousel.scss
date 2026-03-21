@@ -34,7 +34,7 @@
 
     .carousel-item {
         flex: 0 0 auto;
-        width: 320px; // A fixed width for carousel items works well
+        width: 360px; // Wider to fit dismiss button
         scroll-snap-align: start;
     }
 

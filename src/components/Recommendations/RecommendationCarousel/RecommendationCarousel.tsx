@@ -10,9 +10,10 @@ interface RecommendationCarouselProps {
     title: string;
     articles: Article[];
     onAddToLibrary: (articleId: string) => void;
+    onDismiss?: (articleId: string) => void;
 }
 
-const RecommendationCarousel: React.FC<RecommendationCarouselProps> = ({ title, articles, onAddToLibrary }) => {
+const RecommendationCarousel: React.FC<RecommendationCarouselProps> = ({ title, articles, onAddToLibrary, onDismiss }) => {
     const scrollRef = useRef<HTMLDivElement>(null);
 
     const scroll = (direction: 'left' | 'right') => {
@@ -61,6 +62,8 @@ const RecommendationCarousel: React.FC<RecommendationCarouselProps> = ({ title, 
                             <RecommendationCard
                                 article={article}
                                 onAddToLibrary={() => onAddToLibrary(article.id)}
+                                onDismiss={onDismiss ? () => onDismiss(article.id) : undefined}
+                                showSource
                             />
                         </motion.div>
                     ))}

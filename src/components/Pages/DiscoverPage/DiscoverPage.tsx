@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '@clerk/clerk-react';
 import RecommendationCard from '../../Articles/RecommendationCard/RecommendationCard';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -11,7 +11,7 @@ import RecommendationCarousel from '../../Recommendations/RecommendationCarousel
 
 const DiscoverPage: React.FC = () => {
     const { getToken, isSignedIn } = useAuth();
-    const { showSuccess, showError } = useToast();
+    const { showSuccess, showError, showInfo } = useToast();
     const [recommendations, setRecommendations] = useState<Article[]>([]);
     const [discoveredArticles, setDiscoveredArticles] = useState<Article[]>([]);
     const [recommendationType, setRecommendationType] = useState<'personalized' | 'popular' | 'none'>('popular');
@@ -102,6 +102,61 @@ const DiscoverPage: React.FC = () => {
         }
     };
 
+    const dismissTimers = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
+
+    const handleDismiss = (articleId: string) => {
+        // Capture the article before removing it so we can restore on undo
+        const dismissed = [...recommendations, ...discoveredArticles].find(a => a.id === articleId);
+
+        // Optimistically remove from UI
+        setRecommendations(prev => prev.filter(rec => rec.id !== articleId));
+        setDiscoveredArticles(prev => prev.filter(rec => rec.id !== articleId));
+
+        // Schedule the actual API call
+        const timer = setTimeout(async () => {
+            dismissTimers.current.delete(articleId);
+            try {
+                const token = await getToken();
+                await fetch('/api/recommendations/dismiss', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ articleId }),
+                });
+            } catch {
+                // Silent — article already removed from UI
+            }
+        }, 6000);
+
+        dismissTimers.current.set(articleId, timer);
+
+        // Show toast with undo action
+        showInfo('Article dismissed', undefined, 6000, {
+            label: 'Undo',
+            onClick: () => {
+                // Cancel the pending API call
+                const pending = dismissTimers.current.get(articleId);
+                if (pending) {
+                    clearTimeout(pending);
+                    dismissTimers.current.delete(articleId);
+                }
+                // Restore the article
+                if (dismissed) {
+                    setRecommendations(prev => [...prev, dismissed]);
+                }
+            },
+        });
+    };
+
+    // Cleanup pending timers on unmount
+    useEffect(() => {
+        return () => {
+            dismissTimers.current.forEach(timer => clearTimeout(timer));
+        };
+    }, []);
+
     // We can simplify the variants. The container no longer needs to control staggering.
     const itemVariants: Variants = {
         initial: { opacity: 0, y: 30, scale: 0.95, filter: 'blur(4px)' },
@@ -163,6 +218,7 @@ const DiscoverPage: React.FC = () => {
                     title="New from Around the Web"
                     articles={discoveredArticles}
                     onAddToLibrary={handleAddToLibrary}
+                    onDismiss={handleDismiss}
                 />
             </motion.div>
 
@@ -200,6 +256,7 @@ const DiscoverPage: React.FC = () => {
                                     <RecommendationCard
                                         article={article}
                                         onAddToLibrary={handleAddToLibrary}
+                                        onDismiss={handleDismiss}
                                     />
                                 </motion.div>
                             ))}
