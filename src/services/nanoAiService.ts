@@ -1,134 +1,239 @@
-export interface NanoAICapabilities {
-    available: 'readily' | 'after-download' | 'no';
-}
+// ────────────────────────────────────────────
+// Chrome Built-in AI Service
+// Uses the standardised global constructors:
+//   LanguageModel  – Prompt API  (general-purpose LLM)
+//   Summarizer     – Summarizer API
+//   Translator     – Translator API
+//   LanguageDetector – Language Detector API
+// Types come from @types/dom-chromium-ai
+// ────────────────────────────────────────────
 
-export interface NanoAISession {
-    prompt: (text: string) => Promise<string>;
-    destroy: () => void;
-}
+// ── Availability helpers ──────────────────────
 
-export interface NanoAICreateOptions {
-    monitor?: (m: EventTarget) => void;
-    systemPrompt?: string;
-}
-
-export interface NanoAIModel {
-    capabilities: () => Promise<NanoAICapabilities>;
-    create: (options?: NanoAICreateOptions) => Promise<NanoAISession>;
-}
-
-export interface ChromeAIProvider extends NanoAIModel {
-    languageModel?: NanoAIModel;
-    assistant?: NanoAIModel;
-}
-
-declare global {
-    interface Window {
-        ai?: ChromeAIProvider;
-    }
-}
+export type ChromeAIStatus = Availability | 'unsupported';
 
 /**
- * Gets the correct language model instance regardless of Chrome version.
- */
-const getLanguageModel = () => {
-    if (!window.ai) return null;
-    return window.ai.languageModel || window.ai.assistant || window.ai;
-};
-
-/**
- * Checks if the Chrome LanguageModel API is available and ready.
+ * Checks whether the Prompt API (LanguageModel) is supported AND ready to use.
  */
 export const checkNanoAvailability = async (): Promise<boolean> => {
-    const model = getLanguageModel();
-    if (!model || typeof model.capabilities !== 'function') return false;
+    if (typeof LanguageModel === 'undefined') return false;
     try {
-        const caps = await model.capabilities();
-        return caps.available === 'readily';
+        const status = await LanguageModel.availability();
+        return status === 'available';
     } catch {
         return false;
     }
 };
 
 /**
- * Returns the raw availability status of the Nano model.
+ * Returns the status of the Prompt API model.
  */
-export const getNanoStatus = async (): Promise<'readily' | 'after-download' | 'no' | 'unsupported'> => {
-    const model = getLanguageModel();
-    if (!model || typeof model.capabilities !== 'function') return 'unsupported';
+export const getNanoStatus = async (): Promise<ChromeAIStatus> => {
+    if (typeof LanguageModel === 'undefined') return 'unsupported';
     try {
-        const caps = await model.capabilities();
-        return caps.available || 'no';
+        return await LanguageModel.availability();
     } catch {
-        return 'no';
+        return 'unavailable';
     }
 };
 
 /**
- * Triggers the download of the Nano model and tracks progress.
+ * Returns the status of the Summarizer API model.
  */
-export const downloadNanoModel = async (onProgress?: (loaded: number, total: number) => void): Promise<boolean> => {
-    const model = getLanguageModel();
-    if (!model || typeof model.create !== 'function') return false;
-
+export const getSummarizerStatus = async (): Promise<ChromeAIStatus> => {
+    if (typeof Summarizer === 'undefined') return 'unsupported';
     try {
-        const session = await model.create({
-            monitor(m: EventTarget) {
-                m.addEventListener('downloadprogress', (e: Event) => {
-                    if (onProgress) {
-                        const progressEvent = e as ProgressEvent;
-                        onProgress(progressEvent.loaded, progressEvent.total);
-                    }
-                });
-            }
-        });
+        return await Summarizer.availability();
+    } catch {
+        return 'unavailable';
+    }
+};
 
-        // Immediately destroy after downloading since we only wanted to trigger the fetch
+/**
+ * Returns the status of the Language Detector model.
+ */
+export const getLanguageDetectorStatus = async (): Promise<ChromeAIStatus> => {
+    if (typeof LanguageDetector === 'undefined') return 'unsupported';
+    try {
+        return await LanguageDetector.availability();
+    } catch {
+        return 'unavailable';
+    }
+};
+
+/**
+ * Returns the status of the Translator model for a given language pair.
+ */
+export const getTranslatorStatus = async (
+    sourceLanguage: string,
+    targetLanguage: string,
+): Promise<ChromeAIStatus> => {
+    if (typeof Translator === 'undefined') return 'unsupported';
+    try {
+        return await Translator.availability({ sourceLanguage, targetLanguage });
+    } catch {
+        return 'unavailable';
+    }
+};
+
+/**
+ * Aggregate: returns a map of each API's availability.
+ */
+export const getAllAIStatus = async () => ({
+    prompt: await getNanoStatus(),
+    summarizer: await getSummarizerStatus(),
+    languageDetector: await getLanguageDetectorStatus(),
+});
+
+// ── Download / create helpers ─────────────────
+
+type ProgressCb = (loaded: number, total: number) => void;
+
+const makeMonitor = (onProgress?: ProgressCb): CreateMonitorCallback | undefined => {
+    if (!onProgress) return undefined;
+    return (m) => {
+        m.addEventListener('downloadprogress', (e) => {
+            onProgress(e.loaded, e.total);
+        });
+    };
+};
+
+/**
+ * Triggers a LanguageModel session to force-download the Gemini Nano model.
+ */
+export const downloadNanoModel = async (onProgress?: ProgressCb): Promise<boolean> => {
+    if (typeof LanguageModel === 'undefined') return false;
+    try {
+        const session = await LanguageModel.create({ monitor: makeMonitor(onProgress) });
         session.destroy();
         return true;
     } catch (err) {
-        console.error("Failed to download Gemini Nano:", err);
+        console.error('Failed to download Gemini Nano:', err);
         return false;
     }
 };
 
-/**
- * Uses Gemini Nano (via Chrome's built-in AI API) to suggest tags for an article.
- * @param title The article title
- * @param textContent A chunk of the article's text content/excerpt
- * @param count Number of tags to suggest
- * @returns An array of tag strings
- */
+// ── Prompt API: tag suggestion ────────────────
+
 export const suggestTagsForArticle = async (
     title: string,
     textContent: string,
-    count: number = 3
+    count: number = 3,
 ): Promise<string[]> => {
     if (!(await checkNanoAvailability())) return [];
-
-    const model = getLanguageModel();
-    if (!model) return [];
-
     try {
-        // Truncate text content to avoid blowing out the local context window (typically small, ~4k tokens)
         const safeText = textContent.slice(0, 3000);
-
-        const session = await model.create({
-            systemPrompt: `You are an assistant that suggests exactly ${count} short, relevant tags for an article. Reply ONLY with the tags separated by commas, in lowercase. Do not include any other text, quotes, or markdown formatting.`
+        const session = await LanguageModel.create({
+            initialPrompts: [{
+                role: 'system' as LanguageModelSystemMessageRole,
+                content: `You are an assistant that suggests exactly ${count} short, relevant tags for an article. Reply ONLY with the tags separated by commas, in lowercase. Do not include any other text, quotes, or markdown formatting.`,
+            }],
         });
 
-        const promptContent = `Title: ${title}\n\nContent: ${safeText}\n\nTags:`;
-        const response = await session.prompt(promptContent);
-
+        const response = await session.prompt(
+            `Title: ${title}\n\nContent: ${safeText}\n\nTags:`,
+        );
         session.destroy();
 
-        // Process the comma-separated string back into an array of clean tags
         return response
             .split(',')
             .map((t: string) => t.trim().toLowerCase())
-            .filter((t: string) => t.length > 0 && t.length <= 25); // Ignore empty or excessively long tags
+            .filter((t: string) => t.length > 0 && t.length <= 25);
     } catch (error) {
-        console.error("Failed to generate tags with Gemini Nano:", error);
+        console.error('Failed to generate tags with Gemini Nano:', error);
         return [];
+    }
+};
+
+// ── Summarizer API ────────────────────────────
+
+export const summarizeArticle = async (
+    text: string,
+    options?: {
+        type?: SummarizerType;
+        length?: SummarizerLength;
+        format?: SummarizerFormat;
+        context?: string;
+        onProgress?: ProgressCb;
+    },
+): Promise<string | null> => {
+    if (typeof Summarizer === 'undefined') return null;
+    try {
+        const status = await Summarizer.availability();
+        if (status === 'unavailable') return null;
+
+        const summarizer = await Summarizer.create({
+            type: options?.type ?? 'key-points',
+            length: options?.length ?? 'medium',
+            format: options?.format ?? 'markdown',
+            monitor: makeMonitor(options?.onProgress),
+        });
+
+        const summary = await summarizer.summarize(text, {
+            context: options?.context,
+        });
+        summarizer.destroy();
+        return summary;
+    } catch (error) {
+        console.error('Summarizer failed:', error);
+        return null;
+    }
+};
+
+// ── Language Detector API ─────────────────────
+
+export interface DetectedLanguage {
+    language: string;
+    confidence: number;
+}
+
+export const detectLanguage = async (
+    text: string,
+): Promise<DetectedLanguage | null> => {
+    if (typeof LanguageDetector === 'undefined') return null;
+    try {
+        const status = await LanguageDetector.availability();
+        if (status === 'unavailable') return null;
+
+        const detector = await LanguageDetector.create();
+        const results = await detector.detect(text);
+        detector.destroy();
+
+        if (results.length === 0) return null;
+        return {
+            language: results[0].detectedLanguage ?? 'unknown',
+            confidence: results[0].confidence ?? 0,
+        };
+    } catch (error) {
+        console.error('Language detection failed:', error);
+        return null;
+    }
+};
+
+// ── Translator API ────────────────────────────
+
+export const translateText = async (
+    text: string,
+    sourceLanguage: string,
+    targetLanguage: string,
+    onProgress?: ProgressCb,
+): Promise<string | null> => {
+    if (typeof Translator === 'undefined') return null;
+    try {
+        const status = await Translator.availability({ sourceLanguage, targetLanguage });
+        if (status === 'unavailable') return null;
+
+        const translator = await Translator.create({
+            sourceLanguage,
+            targetLanguage,
+            monitor: makeMonitor(onProgress),
+        });
+
+        const translated = await translator.translate(text);
+        translator.destroy();
+        return translated;
+    } catch (error) {
+        console.error('Translation failed:', error);
+        return null;
     }
 };

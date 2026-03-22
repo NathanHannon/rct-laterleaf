@@ -22,6 +22,7 @@ import { useUserCredits } from '../../../hooks/useUserCredits';
 import { useReadingPreferences } from '../../../hooks/useReadingPreferences';
 import { LANGUAGES } from '../../../constants/languages';
 import { saveOfflineArticle, removeOfflineArticle, isArticleOffline, getOfflineArticle } from '../../../services/offlineStorageService';
+import { useLanguageDetection } from '../../../hooks/useLanguageDetection';
 
 const ArticleReader = () => {
     const { articleId } = useParams<{ articleId: string }>();
@@ -112,6 +113,9 @@ const ArticleReader = () => {
     // Offline status
     const [isAvailableOffline, setIsAvailableOffline] = useState(false);
     const [isSavingOffline, setIsSavingOffline] = useState(false);
+
+    // On-device language detection (Chrome only, graceful no-op elsewhere)
+    const detectedLanguage = useLanguageDetection(article?.content);
 
     useEffect(() => {
         if (articleId) {
@@ -307,7 +311,11 @@ const ArticleReader = () => {
         setIsGeneratingSummary(true);
         try {
             const token = await getToken();
-            const url = `/api/articles/${articleId}/summarize${useProSummary && !userHasProAccess ? '?usePro=true' : ''}`;
+            const params = new URLSearchParams();
+            if (useProSummary && !userHasProAccess) params.append('usePro', 'true');
+            if (detectedLanguage) params.append('language', detectedLanguage);
+            const qs = params.toString();
+            const url = `/api/articles/${articleId}/summarize${qs ? `?${qs}` : ''}`;
             const response = await fetch(url, {
                 method: 'POST',
                 headers: {
@@ -320,7 +328,7 @@ const ArticleReader = () => {
             }
 
             const data = await response.json();
-            setArticle(prev => prev ? { ...prev, summary: data.summary, summaryStatus: data.status, summaryLanguage: 'en' } : null);
+            setArticle(prev => prev ? { ...prev, summary: data.summary, summaryStatus: data.status, summaryLanguage: detectedLanguage || 'en' } : null);
             // Store metadata about the summary generation
             setSummaryMetadata({
                 model: data.model,
@@ -338,8 +346,8 @@ const ArticleReader = () => {
     const handleRefreshSummary = async (useProOverride?: boolean, languageCode?: string) => {
         if (!articleId || !article) return;
 
-        // Use provided language, or fall back to current summary language, or default to English
-        const targetLangCode = languageCode || article.summaryLanguage || 'en';
+        // Use provided language, or fall back to current summary language, detected language, or default to English
+        const targetLangCode = languageCode || article.summaryLanguage || detectedLanguage || 'en';
 
         setIsGeneratingSummary(true);
         if (languageCode) setShowSummaryLangDropdown(false);
@@ -775,7 +783,7 @@ const ArticleReader = () => {
                                                 title="Change summary language"
                                             >
                                                 <FontAwesomeIcon icon={faLanguage} />
-                                                <span>{getLanguageName(article.summaryLanguage || 'en')}</span>
+                                                <span>{getLanguageName(article.summaryLanguage || detectedLanguage || 'en')}</span>
                                             </button>
                                             {showSummaryLangDropdown && (
                                                 <div className="summary-lang-dropdown">
@@ -921,6 +929,7 @@ const ArticleReader = () => {
                             title={article.title || 'Article Audio'}
                             className="article-podcast-player"
                             onClose={() => setShowPodcastPlayer(false)}
+                            selectedLanguage={detectedLanguage ?? undefined}
                         />
                     </motion.div>
                 )}

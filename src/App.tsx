@@ -21,6 +21,7 @@ import ExportPage from './components/Pages/ExportPage/ExportPage';
 import DiscoverPage from './components/Pages/DiscoverPage/DiscoverPage';
 import FeedsPage from './components/Pages/FeedsPage/FeedsPage';
 import BulkImporter from './components/Developer/BulkImporter/BulkImporter';
+import AIPlayground from './components/Developer/AIPlayground/AIPlayground';
 import { useTheme } from './context/themeContext';
 import HeroPage from './components/Pages/HeroPage/HeroPage';
 import PricingPage from './components/Pages/PricingPage/PricingPage';
@@ -57,6 +58,7 @@ function App() {
                         <Route path="/discover" element={<DiscoverPage />} />
                         <Route path="/feeds" element={<FeedsPage />} />
                         <Route path="/import" element={<BulkImporter />} />
+                        <Route path="/dev/ai" element={<AIPlayground />} />
                         <Route path="/pricing" element={<PricingPage />} />
                         <Route path="/settings" element={<Settings />} />
                         <Route path="/admin" element={<AdminPage />} />
