@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import ReactMarkdown from 'react-markdown';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPaperPlane, faAtom, faArrowRight } from '@fortawesome/free-solid-svg-icons';
+import { faPaperPlane, faAtom, faArrowRight, faCopy, faDownload, faFileLines, faCheck } from '@fortawesome/free-solid-svg-icons';
 import './ResearchPage.scss';
 
 interface ResearchResult {
@@ -26,6 +26,7 @@ const ResearchPage = () => {
     const [result, setResult] = useState<ResearchResult | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [copied, setCopied] = useState(false);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
 
     const handleSubmit = async (questionOverride?: string) => {
@@ -71,6 +72,41 @@ const ResearchPage = () => {
     const handleExampleClick = (question: string) => {
         setQuery(question);
         handleSubmit(question);
+    };
+
+    const handleCopy = async () => {
+        if (!result) return;
+        await navigator.clipboard.writeText(result.report);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+    };
+
+    const downloadFile = (content: string, filename: string, mimeType: string) => {
+        const blob = new Blob([content], { type: mimeType });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        a.click();
+        URL.revokeObjectURL(url);
+    };
+
+    const handleDownloadMd = () => {
+        if (!result) return;
+        const filename = `research-${query.slice(0, 30).replace(/[^a-zA-Z0-9]/g, '-')}.md`;
+        downloadFile(result.report, filename, 'text/markdown');
+    };
+
+    const handleDownloadTxt = () => {
+        if (!result) return;
+        const plain = result.report
+            .replace(/#{1,6}\s/g, '')
+            .replace(/\*\*(.*?)\*\*/g, '$1')
+            .replace(/\*(.*?)\*/g, '$1')
+            .replace(/`(.*?)`/g, '$1')
+            .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1');
+        const filename = `research-${query.slice(0, 30).replace(/[^a-zA-Z0-9]/g, '-')}.txt`;
+        downloadFile(plain, filename, 'text/plain');
     };
 
     return (
@@ -182,6 +218,20 @@ const ResearchPage = () => {
                     >
                         <div className="result-meta">
                             <span>Synthesized from {result.articleCount} article{result.articleCount !== 1 ? 's' : ''}</span>
+                            <div className="result-export-actions">
+                                <button onClick={handleCopy} className="export-btn" title="Copy markdown">
+                                    <FontAwesomeIcon icon={copied ? faCheck : faCopy} />
+                                    <span>{copied ? 'Copied' : 'Copy'}</span>
+                                </button>
+                                <button onClick={handleDownloadMd} className="export-btn" title="Download as Markdown">
+                                    <FontAwesomeIcon icon={faDownload} />
+                                    <span>.md</span>
+                                </button>
+                                <button onClick={handleDownloadTxt} className="export-btn" title="Download as plain text">
+                                    <FontAwesomeIcon icon={faFileLines} />
+                                    <span>.txt</span>
+                                </button>
+                            </div>
                         </div>
                         <div className="result-report">
                             <ReactMarkdown>{result.report}</ReactMarkdown>
