@@ -344,6 +344,18 @@
     strong {
         color: var(--text-color);
     }
+
+    a {
+        color: var(--primary-color);
+        text-decoration: underline;
+        text-decoration-color: rgba(var(--primary-color-rgb), 0.35);
+        text-underline-offset: 2px;
+        transition: text-decoration-color 0.15s;
+
+        &:hover {
+            text-decoration-color: var(--primary-color);
+        }
+    }
 }
 
 .result-sources {
@@ -366,11 +378,11 @@
         gap: 0.5rem;
     }
 
-    .source-link {
+    .source-chip {
         display: inline-flex;
         align-items: center;
         gap: 0.4rem;
-        padding: 0.45rem 0.85rem;
+        padding: 0.4rem 0.75rem;
         font-size: 0.8rem;
         color: var(--primary-color);
         background: rgba(var(--primary-color-rgb), 0.06);
@@ -378,14 +390,27 @@
         border-radius: 20px;
         text-decoration: none;
         transition: background-color 0.2s, border-color 0.2s;
+        max-width: 280px;
+
+        .chip-title {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .chip-ext {
+            font-size: 0.65rem;
+            opacity: 0.5;
+            flex-shrink: 0;
+        }
 
         &:hover {
             background: rgba(var(--primary-color-rgb), 0.12);
             border-color: var(--primary-color);
-        }
 
-        svg {
-            font-size: 0.7rem;
+            .chip-ext {
+                opacity: 1;
+            }
         }
     }
 }

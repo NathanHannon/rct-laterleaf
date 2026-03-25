@@ -4,13 +4,14 @@ import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import ReactMarkdown from 'react-markdown';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPaperPlane, faAtom, faArrowRight, faCopy, faDownload, faFileLines, faCheck } from '@fortawesome/free-solid-svg-icons';
+import { faPaperPlane, faAtom, faArrowRight, faCopy, faDownload, faFileLines, faCheck, faArrowUpRightFromSquare } from '@fortawesome/free-solid-svg-icons';
 import './ResearchPage.scss';
 
 interface ResearchResult {
     report: string;
     articleCount: number;
     articleIds: string[];
+    sources: { id: string; title: string; url: string }[];
 }
 
 const EXAMPLE_QUESTIONS = [
@@ -76,7 +77,7 @@ const ResearchPage = () => {
 
     const handleCopy = async () => {
         if (!result) return;
-        await navigator.clipboard.writeText(result.report);
+        await navigator.clipboard.writeText(enrichReportWithLinks(result.report, result.sources));
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
     };
@@ -94,7 +95,7 @@ const ResearchPage = () => {
     const handleDownloadMd = () => {
         if (!result) return;
         const filename = `research-${query.slice(0, 30).replace(/[^a-zA-Z0-9]/g, '-')}.md`;
-        downloadFile(result.report, filename, 'text/markdown');
+        downloadFile(enrichReportWithLinks(result.report, result.sources), filename, 'text/markdown');
     };
 
     const handleDownloadTxt = () => {
@@ -107,6 +108,26 @@ const ResearchPage = () => {
             .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1');
         const filename = `research-${query.slice(0, 30).replace(/[^a-zA-Z0-9]/g, '-')}.txt`;
         downloadFile(plain, filename, 'text/plain');
+    };
+
+    // Post-process the report to turn [Article N] "Title" references into clickable links
+    const enrichReportWithLinks = (report: string, sources?: ResearchResult['sources']): string => {
+        if (!sources?.length) return report;
+
+        // Build a lookup from title (lowercased) to source
+        const titleMap = new Map(sources.map(s => [s.title.toLowerCase(), s]));
+
+        // Match patterns like: [Article N] "Title" or [Article N] "Title"
+        return report.replace(
+            /\[Article\s+\d+\]\s*"([^"]+)"/gi,
+            (match, title) => {
+                const source = titleMap.get(title.toLowerCase());
+                if (source?.url) {
+                    return `[${title}](${source.url})`;
+                }
+                return match;
+            }
+        );
     };
 
     return (
@@ -234,20 +255,30 @@ const ResearchPage = () => {
                             </div>
                         </div>
                         <div className="result-report">
-                            <ReactMarkdown>{result.report}</ReactMarkdown>
+                            <ReactMarkdown
+                                components={{
+                                    a: ({ href, children, ...props }) => (
+                                        <a href={href} target="_blank" rel="noopener noreferrer" {...props}>
+                                            {children}
+                                        </a>
+                                    ),
+                                }}
+                            >
+                                {enrichReportWithLinks(result.report, result.sources)}
+                            </ReactMarkdown>
                         </div>
-                        {result.articleIds.length > 0 && (
+                        {(result.sources?.length ?? 0) > 0 && (
                             <div className="result-sources">
                                 <h4>Source Articles</h4>
                                 <div className="source-links">
-                                    {result.articleIds.map((id) => (
+                                    {result.sources.map((source) => (
                                         <Link
-                                            key={id}
-                                            to={`/article/${id}`}
-                                            className="source-link"
+                                            key={source.id}
+                                            to={`/article/${source.id}`}
+                                            className="source-chip"
                                         >
-                                            View article
-                                            <FontAwesomeIcon icon={faArrowRight} />
+                                            <span className="chip-title">{source.title}</span>
+                                            {source.url && <FontAwesomeIcon icon={faArrowUpRightFromSquare} className="chip-ext" />}
                                         </Link>
                                     ))}
                                 </div>
