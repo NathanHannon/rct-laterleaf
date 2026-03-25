@@ -1,0 +1,213 @@
+import { useState, useRef } from 'react';
+import { useAuth } from '@clerk/clerk-react';
+import { Link } from 'react-router-dom';
+import { motion, AnimatePresence } from 'motion/react';
+import ReactMarkdown from 'react-markdown';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faPaperPlane, faAtom, faArrowRight } from '@fortawesome/free-solid-svg-icons';
+import './ResearchPage.scss';
+
+interface ResearchResult {
+    report: string;
+    articleCount: number;
+    articleIds: string[];
+}
+
+const EXAMPLE_QUESTIONS = [
+    'What are the common themes across my saved AI articles?',
+    'Summarize what I\'ve read about climate policy',
+    'How do my saved articles compare on remote work productivity?',
+    'What design patterns keep coming up in my reading?',
+];
+
+const ResearchPage = () => {
+    const { getToken } = useAuth();
+    const [query, setQuery] = useState('');
+    const [result, setResult] = useState<ResearchResult | null>(null);
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+    const handleSubmit = async (questionOverride?: string) => {
+        const q = questionOverride || query;
+        if (!q.trim() || q.trim().length < 3) return;
+
+        setIsLoading(true);
+        setError(null);
+        setResult(null);
+
+        try {
+            const token = await getToken();
+            const response = await fetch('/api/articles/research', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,
+                },
+                body: JSON.stringify({ query: q.trim() }),
+            });
+
+            if (!response.ok) {
+                const errData = await response.json().catch(() => null);
+                throw new Error(errData?.error?.message || 'Failed to generate research report');
+            }
+
+            const data: ResearchResult = await response.json();
+            setResult(data);
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Something went wrong');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleKeyDown = (e: React.KeyboardEvent) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            handleSubmit();
+        }
+    };
+
+    const handleExampleClick = (question: string) => {
+        setQuery(question);
+        handleSubmit(question);
+    };
+
+    return (
+        <div className="research-page">
+            <div className="research-header">
+                <div className="research-header-icon">
+                    <FontAwesomeIcon icon={faAtom} />
+                </div>
+                <h1>Research</h1>
+                <p>Ask a question and get a synthesized report from your saved articles.</p>
+            </div>
+
+            <div className="research-input-area">
+                <form onSubmit={(e) => { e.preventDefault(); handleSubmit(); }}>
+                    <div className="research-textarea-wrapper">
+                        <textarea
+                            ref={textareaRef}
+                            value={query}
+                            onChange={(e) => setQuery(e.target.value)}
+                            onKeyDown={handleKeyDown}
+                            placeholder="Ask a question about your library..."
+                            rows={3}
+                            maxLength={500}
+                            disabled={isLoading}
+                        />
+                        <button
+                            type="submit"
+                            disabled={isLoading || query.trim().length < 3}
+                            className="research-submit-btn"
+                        >
+                            {isLoading ? (
+                                <div className="submit-spinner" />
+                            ) : (
+                                <FontAwesomeIcon icon={faPaperPlane} />
+                            )}
+                        </button>
+                    </div>
+                    <div className="research-input-hint">
+                        <span>{query.length}/500</span>
+                        <span>Press Enter to submit</span>
+                    </div>
+                </form>
+            </div>
+
+            {/* Example Questions */}
+            <AnimatePresence>
+                {!result && !isLoading && !error && (
+                    <motion.div
+                        className="research-examples"
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        transition={{ duration: 0.2 }}
+                    >
+                        <span className="examples-label">Try asking</span>
+                        <div className="examples-grid">
+                            {EXAMPLE_QUESTIONS.map((q, i) => (
+                                <button
+                                    key={i}
+                                    className="example-chip"
+                                    onClick={() => handleExampleClick(q)}
+                                >
+                                    <span>{q}</span>
+                                    <FontAwesomeIcon icon={faArrowRight} className="chip-arrow" />
+                                </button>
+                            ))}
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* Loading State */}
+            <AnimatePresence>
+                {isLoading && (
+                    <motion.div
+                        className="research-loading"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                    >
+                        <div className="loading-pulse" />
+                        <p>Searching your library and synthesizing a report...</p>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* Error State */}
+            <AnimatePresence>
+                {error && (
+                    <motion.div
+                        className="research-error"
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0 }}
+                    >
+                        <p>{error}</p>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* Report Result */}
+            <AnimatePresence>
+                {result && (
+                    <motion.div
+                        className="research-result"
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.3 }}
+                    >
+                        <div className="result-meta">
+                            <span>Synthesized from {result.articleCount} article{result.articleCount !== 1 ? 's' : ''}</span>
+                        </div>
+                        <div className="result-report">
+                            <ReactMarkdown>{result.report}</ReactMarkdown>
+                        </div>
+                        {result.articleIds.length > 0 && (
+                            <div className="result-sources">
+                                <h4>Source Articles</h4>
+                                <div className="source-links">
+                                    {result.articleIds.map((id) => (
+                                        <Link
+                                            key={id}
+                                            to={`/article/${id}`}
+                                            className="source-link"
+                                        >
+                                            View article
+                                            <FontAwesomeIcon icon={faArrowRight} />
+                                        </Link>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                    </motion.div>
+                )}
+            </AnimatePresence>
+        </div>
+    );
+};
+
+export default ResearchPage;

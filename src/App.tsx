@@ -27,6 +27,7 @@ import HeroPage from './components/Pages/HeroPage/HeroPage';
 import PricingPage from './components/Pages/PricingPage/PricingPage';
 import Settings from './components/Pages/Settings/Settings';
 import AdminPage from './components/Admin/AdminPage/AdminPage';
+import ResearchPage from './components/Pages/ResearchPage/ResearchPage';
 
 function App() {
   const { activeTheme } = useTheme();
@@ -56,6 +57,7 @@ function App() {
                         <Route path="/faq" element={<FAQPage />} />
                         <Route path="/export" element={<ExportPage />} />
                         <Route path="/discover" element={<DiscoverPage />} />
+                        <Route path="/research" element={<ResearchPage />} />
                         <Route path="/feeds" element={<FeedsPage />} />
                         <Route path="/import" element={<BulkImporter />} />
                         <Route path="/dev/ai" element={<AIPlayground />} />
