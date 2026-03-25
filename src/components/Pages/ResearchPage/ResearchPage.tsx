@@ -4,7 +4,8 @@ import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import ReactMarkdown from 'react-markdown';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPaperPlane, faAtom, faArrowRight, faCopy, faDownload, faFileLines, faCheck, faArrowUpRightFromSquare } from '@fortawesome/free-solid-svg-icons';
+import { faPaperPlane, faAtom, faArrowRight, faCopy, faDownload, faFileLines, faCheck, faArrowUpRightFromSquare, faLock } from '@fortawesome/free-solid-svg-icons';
+import { useUserStatus } from '../../../hooks/useUserStatus';
 import './ResearchPage.scss';
 
 interface ResearchResult {
@@ -23,6 +24,7 @@ const EXAMPLE_QUESTIONS = [
 
 const ResearchPage = () => {
     const { getToken } = useAuth();
+    const { isPro, isLoading: isStatusLoading } = useUserStatus();
     const [query, setQuery] = useState('');
     const [result, setResult] = useState<ResearchResult | null>(null);
     const [isLoading, setIsLoading] = useState(false);
@@ -129,6 +131,39 @@ const ResearchPage = () => {
             }
         );
     };
+
+    if (isStatusLoading) {
+        return (
+            <div className="research-page">
+                <div className="research-header">
+                    <div className="research-header-icon">
+                        <FontAwesomeIcon icon={faAtom} />
+                    </div>
+                    <h1>Research</h1>
+                </div>
+            </div>
+        );
+    }
+
+    if (!isPro) {
+        return (
+            <div className="research-page">
+                <div className="research-header">
+                    <div className="research-header-icon">
+                        <FontAwesomeIcon icon={faAtom} />
+                    </div>
+                    <h1>Research</h1>
+                    <p>Your private research assistant that synthesizes your saved articles into cohesive briefs.</p>
+                </div>
+                <div className="research-pro-gate">
+                    <FontAwesomeIcon icon={faLock} className="pro-gate-icon" />
+                    <h2>Pro Feature</h2>
+                    <p>Research is available exclusively to Pro subscribers. Instantly synthesize months of reading into a single, cohesive report.</p>
+                    <Link to="/settings" className="pro-gate-cta">Upgrade to Pro</Link>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="research-page">
