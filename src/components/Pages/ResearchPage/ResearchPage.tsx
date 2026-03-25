@@ -112,20 +112,18 @@ const ResearchPage = () => {
         downloadFile(plain, filename, 'text/plain');
     };
 
-    // Post-process the report to turn [Article N] "Title" references into clickable links
+    // Post-process the report to turn [N] references into clickable links
     const enrichReportWithLinks = (report: string, sources?: ResearchResult['sources']): string => {
         if (!sources?.length) return report;
 
-        // Build a lookup from title (lowercased) to source
-        const titleMap = new Map(sources.map(s => [s.title.toLowerCase(), s]));
-
-        // Match patterns like: [Article N] "Title" or [Article N] "Title"
+        // Turn [N] inline citations into linked numbers pointing to the source URL
         return report.replace(
-            /\[Article\s+\d+\]\s*"([^"]+)"/gi,
-            (match, title) => {
-                const source = titleMap.get(title.toLowerCase());
+            /\[(\d+)\]/g,
+            (match, num) => {
+                const index = parseInt(num, 10) - 1;
+                const source = sources[index];
                 if (source?.url) {
-                    return `[${title}](${source.url})`;
+                    return `[[${num}]](${source.url})`;
                 }
                 return match;
             }
