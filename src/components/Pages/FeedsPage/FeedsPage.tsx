@@ -7,10 +7,12 @@ import RecommendationCard from '../../Articles/RecommendationCard/Recommendation
 import ManageFeedsModal from './ManageFeedsModal';
 import { useToast } from '../../../context/toastContext';
 import { motion, type Variants, AnimatePresence } from 'motion/react';
+import { usePostHog } from 'posthog-js/react';
 import './FeedsPage.scss';
 
 export interface RssFeed {
-    id: string;
+    id: string; // UserFeed junction ID
+    feedId?: string; // Global Feed ID
     name: string;
     url: string;
     createdAt?: string;
@@ -36,10 +38,12 @@ export interface FeedItem {
 const FeedsPage: React.FC = () => {
     const { getToken } = useAuth();
     const { showSuccess, showError } = useToast();
+    const posthog = usePostHog();
     const [feedArticles, setFeedArticles] = useState<FeedArticle[]>([]);
     const [feeds, setFeeds] = useState<RssFeed[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isManageOpen, setIsManageOpen] = useState(false);
+    const [selectedFeedId, setSelectedFeedId] = useState<string | null>(null);
 
     const fetchFeeds = useCallback(async () => {
         try {
@@ -53,6 +57,7 @@ const FeedsPage: React.FC = () => {
             // Map UserFeed[] to RssFeed[]
             const mappedFeeds: RssFeed[] = data.map((item: FeedItem) => ({
                 id: item.id, // We need the junction ID to delete it
+                feedId: item.feed?.id,
                 name: item.titleOverride || item.feed?.title || 'Unknown Feed',
                 url: item.feed?.url || '',
                 createdAt: item.feed?.createdAt
@@ -104,6 +109,7 @@ const FeedsPage: React.FC = () => {
             const item = await response.json();
             const mappedNewFeed: RssFeed = {
                 id: item.id,
+                feedId: item.feed?.id,
                 name: item.titleOverride || item.feed?.title || 'Unknown Feed',
                 url: item.feed?.url || '',
                 createdAt: item.feed?.createdAt
@@ -153,6 +159,13 @@ const FeedsPage: React.FC = () => {
             });
             if (!response.ok) throw new Error('Failed to add article to library');
             showSuccess('Article Added!', `"${article.title}" has been saved to your library.`);
+
+            // Track the event
+            posthog.capture('feed_article_added', {
+                article_url: article.url,
+                feed_title: article.feedTitle
+            });
+
             setFeedArticles(prev => prev.filter(a => a.id !== articleId));
         } catch {
             showError('Error', 'Could not add article to your library.');
@@ -185,6 +198,10 @@ const FeedsPage: React.FC = () => {
         );
     }
 
+    const filteredArticles = selectedFeedId
+        ? feedArticles.filter(article => article.feedId === selectedFeedId)
+        : feedArticles;
+
     return (
         <div className="feeds-page">
             <motion.div
@@ -206,6 +223,29 @@ const FeedsPage: React.FC = () => {
                 </button>
             </motion.div>
 
+            {feeds.length > 0 && (
+                <div className="feeds-filters">
+                    <button
+                        className={`feed-filter-pill ${selectedFeedId === null ? 'active' : ''}`}
+                        onClick={() => setSelectedFeedId(null)}
+                    >
+                        All Feeds
+                    </button>
+                    {feeds.map(feed => (
+                        <button
+                            key={feed.id}
+                            className={`feed-filter-pill ${selectedFeedId === feed.feedId ? 'active' : ''}`}
+                            onClick={() => setSelectedFeedId(selectedFeedId === feed.feedId ? null : (feed.feedId || null))}
+                            title={feed.name || feed.url}
+                        >
+                            {feed.name && feed.name !== 'Unknown Feed' && feed.name !== feed.url
+                                ? feed.name
+                                : new URL(feed.url).hostname.replace(/^www\./, '')}
+                        </button>
+                    ))}
+                </div>
+            )}
+
             {feeds.length === 0 ? (
                 <motion.div
                     className="feeds-empty"
@@ -224,7 +264,7 @@ const FeedsPage: React.FC = () => {
                         Add Your First Feed
                     </button>
                 </motion.div>
-            ) : feedArticles.length === 0 ? (
+            ) : filteredArticles.length === 0 ? (
                 <div className="feeds-empty">
                     <h3>No new articles</h3>
                     <p>Your feeds haven't published anything new recently. Check back later!</p>
@@ -232,7 +272,7 @@ const FeedsPage: React.FC = () => {
             ) : (
                 <div className="feeds-grid">
                     <AnimatePresence>
-                        {feedArticles.map((article, index) => (
+                        {filteredArticles.map((article, index) => (
                             <motion.div
                                 key={article.id}
                                 variants={itemVariants}
@@ -252,6 +292,7 @@ const FeedsPage: React.FC = () => {
                                 <RecommendationCard
                                     article={article}
                                     onAddToLibrary={handleAddToLibrary}
+                                    showSource={true}
                                 />
                             </motion.div>
                         ))}

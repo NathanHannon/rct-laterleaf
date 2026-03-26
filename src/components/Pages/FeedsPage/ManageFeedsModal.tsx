@@ -110,7 +110,11 @@ const ManageFeedsModal: React.FC<ManageFeedsModalProps> = ({
                                             layout
                                         >
                                             <div className="feed-item__info">
-                                                <span className="feed-name">{feed.name || feed.url}</span>
+                                                <span className="feed-name">
+                                                    {feed.name && feed.name !== 'Unknown Feed' && feed.name !== feed.url
+                                                        ? feed.name
+                                                        : new URL(feed.url).hostname.replace(/^www\./, '')}
+                                                </span>
                                                 <span className="feed-url">{feed.url}</span>
                                             </div>
                                             <button
