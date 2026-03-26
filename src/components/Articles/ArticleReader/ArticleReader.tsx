@@ -12,6 +12,7 @@ import ArticlePodcastPlayer from '../ArticlePodcastPlayer/ArticlePodcastPlayer';
 import ArticleAudioPlayer from '../ArticleAudioPlayer/ArticleAudioPlayer';
 import RelatedArticles from '../RelatedArticles/RelatedArticles';
 import TagsManager from '../../TagsManager/TagsManager';
+import ArticleChat from '../ArticleChat/ArticleChat';
 import './ArticleReader.scss';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBookmark as faBookmarkSolid, faArchive, faTrash, faRotateRight, faFolderPlus, faEllipsisV, faGem, faClock, faStarHalfStroke, faPodcast, faHeadphones, faLanguage, faCheck, faCloudArrowDown, faCloud, faComments } from '@fortawesome/free-solid-svg-icons';
@@ -97,9 +98,6 @@ const ArticleReader = () => {
     const [showPodcastPlayer, setShowPodcastPlayer] = useState(false);
     const [showAudioPlayer, setShowAudioPlayer] = useState(false);
     const [isChatMode, setIsChatMode] = useState(false);
-    const [chatMessages, setChatMessages] = useState<{ role: 'user' | 'assistant', content: string, timestamp?: string }[]>([]);
-    const [isGeneratingChat, setIsGeneratingChat] = useState(false);
-    const [chatInput, setChatInput] = useState('');
     const [showCollectionSelector, setShowCollectionSelector] = useState(false);
     const [showDropdown, setShowDropdown] = useState(false);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -482,49 +480,6 @@ const ArticleReader = () => {
     };
 
     // Use contentHtml for display, falling back to content if it doesn't exist
-
-    const handleSendMessage = async (message: string) => {
-        if (!article || !message.trim()) return;
-
-        // Double-check pro access when sending messages
-        if (!userHasProAccess) {
-            alert('Chat functionality is available for Pro users only. Please upgrade to access this feature.');
-            return;
-        }
-
-        setIsGeneratingChat(true);
-
-        try {
-            const token = await getToken();
-            const response = await fetch(`/api/articles/${articleId}/chat`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify({
-                    message
-                })
-            });
-
-            if (!response.ok) {
-                throw new Error('Failed to generate chat response');
-            }
-
-            const data = await response.json();
-            // Update with the complete chat history from server
-            setChatMessages(data.chatHistory || []);
-        } catch (err) {
-            setError(err instanceof Error ? err.message : 'Failed to generate chat response');
-        } finally {
-            setIsGeneratingChat(false);
-        }
-    };
-
-    const handleExitChat = () => {
-        setIsChatMode(false);
-        setChatMessages([]);
-    };
 
     if (loading) {
         return <LoadingSpinner size="large" label="Loading article..." />;
@@ -941,83 +896,12 @@ const ArticleReader = () => {
             />
 
             {/* Right-side Chat Panel */}
-            <AnimatePresence>
-                {isChatMode && (
-                    <motion.div
-                        className="article-chat-panel"
-                        initial={{ opacity: 0, x: 20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: 20 }}
-                        transition={{ duration: 0.2 }}
-                    >
-                        <div className="chat-panel-header">
-                            <h3>💬 Article Chat</h3>
-                            <button
-                                onClick={handleExitChat}
-                                className="close-chat-button"
-                                title="Close chat"
-                            >
-                                ✕
-                            </button>
-                        </div>
-                        <div className="chat-interface">
-                            <div className="chat-messages">
-                                {chatMessages.length === 0 && !isGeneratingChat && (
-                                    <div className="chat-empty-state">
-                                        <p>Ask anything about this article</p>
-                                    </div>
-                                )}
-                                {chatMessages.map((msg, index) => (
-                                    <div
-                                        key={index}
-                                        className={`chat-message ${msg.role === 'user' ? 'user-message' : 'assistant-message'}`}
-                                    >
-                                        <div className="message-content">
-                                            {msg.content}
-                                        </div>
-                                    </div>
-                                ))}
-                                {isGeneratingChat && (
-                                    <div className="chat-message assistant-message">
-                                        <div className="message-content">
-                                            <div className="typing-indicator">
-                                                <span></span>
-                                                <span></span>
-                                                <span></span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-                            <div className="chat-input">
-                                <form onSubmit={(e) => {
-                                    e.preventDefault();
-                                    if (chatInput.trim()) {
-                                        handleSendMessage(chatInput);
-                                        setChatInput('');
-                                    }
-                                }}>
-                                    <input
-                                        type="text"
-                                        value={chatInput}
-                                        onChange={(e) => setChatInput(e.target.value)}
-                                        placeholder="Ask about this article..."
-                                        disabled={isGeneratingChat}
-                                        className="chat-input-field"
-                                    />
-                                    <button
-                                        type="submit"
-                                        disabled={isGeneratingChat || !chatInput.trim()}
-                                        className="chat-send-button"
-                                    >
-                                        Send
-                                    </button>
-                                </form>
-                            </div>
-                        </div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
+            <ArticleChat
+                articleId={articleId!}
+                isOpen={isChatMode}
+                onClose={() => setIsChatMode(false)}
+                userHasProAccess={userHasProAccess}
+            />
         </div>
     );
 };
