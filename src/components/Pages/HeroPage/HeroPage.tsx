@@ -19,7 +19,8 @@ const HeroPage: React.FC = () => {
         "Full-text semantic search",
         "Personalized AI Summaries",
         "Audio Overviews (Podcasts)",
-        "Chat with your articles (Coming Soon)",
+        "Chat with your articles",
+        "AI Research Assistant",
         "Offline mode (Coming Soon)"
     ];
 
