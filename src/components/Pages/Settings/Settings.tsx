@@ -158,6 +158,16 @@ const Settings = () => {
                                 <span>AI Podcast Generation</span>
                                 <span className="pro-badge">Pro</span>
                             </div>
+                            <div className="feature-item">
+                                <FontAwesomeIcon icon={isPro ? faCheckCircle : faTimesCircle} className={isPro ? "text-success" : "text-muted"} />
+                                <span>Article Chat</span>
+                                <span className="pro-badge">Pro</span>
+                            </div>
+                            <div className="feature-item">
+                                <FontAwesomeIcon icon={isPro ? faCheckCircle : faTimesCircle} className={isPro ? "text-success" : "text-muted"} />
+                                <span>AI Research Assistant</span>
+                                <span className="pro-badge">Pro</span>
+                            </div>
                         </div>
                     </div>
 
