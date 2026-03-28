@@ -234,6 +234,8 @@ const CollectionView: React.FC = () => {
         }
     };
 
+
+
     // Get articles not in this collection
     const availableArticles = allUserArticles.filter(article =>
         !articles.some(collectionArticle => collectionArticle.id === article.id)

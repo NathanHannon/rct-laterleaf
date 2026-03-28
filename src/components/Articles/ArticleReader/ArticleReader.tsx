@@ -529,16 +529,6 @@ const ArticleReader = () => {
 
             <div className="article-actions">
                 <motion.button
-                    onClick={handleToggleOffline}
-                    className={`action-icon-btn button-offline ${isAvailableOffline ? 'active' : ''}`}
-                    disabled={isSavingOffline}
-                    whileTap={{ scale: 0.95 }}
-                    title={isAvailableOffline ? 'Available offline (Click to remove)' : 'Download for offline reading'}
-                >
-                    <FontAwesomeIcon icon={isSavingOffline ? faRotateRight : isAvailableOffline ? faCloud : faCloudArrowDown} spin={isSavingOffline} />
-                </motion.button>
-
-                <motion.button
                     onClick={handleFavorite}
                     className={`action-icon-btn button-favorite ${article.isBookmarked ? 'bookmarked' : ''}`}
                     whileTap={{ scale: 0.95 }}
@@ -599,6 +589,16 @@ const ArticleReader = () => {
                     {article.narrationLocation && <span className="ready-dot" />}
                 </button>
 
+                <button
+                    onClick={() => setIsChatMode(!isChatMode)}
+                    className={`action-icon-btn button-chat ${isChatMode ? 'active' : ''} ${article.hasContent === false ? 'disabled' : ''}`}
+                    disabled={article.hasContent === false || !userHasProAccess}
+                    title={!userHasProAccess ? 'Chat is a Pro feature' : article.hasContent === false ? 'Chat unavailable for paywalled content' : (isChatMode ? 'Close chat' : 'Chat with article')}
+                >
+                    <FontAwesomeIcon icon={faComments} />
+                    {userHasProAccess && <span className="pro-badge-dot" />}
+                </button>
+
                 {/* Translation Dropdown */}
                 <div className="action-dropdown-container">
                     <button
@@ -651,16 +651,6 @@ const ArticleReader = () => {
                     </AnimatePresence>
                 </div>
 
-                <button
-                    onClick={() => setIsChatMode(!isChatMode)}
-                    className={`action-icon-btn button-chat ${isChatMode ? 'active' : ''} ${article.hasContent === false ? 'disabled' : ''}`}
-                    disabled={article.hasContent === false || !userHasProAccess}
-                    title={!userHasProAccess ? 'Chat is a Pro feature' : article.hasContent === false ? 'Chat unavailable for paywalled content' : (isChatMode ? 'Close chat' : 'Chat with article')}
-                >
-                    <FontAwesomeIcon icon={faComments} />
-                    {userHasProAccess && <span className="pro-badge-dot" />}
-                </button>
-
                 {/* Pro Summary Toggle for Free Users */}
                 {!userHasProAccess && (
                     <div className="pro-toggle-container">
@@ -698,6 +688,15 @@ const ArticleReader = () => {
                                 exit={{ opacity: 0, scale: 0.95, y: -10 }}
                                 transition={{ duration: 0.15 }}
                             >
+                                <button
+                                    onClick={() => handleDropdownAction(handleToggleOffline)}
+                                    className={`dropdown-item offline-item ${isAvailableOffline ? 'active' : ''}`}
+                                    disabled={isSavingOffline}
+                                >
+                                    <FontAwesomeIcon icon={isSavingOffline ? faRotateRight : isAvailableOffline ? faCloud : faCloudArrowDown} spin={isSavingOffline} />
+                                    <span>{isAvailableOffline ? 'Remove offline copy' : 'Save for offline'}</span>
+                                </button>
+
                                 <button
                                     onClick={() => handleDropdownAction(() => setShowCollectionSelector(true))}
                                     className="dropdown-item collection-item"

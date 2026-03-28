@@ -337,14 +337,18 @@
             position: absolute;
             bottom: 100%;
             right: 0;
-            background: white;
-            border: 1px solid #ddd;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
             border-radius: 8px;
             box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
             z-index: 1000;
             min-width: 140px;
             overflow: hidden;
             margin-bottom: 5px;
+
+            [data-theme='dark'] & {
+                box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+            }
 
             .dropdown-item {
                 width: 100%;
@@ -357,11 +361,11 @@
                 align-items: center;
                 gap: 0.5rem;
                 transition: background-color 0.2s;
-                color: #333;
+                color: var(--text-color);
                 font-size: 0.9rem;
 
                 &:hover {
-                    background: #f8f9fa;
+                    background: var(--bg-secondary);
                 }
 
                 &.archive-item {
@@ -377,10 +381,10 @@
                 }
 
                 &.delete-item {
-                    color: #dc3545;
+                    color: var(--text-color);
 
                     &:hover {
-                        background: #f8d7da;
+                        background: rgba(220, 53, 69, 0.1);
                     }
 
                     svg {
