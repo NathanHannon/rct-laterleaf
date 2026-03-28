@@ -35,8 +35,8 @@ const TagsManager: React.FC<TagsManagerProps> = ({ userArticleId, articleTitle, 
                 })
             ];
 
-            // If we are offline, or if the user wants to save server resources, 
-            // we skip server suggestions. But for now we just use navigator to check.
+            // Trigger server-side tagging refresh or just fetch existing suggestedTags/similar ones
+            // The backend /tags/suggest/{userArticleId} now returns a blend of AI and similar tags.
             if (navigator.onLine) {
                 fetchActions.push(
                     fetch(`/api/tags/suggest/${userArticleId}`, {
@@ -47,36 +47,35 @@ const TagsManager: React.FC<TagsManagerProps> = ({ userArticleId, articleTitle, 
 
             const responses = await Promise.all(fetchActions);
             const tagsResponse = responses[0];
-            const suggestedTagsResponse = responses[1]; // might be undefined
+            const suggestedResponse = responses[1];
 
             if (!tagsResponse.ok) throw new Error('Failed to fetch tags.');
             const tagsData: Tag[] = await tagsResponse.json();
             setTags(tagsData);
 
-            // Handle suggestions
             let serverSuggestedData: Tag[] = [];
-            if (suggestedTagsResponse && suggestedTagsResponse.ok) {
-                serverSuggestedData = await suggestedTagsResponse.json();
+            if (suggestedResponse && suggestedResponse.ok) {
+                serverSuggestedData = await suggestedResponse.json();
             }
 
-            // Fallback to offline Nano AI if unavailable from server
-            if (!navigator.onLine && isNanoAvailable && articleTitle && articleContent) {
-                const nanoSuggested = await generateTags(articleTitle, articleContent, 3);
-                // Convert array of strings into fake objects so the UI can render them
-                serverSuggestedData = nanoSuggested.map(t => ({ id: `nano-${t}`, name: t }));
-            }
+            // Exclude tags that are already assigned
+            const existingNames = tagsData.map(t => t.name.toLowerCase());
+            const filteredSuggestions = serverSuggestedData.filter(
+                s => !existingNames.includes(s.name.toLowerCase())
+            );
 
-            setSuggestedTags(serverSuggestedData);
-            setError(null);
-        } catch (err) {
-            // If completely offline and fetch throws, gracefully fallback to local Nano
-            if (!navigator.onLine && isNanoAvailable && articleTitle && articleContent) {
+            // Fallback to offline Nano AI if server returned nothing or we are offline
+            if (!navigator.onLine && isNanoAvailable && articleTitle && articleContent && filteredSuggestions.length === 0) {
                 const nanoSuggested = await generateTags(articleTitle, articleContent, 3);
                 setSuggestedTags(nanoSuggested.map(t => ({ id: `nano-${t}`, name: t })));
-                setError(null);
             } else {
-                setError(err instanceof Error ? err.message : 'An unknown error occurred.');
+                setSuggestedTags(filteredSuggestions);
             }
+
+            setError(null);
+        } catch (err) {
+            // ... error handling
+            setError(err instanceof Error ? err.message : 'An unknown error occurred.');
         } finally {
             setIsLoading(false);
         }
@@ -111,6 +110,12 @@ const TagsManager: React.FC<TagsManagerProps> = ({ userArticleId, articleTitle, 
             if (!response.ok) {
                 throw new Error('Failed to add tag.');
             }
+
+            // Immediately update the local state to show the tag is added
+            // This prevents the user from clicking the suggestion twice
+            const normalizedTag = tagName.trim();
+            setTags(prev => [...prev, { id: 'temp-' + Date.now(), name: normalizedTag }]);
+            setSuggestedTags(prev => prev.filter(t => t.name.toLowerCase() !== normalizedTag.toLowerCase()));
 
             await fetchAllTags();
         } catch (err) {

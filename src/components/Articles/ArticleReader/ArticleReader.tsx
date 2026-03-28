@@ -208,7 +208,6 @@ const ArticleReader = () => {
     // Podcast player states
     // New states for reading progress and time estimation
     const [readingProgress, setReadingProgress] = useState(0);
-    const [estimatedReadingTime, setEstimatedReadingTime] = useState(0);
     const contentRef = useRef<HTMLDivElement>(null);
 
     // Check if user has pro access for chat functionality
@@ -217,12 +216,10 @@ const ArticleReader = () => {
     // Use contentHtml for display, falling back to content if it doesn't exist
     const displayContent = article?.contentHtml || article?.content || '';
 
-    // Calculate estimated reading time (average 200 words per minute)
-    const calculateReadingTime = (content: string) => {
-        const plainText = content.replace(/<[^>]*>/g, ''); // Remove HTML tags
-        const wordCount = plainText.split(/\s+/).filter(word => word.length > 0).length;
-        return Math.ceil(wordCount / 200); // 200 words per minute average
-    };
+    // Calculate estimated reading time - now prefers the backend-persisted value
+    const estimatedReadingTime = article?.readingTime || (article?.content
+        ? Math.ceil(article.content.replace(/<[^>]*>/g, '').split(/\s+/).filter(word => word.length > 0).length / 225)
+        : 0);
 
     // Handle scroll for reading progress
     useEffect(() => {
@@ -260,14 +257,6 @@ const ArticleReader = () => {
 
         return () => window.removeEventListener('scroll', handleScroll);
     }, [showTranslateDropdown, showDropdown]);
-
-    // Calculate reading time when article loads
-    useEffect(() => {
-        if (article?.content) {
-            const readingTime = calculateReadingTime(article.content);
-            setEstimatedReadingTime(readingTime);
-        }
-    }, [article]);
 
     // Fetch user credits on mount
     useEffect(() => {
