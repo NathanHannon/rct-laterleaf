@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { useAuth } from "@clerk/react";
 import { motion, AnimatePresence } from 'motion/react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import './ArticleChat.scss';
 
 interface ChatMessage {
@@ -119,7 +121,13 @@ const ArticleChat = ({ articleId, isOpen, onClose, userHasProAccess }: ArticleCh
                                     key={index}
                                     className={`chat-message ${msg.role === 'user' ? 'user-message' : 'assistant-message'}`}
                                 >
-                                    <div className="message-content">{msg.content}</div>
+                                    <div className="message-content">
+                                        {msg.role === 'assistant' ? (
+                                            <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.content}</ReactMarkdown>
+                                        ) : (
+                                            msg.content
+                                        )}
+                                    </div>
                                 </div>
                             ))}
                             {isGeneratingChat && (

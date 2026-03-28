@@ -156,14 +156,69 @@
             justify-content: flex-start;
 
             .message-content {
-                background-color: var(--card-bg);
+                background-color: var(--background-color);
                 color: var(--text-color);
                 padding: 0.75rem 1rem;
                 border-radius: 18px 18px 18px 4px;
-                max-width: 80%;
+                max-width: 85%;
                 word-wrap: break-word;
-                white-space: pre-wrap;
-                border: 1px solid var(--border-color);
+                border: 1px solid var(--card-border);
+
+                // Markdown rendering
+                p {
+                    margin: 0 0 0.5em;
+                    line-height: 1.5;
+
+                    &:last-child {
+                        margin-bottom: 0;
+                    }
+                }
+
+                strong {
+                    font-weight: 600;
+                }
+
+                code {
+                    background: var(--card-border);
+                    padding: 0.15em 0.4em;
+                    border-radius: 4px;
+                    font-size: 0.82em;
+                    font-family: 'SF Mono', 'Fira Code', monospace;
+                }
+
+                pre {
+                    background: var(--card-border);
+                    padding: 0.6rem 0.8rem;
+                    border-radius: 8px;
+                    overflow-x: auto;
+                    margin: 0.5em 0;
+
+                    code {
+                        background: none;
+                        padding: 0;
+                    }
+                }
+
+                ul, ol {
+                    margin: 0.4em 0;
+                    padding-left: 1.4em;
+
+                    li {
+                        margin-bottom: 0.2em;
+                    }
+                }
+
+                blockquote {
+                    border-left: 3px solid var(--primary-color);
+                    margin: 0.5em 0;
+                    padding: 0.2em 0.8em;
+                    opacity: 0.85;
+                }
+
+                a {
+                    color: var(--primary-color);
+                    text-decoration: underline;
+                }
             }
         }
     }
