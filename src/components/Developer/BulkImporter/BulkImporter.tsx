@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useAuth } from '@clerk/clerk-react';
+import { useAuth } from "@clerk/react";
 import './BulkImporter.scss';
 
 const BulkImporter: React.FC = () => {

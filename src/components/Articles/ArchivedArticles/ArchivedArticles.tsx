@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useAuth } from '@clerk/clerk-react';
+import { useAuth } from "@clerk/react";
 import { motion } from 'motion/react';
 import ArticleCard from '../ArticleCard/ArticleCard';
 import ConfirmationDialog from '../../Common/ConfirmationDialog/ConfirmationDialog';

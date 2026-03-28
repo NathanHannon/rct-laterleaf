@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { useAuth } from '@clerk/clerk-react';
+import { useAuth } from "@clerk/react";
 import ArticleCard from '../Articles/ArticleCard/ArticleCard';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSpinner, faChevronLeft, faChevronRight } from '@fortawesome/free-solid-svg-icons';

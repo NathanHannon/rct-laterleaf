@@ -546,6 +546,26 @@
         }
     }
 
+    .button-like {
+        background-color: #424242;
+
+        &:hover:not(:disabled) {
+            background-color: #616161;
+        }
+
+        &.liked {
+            background-color: #c62828;
+
+            &:hover:not(:disabled) {
+                background-color: #e53935;
+            }
+
+            svg {
+                color: #fff;
+            }
+        }
+    }
+
     .button-summarize {
         background-color: #9c27b0;
 

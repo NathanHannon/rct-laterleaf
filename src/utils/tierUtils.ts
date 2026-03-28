@@ -1,4 +1,4 @@
-import type { UserResource } from '@clerk/types';
+import type { UserResource } from "@clerk/shared/types";
 
 /**
  * Extract user tier from Clerk's JWT token
@@ -16,11 +16,11 @@ export const extractUserTier = (user: UserResource | null | undefined): 'pro' | 
     // Fallback for older JWTs or if metadata sync is delayed.
     const userWithToken = user as UserResource & {
         unsafeMetadata?: { _rawToken?: { pla?: string } };
-        __unstable__environment?: { jwt?: { pla?: string } };
+        __internal_environment?: { jwt?: { pla?: string } };
     };
 
     const rawToken = userWithToken.unsafeMetadata?._rawToken ||
-        userWithToken.__unstable__environment?.jwt ||
+        userWithToken.__internal_environment?.jwt ||
         {};
 
     const plaField = rawToken.pla || 'u:free_user';

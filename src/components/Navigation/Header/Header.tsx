@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { SignedIn, SignedOut, SignInButton, SignUpButton, UserButton } from "@clerk/clerk-react";
+import { Show, SignInButton, SignUpButton, UserButton } from "@clerk/react";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBars, faCog } from '@fortawesome/free-solid-svg-icons';
 import ThemeSwitcher from '../../Common/ThemeSwitcher/ThemeSwitcher';
@@ -81,7 +81,7 @@ const Header: React.FC = () => {
         <>
             <header className={`app-header ${isScrolled ? 'scrolled' : ''}`}>
                 <div className="header-left">
-                    <SignedIn>
+                    <Show when="signed-in">
                         <button
                             className="sidebar-toggle"
                             onClick={() => setIsSidebarOpen(!isSidebarOpen)}
@@ -89,7 +89,7 @@ const Header: React.FC = () => {
                         >
                             <FontAwesomeIcon icon={faBars} />
                         </button>
-                    </SignedIn>
+                    </Show>
                     <Link
                         to="/"
                         className="logo"
@@ -114,7 +114,7 @@ const Header: React.FC = () => {
 
                 <div className="header-right">
                     <ThemeSwitcher />
-                    <SignedIn>
+                    <Show when="signed-in">
                         <UserButton>
                             <UserButton.MenuItems>
                                 <UserButton.Action
@@ -124,8 +124,8 @@ const Header: React.FC = () => {
                                 />
                             </UserButton.MenuItems>
                         </UserButton>
-                    </SignedIn>
-                    <SignedOut>
+                    </Show>
+                    <Show when="signed-out">
                         <div className="auth-buttons">
                             <SignInButton mode="modal">
                                 <button className="sign-in-button">Sign In</button>
@@ -134,12 +134,11 @@ const Header: React.FC = () => {
                                 <button className="sign-up-button">Sign Up</button>
                             </SignUpButton>
                         </div>
-                    </SignedOut>
+                    </Show>
                 </div>
             </header>
-
             {/* Backdrop */}
-            <SignedIn>
+            <Show when="signed-in">
                 {isSidebarOpen && <div className="sidebar-backdrop" onClick={closeSidebar} />}
 
                 {/* Sidebar Component */}
@@ -148,7 +147,7 @@ const Header: React.FC = () => {
                     onClose={closeSidebar}
                     ref={sidebarRef}
                 />
-            </SignedIn>
+            </Show>
         </>
     );
 };

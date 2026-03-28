@@ -2,7 +2,7 @@ import './App.scss';
 import Header from './components/Navigation/Header/Header';
 import Footer from './components/Footer/Footer';
 import ArticleList from './components/Articles/ArticleList/ArticleList';
-import { SignedIn, SignedOut } from '@clerk/clerk-react';
+import { Show } from "@clerk/react";
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import ArticleReader from './components/Articles/ArticleReader/ArticleReader';
 import ArchivedArticles from './components/Articles/ArchivedArticles/ArchivedArticles';
@@ -43,7 +43,7 @@ function App() {
                   <Header />
                   <main className="main-content">
                     <div className="content-container">
-                      <SignedIn>
+                      <Show when="signed-in">
                         <Routes>
                           <Route path="/" element={<ArticleList />} />
                           <Route path="/articles" element={<ArticleList />} />
@@ -68,8 +68,8 @@ function App() {
                           <Route path="/admin" element={<AdminPage />} />
                           <Route path="/hero-page" element={<HeroPage />} />
                         </Routes>
-                      </SignedIn>
-                      <SignedOut>
+                      </Show>
+                      <Show when="signed-out">
                         <Routes>
                           <Route path="/about" element={<AboutPage />} />
                           <Route path="/contact" element={<ContactPage />} />
@@ -84,7 +84,7 @@ function App() {
                             <HeroPage />
                           } />
                         </Routes>
-                      </SignedOut>
+                      </Show>
                     </div>
                   </main>
                   <Footer />

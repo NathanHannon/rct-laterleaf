@@ -1,5 +1,5 @@
 import React, { useState, useEffect, type FormEvent, useCallback } from 'react';
-import { useAuth } from '@clerk/clerk-react';
+import { useAuth } from "@clerk/react";
 import { useNanoTags } from '../../hooks/useNanoTags';
 import './TagsManager.scss';
 

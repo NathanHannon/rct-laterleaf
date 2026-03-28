@@ -1,6 +1,6 @@
 import { forwardRef, useState } from 'react';
 import { NavLink } from 'react-router-dom';
-import { SignedIn } from '@clerk/clerk-react';
+import { Show } from "@clerk/react";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faInbox, faBookmark, faArchive, faFolderOpen, faFileExport, faCompass, faRss, faTimes, faSearch, faCog, faQuestionCircle, faAtom } from '@fortawesome/free-solid-svg-icons';
 import { useSearch } from '../../../hooks/searchHook';
@@ -83,11 +83,11 @@ const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(({ isOpen, onClose }, r
                             )}
                         </div>
                         {/* Show search mode toggle for everyone since semantic search is free */}
-                        <SignedIn>
+                        <Show when="signed-in">
                             <div className="search-mode-container">
                                 <SearchModeToggle />
                             </div>
-                        </SignedIn>
+                        </Show>
                     </div>
 
                     {/* Navigation Links */}
@@ -148,19 +148,18 @@ const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(({ isOpen, onClose }, r
                     </nav>
 
                     {/* Pro Upgrade Section */}
-                    <SignedIn>
+                    <Show when="signed-in">
                         {/* Use a loading check to avoid showing the button prematurely */}
                         {!isLoading && !userHasProAccess && (
                             <div className="sidebar__upgrade">
                                 <UpgradeButton />
                             </div>
                         )}
-                    </SignedIn>
+                    </Show>
                 </div>
             </div>
             {/* Render Help Modal outside the sidebar container but triggered by it */}
             <HelpModal isOpen={isHelpModalOpen} onClose={() => setIsHelpModalOpen(false)} />
-
             {/* Render Wrapped Overlay */}
             {isWrappedOpen && <Wrapped onClose={() => setIsWrappedOpen(false)} />}
         </>

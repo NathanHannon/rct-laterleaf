@@ -1,5 +1,5 @@
 import { createContext, useState, useEffect, type ReactNode } from 'react';
-import { useAuth } from '@clerk/clerk-react';
+import { useAuth } from "@clerk/react";
 
 interface UserStatusContextType {
     isPro: boolean;

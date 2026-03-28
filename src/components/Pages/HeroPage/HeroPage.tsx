@@ -1,5 +1,5 @@
 import React from 'react';
-import { SignUpButton } from '@clerk/clerk-react';
+import { SignUpButton } from "@clerk/react";
 import { motion, type Variants } from 'motion/react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSave, faBolt, faSearch, faCheckCircle, faHeadphones, faPuzzlePiece, faLayerGroup } from '@fortawesome/free-solid-svg-icons';

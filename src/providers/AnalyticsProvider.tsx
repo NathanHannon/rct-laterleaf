@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import { useAuth, useUser } from '@clerk/clerk-react';
+import { useAuth, useUser } from "@clerk/react";
 import posthog from 'posthog-js';
 
 export default function AnalyticsProvider({ children }: { children: React.ReactNode }) {

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useAuth } from '@clerk/clerk-react';
+import { useAuth } from "@clerk/react";
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useSearch } from '../../../hooks/searchHook';
 import { useDebounce } from '../../../hooks/useDebounce'; // Import the new hook

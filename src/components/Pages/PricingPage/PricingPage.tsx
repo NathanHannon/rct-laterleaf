@@ -1,4 +1,4 @@
-import { PricingTable } from '@clerk/clerk-react';
+import { PricingTable } from "@clerk/react";
 import { motion } from 'motion/react';
 
 export default function PricingScreen() {

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useAuth } from '@clerk/clerk-react';
+import { useAuth } from "@clerk/react";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlus, faSpinner, faPuzzlePiece } from '@fortawesome/free-solid-svg-icons';
 import { useToastContext } from '../../../context/toastContextUtils';

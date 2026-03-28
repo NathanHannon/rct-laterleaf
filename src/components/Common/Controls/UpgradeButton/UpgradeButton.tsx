@@ -1,5 +1,5 @@
 import React from 'react';
-import { useUser } from '@clerk/clerk-react';
+import { useUser } from "@clerk/react";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faGem } from '@fortawesome/free-solid-svg-icons';
 import './UpgradeButton.scss';

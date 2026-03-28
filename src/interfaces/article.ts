@@ -10,6 +10,7 @@ export interface Article {
     author?: string;
     publishDate?: string;
     isBookmarked: boolean;
+    isLiked: boolean;
     isArchived: boolean;
     summary?: string;
     summaryStatus?: 'idle' | 'pending' | 'completed' | 'failed';

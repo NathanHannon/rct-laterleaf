@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useAuth } from "@clerk/clerk-react";
+import { useAuth } from "@clerk/react";
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'motion/react';
 import ReactMarkdown from 'react-markdown';
@@ -15,8 +15,8 @@ import TagsManager from '../../TagsManager/TagsManager';
 import ArticleChat from '../ArticleChat/ArticleChat';
 import './ArticleReader.scss';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBookmark as faBookmarkSolid, faArchive, faTrash, faRotateRight, faFolderPlus, faEllipsisV, faGem, faClock, faStarHalfStroke, faPodcast, faHeadphones, faLanguage, faCheck, faCloudArrowDown, faCloud, faComments } from '@fortawesome/free-solid-svg-icons';
-import { faBookmark as faBookmarkRegular } from '@fortawesome/free-regular-svg-icons';
+import { faBookmark as faBookmarkSolid, faHeart as faHeartSolid, faArchive, faTrash, faRotateRight, faFolderPlus, faEllipsisV, faGem, faClock, faStarHalfStroke, faPodcast, faHeadphones, faLanguage, faCheck, faCloudArrowDown, faCloud, faComments } from '@fortawesome/free-solid-svg-icons';
+import { faBookmark as faBookmarkRegular, faHeart as faHeartRegular } from '@fortawesome/free-regular-svg-icons';
 import { hasProAccess } from '../../../utils/tierUtils';
 import { useUserStatus } from '../../../hooks/useUserStatus';
 import { useUserCredits } from '../../../hooks/useUserCredits';
@@ -95,6 +95,7 @@ const ArticleReader = () => {
     const [isGeneratingSummary, setIsGeneratingSummary] = useState(false);
     const [showSummary, setShowSummary] = useState(false);
     const [isBookmarkAnimating, setIsBookmarkAnimating] = useState(false);
+    const [isLikeAnimating, setIsLikeAnimating] = useState(false);
     const [showPodcastPlayer, setShowPodcastPlayer] = useState(false);
     const [showAudioPlayer, setShowAudioPlayer] = useState(false);
     const [isChatMode, setIsChatMode] = useState(false);
@@ -292,6 +293,29 @@ const ArticleReader = () => {
             }
             // Update local state to reflect the change immediately
             setArticle(prev => prev ? { ...prev, isBookmarked: !prev.isBookmarked } : null);
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'An unknown error occurred');
+        }
+    };
+
+    const handleLike = async () => {
+        if (!articleId || !article) return;
+
+        setIsLikeAnimating(true);
+        setTimeout(() => setIsLikeAnimating(false), 600);
+
+        try {
+            const token = await getToken();
+            const response = await fetch(`/api/articles/${articleId}/like`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            if (!response.ok) {
+                throw new Error('Failed to like article');
+            }
+            setArticle(prev => prev ? { ...prev, isLiked: !prev.isLiked } : null);
         } catch (err) {
             setError(err instanceof Error ? err.message : 'An unknown error occurred');
         }
@@ -526,6 +550,20 @@ const ArticleReader = () => {
                     title={article.isBookmarked ? 'Remove bookmark' : 'Bookmark'}
                 >
                     <FontAwesomeIcon icon={article.isBookmarked ? faBookmarkSolid : faBookmarkRegular} />
+                </motion.button>
+
+                <motion.button
+                    onClick={handleLike}
+                    className={`action-icon-btn button-like ${article.isLiked ? 'liked' : ''}`}
+                    whileTap={{ scale: 0.95 }}
+                    animate={isLikeAnimating ? {
+                        scale: [1, 1.3, 1],
+                        rotateZ: [0, -10, 10, 0]
+                    } : {}}
+                    transition={{ duration: 0.3 }}
+                    title={article.isLiked ? 'Remove like' : 'Like — boosts similar recommendations'}
+                >
+                    <FontAwesomeIcon icon={article.isLiked ? faHeartSolid : faHeartRegular} />
                 </motion.button>
 
                 <button

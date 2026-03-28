@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useAuth } from '@clerk/clerk-react';
+import { useAuth } from "@clerk/react";
 import { motion, AnimatePresence } from 'motion/react';
 import './ArticleChat.scss';
 

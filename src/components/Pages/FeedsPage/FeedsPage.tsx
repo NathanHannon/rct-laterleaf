@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useAuth } from '@clerk/clerk-react';
+import { useAuth } from "@clerk/react";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSpinner, faPlus, faRss } from '@fortawesome/free-solid-svg-icons';
 import type { Article } from '../../../interfaces/article';
@@ -222,7 +222,6 @@ const FeedsPage: React.FC = () => {
                     Manage Feeds
                 </button>
             </motion.div>
-
             {feeds.length > 0 && (
                 <div className="feeds-filters">
                     <button
@@ -245,7 +244,6 @@ const FeedsPage: React.FC = () => {
                     ))}
                 </div>
             )}
-
             {feeds.length === 0 ? (
                 <motion.div
                     className="feeds-empty"
@@ -299,7 +297,6 @@ const FeedsPage: React.FC = () => {
                     </AnimatePresence>
                 </div>
             )}
-
             <ManageFeedsModal
                 isOpen={isManageOpen}
                 onClose={() => setIsManageOpen(false)}

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useClerk } from '@clerk/clerk-react';
+import { useClerk } from "@clerk/react";
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { useUserCredits } from '../../../hooks/useUserCredits';

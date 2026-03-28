@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useAuth } from '@clerk/clerk-react';
+import { useAuth } from "@clerk/react";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlay, faPause, faSpinner, faCog, faRedo, faRotateLeft, faRotateRight, faTimes, faDownload, faVolumeUp } from '@fortawesome/free-solid-svg-icons';
 import WaveformAnimation from '../../Common/WaveformAnimation/WaveformAnimation';
