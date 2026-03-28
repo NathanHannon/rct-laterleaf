@@ -51,6 +51,20 @@ const ArticleChat = ({ articleId, isOpen, onClose, userHasProAccess }: ArticleCh
         setSavedChatHistory([]);
     };
 
+    const handleClearHistory = async () => {
+        try {
+            const token = await getToken();
+            await fetch(`/api/articles/${articleId}/chat/clear`, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}` },
+            });
+            setChatMessages([]);
+            setSavedChatHistory([]);
+        } catch {
+            // silently fail
+        }
+    };
+
     const handleSendMessage = async (message: string) => {
         if (!message.trim()) return;
 
@@ -96,9 +110,16 @@ const ArticleChat = ({ articleId, isOpen, onClose, userHasProAccess }: ArticleCh
                 >
                     <div className="chat-panel-header">
                         <h3>💬 Article Chat</h3>
-                        <button onClick={onClose} className="close-chat-button" title="Close chat">
-                            ✕
-                        </button>
+                        <div className="chat-header-actions">
+                            {chatMessages.length > 0 && (
+                                <button onClick={handleClearHistory} className="clear-chat-button" title="Clear chat history">
+                                    🗑
+                                </button>
+                            )}
+                            <button onClick={onClose} className="close-chat-button" title="Close chat">
+                                ✕
+                            </button>
+                        </div>
                     </div>
                     <div className="chat-interface">
                         <div className="chat-messages">
