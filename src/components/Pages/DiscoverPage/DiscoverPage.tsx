@@ -6,7 +6,7 @@ import { faSpinner, faSync, faCheckCircle } from '@fortawesome/free-solid-svg-ic
 import type { Article } from '../../../interfaces/article';
 import './DiscoverPage.scss';
 import { useToast } from '../../../context/toastContext';
-import { motion, type Variants, AnimatePresence } from 'framer-motion';
+import { motion, type Variants, AnimatePresence } from 'motion/react';
 import RecommendationCarousel from '../../Recommendations/RecommendationCarousel/RecommendationCarousel';
 
 const DiscoverPage: React.FC = () => {
@@ -157,27 +157,6 @@ const DiscoverPage: React.FC = () => {
         };
     }, []);
 
-    // We can simplify the variants. The container no longer needs to control staggering.
-    const itemVariants: Variants = {
-        initial: { opacity: 0, y: 30, scale: 0.95, filter: 'blur(4px)' },
-        animate: {
-            opacity: 1,
-            y: 0,
-            scale: 1,
-            filter: 'blur(0px)',
-            transition: {
-                duration: 0.6,
-                ease: [0.23, 1, 0.32, 1]
-            }
-        },
-        exit: {
-            opacity: 0,
-            scale: 0.95,
-            filter: 'blur(4px)',
-            transition: { duration: 0.3 }
-        },
-    };
-
     const headerVariants: Variants = {
         initial: { opacity: 0, y: -20 },
         animate: { opacity: 1, y: 0, transition: { duration: 0.8, ease: [0.23, 1, 0.32, 1] } }
@@ -234,24 +213,50 @@ const DiscoverPage: React.FC = () => {
                         <h2>{title}</h2>
                         <p>{subtitle}</p>
                     </motion.div>
-                    <div className="discover-grid">
+                    <motion.div
+                        className="discover-grid"
+                        initial="hidden"
+                        animate="visible"
+                        variants={{
+                            hidden: { opacity: 0 },
+                            visible: {
+                                opacity: 1,
+                                transition: {
+                                    staggerChildren: 0.08,
+                                    delayChildren: 0.1
+                                }
+                            }
+                        }}
+                    >
                         <AnimatePresence>
-                            {recommendations.filter(article => article && article.id).map((article, index) => (
+                            {recommendations.filter(article => article && article.id).map((article) => (
                                 <motion.div
                                     key={article.id}
-                                    variants={itemVariants}
-                                    initial="initial"
-                                    animate="animate"
+                                    variants={{
+                                        hidden: { opacity: 0, y: 30, scale: 0.95, filter: 'blur(4px)' },
+                                        visible: {
+                                            opacity: 1,
+                                            y: 0,
+                                            scale: 1,
+                                            filter: 'blur(0px)',
+                                            transition: {
+                                                duration: 0.6,
+                                                ease: [0.23, 1, 0.32, 1]
+                                            }
+                                        },
+                                        exit: {
+                                            opacity: 0,
+                                            scale: 0.95,
+                                            filter: 'blur(4px)',
+                                            transition: { duration: 0.3 }
+                                        }
+                                    }}
                                     exit="exit"
                                     whileHover={{
-                                        y: -10,
+                                        y: -8,
                                         transition: { duration: 0.4, ease: [0.23, 1, 0.32, 1] }
                                     }}
                                     whileTap={{ scale: 0.98 }}
-                                    transition={{
-                                        delay: (index % 12) * 0.07,
-                                        ease: [0.23, 1, 0.32, 1]
-                                    }}
                                 >
                                     <RecommendationCard
                                         article={article}
@@ -261,7 +266,7 @@ const DiscoverPage: React.FC = () => {
                                 </motion.div>
                             ))}
                         </AnimatePresence>
-                    </div>
+                    </motion.div>
                     <div className="discover-footer">
                         <button onClick={() => fetchRecommendations()} disabled={isFetchingMore || allRecommendationsLoaded} className="load-more-button">
                             {isFetchingMore ? (

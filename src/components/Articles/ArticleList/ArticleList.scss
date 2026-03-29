@@ -9,7 +9,7 @@
         position: relative;
         padding: 4rem 0 2rem 0;
         border-bottom: 1px solid var(--card-border);
-        overflow: hidden;
+        overflow: visible;
 
         // Atmospheric background effect (matching Discover)
         &::before {

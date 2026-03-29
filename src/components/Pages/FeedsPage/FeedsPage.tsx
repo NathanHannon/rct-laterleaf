@@ -6,7 +6,7 @@ import type { Article } from '../../../interfaces/article';
 import RecommendationCard from '../../Articles/RecommendationCard/RecommendationCard';
 import ManageFeedsModal from './ManageFeedsModal';
 import { useToast } from '../../../context/toastContext';
-import { motion, type Variants, AnimatePresence } from 'motion/react';
+import { motion, type Variants } from 'motion/react';
 import { usePostHog } from 'posthog-js/react';
 import './FeedsPage.scss';
 
@@ -173,8 +173,8 @@ const FeedsPage: React.FC = () => {
     };
 
     const itemVariants: Variants = {
-        initial: { opacity: 0, y: 30, scale: 0.95, filter: 'blur(4px)' },
-        animate: {
+        hidden: { opacity: 0, y: 30, scale: 0.95, filter: 'blur(4px)' },
+        visible: {
             opacity: 1, y: 0, scale: 1, filter: 'blur(0px)',
             transition: { duration: 0.6, ease: [0.23, 1, 0.32, 1] },
         },
@@ -268,34 +268,39 @@ const FeedsPage: React.FC = () => {
                     <p>Your feeds haven't published anything new recently. Check back later!</p>
                 </div>
             ) : (
-                <div className="feeds-grid">
-                    <AnimatePresence>
-                        {filteredArticles.map((article, index) => (
-                            <motion.div
-                                key={article.id}
-                                variants={itemVariants}
-                                initial="initial"
-                                animate="animate"
-                                exit="exit"
-                                whileHover={{
-                                    y: -10,
-                                    transition: { duration: 0.4, ease: [0.23, 1, 0.32, 1] },
-                                }}
-                                whileTap={{ scale: 0.98 }}
-                                transition={{
-                                    delay: (index % 12) * 0.07,
-                                    ease: [0.23, 1, 0.32, 1],
-                                }}
-                            >
-                                <RecommendationCard
-                                    article={article}
-                                    onAddToLibrary={handleAddToLibrary}
-                                    showSource={true}
-                                />
-                            </motion.div>
-                        ))}
-                    </AnimatePresence>
-                </div>
+                <motion.div
+                    className="feeds-grid"
+                    initial="hidden"
+                    animate="visible"
+                    variants={{
+                        hidden: { opacity: 0 },
+                        visible: {
+                            opacity: 1,
+                            transition: {
+                                staggerChildren: 0.08,
+                                delayChildren: 0.1
+                            }
+                        }
+                    }}
+                >
+                    {filteredArticles.map((article) => (
+                        <motion.div
+                            key={article.id}
+                            variants={itemVariants}
+                            whileHover={{
+                                y: -8,
+                                transition: { duration: 0.4, ease: [0.23, 1, 0.32, 1] },
+                            }}
+                            whileTap={{ scale: 0.98 }}
+                        >
+                            <RecommendationCard
+                                article={article}
+                                onAddToLibrary={handleAddToLibrary}
+                                showSource={true}
+                            />
+                        </motion.div>
+                    ))}
+                </motion.div>
             )}
             <ManageFeedsModal
                 isOpen={isManageOpen}

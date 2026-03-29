@@ -110,14 +110,17 @@ const ArchivedArticles: React.FC = () => {
             </motion.header>
 
             <motion.div
+                key={articles.length > 0 ? 'loaded' : 'empty'}
                 className="article-grid"
                 initial="hidden"
                 animate="visible"
                 variants={{
-                    hidden: {},
+                    hidden: { opacity: 0 },
                     visible: {
+                        opacity: 1,
                         transition: {
-                            staggerChildren: 0.08
+                            staggerChildren: 0.08,
+                            delayChildren: 0.1
                         }
                     }
                 }}
