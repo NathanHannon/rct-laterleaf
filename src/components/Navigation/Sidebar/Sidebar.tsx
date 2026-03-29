@@ -94,27 +94,27 @@ const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(({ isOpen, onClose }, r
                     <nav className="sidebar__nav">
                         <div className="nav-section">
                             <h4>Navigation</h4>
-                            <NavLink to="/discover" onClick={onClose} className="nav-link">
+                            <NavLink viewTransition to="/discover" onClick={onClose} className="nav-link">
                                 <FontAwesomeIcon icon={faCompass} />
                                 <span>Discover</span>
                             </NavLink>
-                            <NavLink to="/feeds" onClick={onClose} className="nav-link">
+                            <NavLink viewTransition to="/feeds" onClick={onClose} className="nav-link">
                                 <FontAwesomeIcon icon={faRss} />
                                 <span>Feeds</span>
                             </NavLink>
-                            <NavLink to="/articles" onClick={onClose} className="nav-link">
+                            <NavLink viewTransition to="/articles" onClick={onClose} className="nav-link">
                                 <FontAwesomeIcon icon={faInbox} />
                                 <span>My Articles</span>
                             </NavLink>
-                            <NavLink to="/bookmarks" onClick={onClose} className="nav-link">
+                            <NavLink viewTransition to="/bookmarks" onClick={onClose} className="nav-link">
                                 <FontAwesomeIcon icon={faBookmark} />
                                 <span>Bookmarks</span>
                             </NavLink>
-                            <NavLink to="/collections" onClick={onClose} className="nav-link">
+                            <NavLink viewTransition to="/collections" onClick={onClose} className="nav-link">
                                 <FontAwesomeIcon icon={faFolderOpen} />
                                 <span>Collections</span>
                             </NavLink>
-                            <NavLink to="/research" onClick={onClose} className="nav-link">
+                            <NavLink viewTransition to="/research" onClick={onClose} className="nav-link">
                                 <FontAwesomeIcon icon={faAtom} />
                                 <span>Research</span>
                             </NavLink>
@@ -122,11 +122,11 @@ const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(({ isOpen, onClose }, r
 
                         <div className="nav-section">
                             <h4>Tools</h4>
-                            <NavLink to="/archive" onClick={onClose} className="nav-link">
+                            <NavLink viewTransition to="/archive" onClick={onClose} className="nav-link">
                                 <FontAwesomeIcon icon={faArchive} />
                                 <span>Archive</span>
                             </NavLink>
-                            <NavLink to="/export" onClick={onClose} className="nav-link">
+                            <NavLink viewTransition to="/export" onClick={onClose} className="nav-link">
                                 <FontAwesomeIcon icon={faFileExport} />
                                 <span>Export</span>
                             </NavLink>
@@ -136,7 +136,7 @@ const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(({ isOpen, onClose }, r
                                 <span>Your Review</span>
                             </a>
                             */}
-                            <NavLink to="/settings" onClick={onClose} className="nav-link">
+                            <NavLink viewTransition to="/settings" onClick={onClose} className="nav-link">
                                 <FontAwesomeIcon icon={faCog} />
                                 <span>Settings</span>
                             </NavLink>

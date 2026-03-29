@@ -200,7 +200,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
                         </div>
                     </a>
                 ) : (
-                    <Link to={`/article/${id}`} className="article-card-link">
+                    <Link viewTransition to={`/article/${id}`} className="article-card-link">
                         <div className="card-image-container">
                             {(ogImage || imageUrl) ? (
                                 <img src={ogImage || imageUrl} alt={title} className="card-image" loading="lazy" />
