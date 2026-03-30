@@ -1,62 +1,104 @@
 import { createContext, useContext, useState, useMemo, useEffect } from 'react';
-import type { ThemeProviderProps, ThemeContextType, ThemePreference } from '../interfaces/props/theme-props';
+import { useAuth } from '@clerk/react';
+import type { ThemeProviderProps, ThemeContextType, AppearancePreference, ThemeType } from '../interfaces/props/theme-props';
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export const ThemeProvider = ({ children }: ThemeProviderProps) => {
-    const [theme, setTheme] = useState<ThemePreference>(() => {
-        const storedTheme = localStorage.getItem('theme');
-        if (storedTheme === 'light' || storedTheme === 'dark' || storedTheme === 'system') {
-            return storedTheme as ThemePreference;
+    const { getToken, isSignedIn } = useAuth();
+
+    const [appearance, setAppearanceInternal] = useState<AppearancePreference>(() => {
+        const stored = localStorage.getItem('appearance');
+        if (stored === 'light' || stored === 'dark' || stored === 'system') {
+            return stored as AppearancePreference;
         }
         return 'system';
     });
 
-    const [activeTheme, setActiveTheme] = useState<'light' | 'dark'>('light');
+    const [theme, setThemeInternal] = useState<ThemeType>(() => {
+        const stored = localStorage.getItem('theme');
+        if (stored === 'cherry-blossom' || stored === 'default') {
+            return stored as ThemeType;
+        }
+        return 'default';
+    });
+
+    const [activeAppearance, setActiveAppearance] = useState<'light' | 'dark'>('light');
 
     useEffect(() => {
         const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
 
-        const updateActiveTheme = () => {
-            if (theme === 'system') {
-                setActiveTheme(mediaQuery.matches ? 'dark' : 'light');
+        const updateActiveAppearance = () => {
+            if (appearance === 'system') {
+                setActiveAppearance(mediaQuery.matches ? 'dark' : 'light');
             } else {
-                setActiveTheme(theme);
+                setActiveAppearance(appearance as 'light' | 'dark');
             }
         };
 
-        updateActiveTheme();
+        updateActiveAppearance();
 
-        // Listen for system theme changes
         const listener = (e: MediaQueryListEvent) => {
-            if (theme === 'system') {
-                setActiveTheme(e.matches ? 'dark' : 'light');
+            if (appearance === 'system') {
+                setActiveAppearance(e.matches ? 'dark' : 'light');
             }
         };
 
         mediaQuery.addEventListener('change', listener);
         return () => mediaQuery.removeEventListener('change', listener);
-    }, [theme]);
+    }, [appearance]);
 
     useEffect(() => {
-        document.documentElement.setAttribute('data-theme', activeTheme);
+        document.documentElement.setAttribute('data-appearance', activeAppearance);
+        document.documentElement.setAttribute('data-theme', theme);
+        localStorage.setItem('appearance', appearance);
         localStorage.setItem('theme', theme);
-    }, [activeTheme, theme]);
+    }, [activeAppearance, appearance, theme]);
 
-    const setThemePreference = (newTheme: ThemePreference) => {
-        setTheme(newTheme);
+    const setAppearance = (newAppearance: AppearancePreference) => {
+        setAppearanceInternal(newAppearance);
+        syncPreferences(newAppearance, theme);
     };
 
-    const toggleTheme = () => {
-        // Simple toggle cycles through: system -> light -> dark -> system
-        setTheme(prevTheme => {
-            if (prevTheme === 'system') return 'light';
-            if (prevTheme === 'light') return 'dark';
-            return 'system';
+    const setTheme = (newTheme: ThemeType) => {
+        setThemeInternal(newTheme);
+        syncPreferences(appearance, newTheme);
+    };
+
+    const syncPreferences = async (app: AppearancePreference, thm: ThemeType) => {
+        if (isSignedIn) {
+            try {
+                const token = await getToken();
+                await fetch('/api/users/me/preferences', {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ appearance: app, theme: thm })
+                });
+            } catch (error) {
+                console.error('Failed to sync preferences:', error);
+            }
+        }
+    };
+
+    const toggleAppearance = () => {
+        setAppearanceInternal(prev => {
+            const next = prev === 'light' ? 'dark' : prev === 'dark' ? 'system' : 'light';
+            syncPreferences(next, theme);
+            return next;
         });
     };
 
-    const value = useMemo(() => ({ theme, activeTheme, setThemePreference, toggleTheme }), [theme, activeTheme]);
+    const value = useMemo(() => ({
+        appearance,
+        activeAppearance,
+        theme,
+        setAppearance,
+        setTheme,
+        toggleAppearance
+    }), [appearance, activeAppearance, theme, setAppearance, setTheme, toggleAppearance]);
 
     return (
         <ThemeContext.Provider value={value}>

@@ -16,4 +16,14 @@
         background-color: var(--card-bg);
         color: var(--text-color); // Darken on hover for better visibility
     }
+
+    &--cherry-blossom {
+        color: #ffb7c5;
+        border-color: #f7d9df;
+        
+        &:hover {
+            color: #ff8fa3;
+            background-color: #fff5f7;
+        }
+    }
 }

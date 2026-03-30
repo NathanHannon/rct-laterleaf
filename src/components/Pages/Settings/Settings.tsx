@@ -7,7 +7,7 @@ import { useUserStatus } from '../../../hooks/useUserStatus';
 import { useReadingPreferences } from '../../../hooks/useReadingPreferences';
 import { useTheme } from '../../../context/themeContext';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faGem, faCoins, faCheckCircle, faTimesCircle, faUserShield, faWaveSquare, faBook, faCheck } from '@fortawesome/free-solid-svg-icons';
+import { faGem, faCoins, faCheckCircle, faTimesCircle, faUserShield, faWaveSquare, faBook, faCheck, faSwatchbook, faSun, faMoon, faDesktop, faLeaf, faPalette } from '@fortawesome/free-solid-svg-icons';
 import { OfflineModelSettings } from './OfflineModelSettings';
 import './Settings.scss';
 
@@ -16,9 +16,10 @@ const Settings = () => {
     const navigate = useNavigate();
     const { credits, fetchCredits, loading } = useUserCredits();
     const { isPro } = useUserStatus();
-    const { activeTheme } = useTheme();
-    const { readingFont, readingTheme, setReadingFont, setReadingTheme, currentFontOption, fontOptions } = useReadingPreferences();
+    const { appearance, setAppearance, theme, setTheme, activeAppearance } = useTheme();
+    const { readingFont, readingTheme, setReadingFont, setReadingTheme, fontOptions } = useReadingPreferences();
 
+    const [activeTab, setActiveTab] = useState('account');
     const [showWaveform, setShowWaveform] = useState(() => {
         const saved = localStorage.getItem('laterleaf_show_waveform');
         return saved !== null ? JSON.parse(saved) : true;
@@ -36,6 +37,8 @@ const Settings = () => {
         fetchCredits();
     }, []);
 
+    const currentFontOption = fontOptions.find(f => f.id === readingFont) || fontOptions[0];
+
     if (loading) {
         return <div className="settings-page loading">Loading settings...</div>;
     }
@@ -51,6 +54,30 @@ const Settings = () => {
                 <div className="header-eyebrow">Preferences</div>
                 <h1 className="header-title">Settings & Account</h1>
                 <div className="header-mesh"></div>
+
+                <div className="settings-tabs">
+                    <button
+                        className={`tab-btn ${activeTab === 'account' ? 'active' : ''}`}
+                        onClick={() => setActiveTab('account')}
+                    >
+                        <FontAwesomeIcon icon={faUserShield} />
+                        <span>Account</span>
+                    </button>
+                    <button
+                        className={`tab-btn ${activeTab === 'appearance' ? 'active' : ''}`}
+                        onClick={() => setActiveTab('appearance')}
+                    >
+                        <FontAwesomeIcon icon={faPalette} />
+                        <span>Appearance</span>
+                    </button>
+                    <button
+                        className={`tab-btn ${activeTab === 'reading' ? 'active' : ''}`}
+                        onClick={() => setActiveTab('reading')}
+                    >
+                        <FontAwesomeIcon icon={faBook} />
+                        <span>Reading</span>
+                    </button>
+                </div>
             </motion.header>
 
             <motion.div
@@ -59,159 +86,184 @@ const Settings = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.1, duration: 0.6, ease: [0.23, 1, 0.32, 1] }}
             >
-                <div className="settings-column">
-                    <div className="settings-section subscription-section">
-                        <h2>Subscription Plan</h2>
-                        <div className={`plan-card ${isPro ? 'pro' : 'free'}`}>
-                            <div className="plan-header">
-                                <div className="plan-icon">
-                                    <FontAwesomeIcon icon={faGem} />
+                {activeTab === 'account' && (
+                    <div className="settings-column">
+                        <div className="settings-section subscription-section">
+                            <h2>Subscription Plan</h2>
+                            <div className={`plan-card ${isPro ? 'pro' : 'free'}`}>
+                                <div className="plan-header">
+                                    <div className="plan-icon">
+                                        <FontAwesomeIcon icon={faGem} />
+                                    </div>
+                                    <div className="plan-info">
+                                        <h3>{isPro ? 'LaterLeaf Pro' : 'Free Plan'}</h3>
+                                        <p>{isPro ? 'You have access to all premium features.' : 'Upgrade to unlock unlimited AI summaries and more.'}</p>
+                                    </div>
+                                    {isPro && <div className="status-badge">Active</div>}
                                 </div>
-                                <div className="plan-info">
-                                    <h3>{isPro ? 'LaterLeaf Pro' : 'Free Plan'}</h3>
-                                    <p>{isPro ? 'You have access to all premium features.' : 'Upgrade to unlock unlimited AI summaries and more.'}</p>
-                                </div>
-                                {isPro && <div className="status-badge">Active</div>}
+
+                                {!isPro && (
+                                    <button className="upgrade-button" onClick={() => navigate('/pricing')}>
+                                        Upgrade to Pro
+                                    </button>
+                                )}
                             </div>
-
-                            {!isPro && (
-                                <button className="upgrade-button" onClick={() => navigate('/pricing')}>
-                                    Upgrade to Pro
-                                </button>
-                            )}
                         </div>
-                    </div>
 
-                    {credits && (
-                        <div className="settings-section credits-section">
-                            <h2>Usage & Credits</h2>
-                            <p className="section-desc">Your monthly credit usage for AI features.</p>
+                        <div className="settings-section account-section">
+                            <h2>Account Management</h2>
+                            <p className="section-desc">Manage your profile, security, and billing.</p>
+                            <button className="manage-account-button" onClick={() => openUserProfile()}>
+                                <FontAwesomeIcon icon={faUserShield} />
+                                <span>Manage Account</span>
+                            </button>
+                        </div>
 
-                            <div className="credits-grid">
-                                <div className="credit-card">
-                                    <div className="credit-header">
-                                        <FontAwesomeIcon icon={faCoins} className="icon-basic" />
-                                        <span>Basic Summaries</span>
-                                    </div>
-                                    <div className="credit-value">
-                                        {credits.basicCreditsLimit === -1 ? (
-                                            <span className="current">Unlimited</span>
-                                        ) : (
-                                            <>
-                                                <span className="current">{credits.basicCreditsRemaining}</span>
-                                                <span className="total">/ {credits.basicCreditsLimit}</span>
-                                            </>
-                                        )}
-                                    </div>
-                                    <div className="progress-bar">
-                                        <div
-                                            className="progress-fill"
-                                            style={{ width: credits.basicCreditsLimit === -1 ? '100%' : `${(credits.basicCreditsRemaining / credits.basicCreditsLimit) * 100}%` }}
-                                        ></div>
-                                    </div>
-                                    <p className="reset-date">Resets in {credits.daysUntilReset} days</p>
+                        <div className="settings-section features-section">
+                            <h2>Feature Status</h2>
+                            <div className="features-list grid-layout">
+                                <div className="feature-item">
+                                    <FontAwesomeIcon icon={faCheckCircle} className="text-success" />
+                                    <span>Unlimited Bookmarks</span>
                                 </div>
-
-                                <div className="credit-card">
-                                    <div className="credit-header">
-                                        <FontAwesomeIcon icon={faGem} className="icon-pro" />
-                                        <span>Pro Summaries</span>
-                                    </div>
-                                    <div className="credit-value">
-                                        <span className="current">{credits.proCreditsRemaining}</span>
-                                        <span className="total">/ {credits.proCreditsLimit}</span>
-                                    </div>
-                                    <div className="progress-bar">
-                                        <div
-                                            className="progress-fill pro"
-                                            style={{ width: `${(credits.proCreditsRemaining / credits.proCreditsLimit) * 100}%` }}
-                                        ></div>
-                                    </div>
-                                    <p className="reset-date">Resets in {credits.daysUntilReset} days</p>
+                                <div className="feature-item">
+                                    <FontAwesomeIcon icon={faCheckCircle} className="text-success" />
+                                    <span>Reader Mode</span>
+                                </div>
+                                <div className="feature-item">
+                                    <FontAwesomeIcon icon={faCheckCircle} className="text-success" />
+                                    <span>Semantic Search</span>
+                                </div>
+                                <div className="feature-item">
+                                    <FontAwesomeIcon icon={isPro ? faCheckCircle : faTimesCircle} className={isPro ? "text-success" : "text-muted"} />
+                                    <span>AI Summaries {isPro && <span className="pro-badge">Pro</span>}</span>
+                                </div>
+                                <div className="feature-item">
+                                    <FontAwesomeIcon icon={isPro ? faCheckCircle : faTimesCircle} className={isPro ? "text-success" : "text-muted"} />
+                                    <span>Podcast Generation {isPro && <span className="pro-badge">Pro</span>}</span>
+                                </div>
+                                <div className="feature-item">
+                                    <FontAwesomeIcon icon={isPro ? faCheckCircle : faTimesCircle} className={isPro ? "text-success" : "text-muted"} />
+                                    <span>Article Chat {isPro && <span className="pro-badge">Pro</span>}</span>
                                 </div>
                             </div>
                         </div>
-                    )}
 
-                    <div className="settings-section features-section">
-                        <h2>Feature Status</h2>
-                        <div className="features-list">
-                            <div className="feature-item">
-                                <FontAwesomeIcon icon={faCheckCircle} className="text-success" />
-                                <span>Unlimited Bookmarks</span>
-                            </div>
-                            <div className="feature-item">
-                                <FontAwesomeIcon icon={faCheckCircle} className="text-success" />
-                                <span>Reader Mode</span>
-                            </div>
-                            <div className="feature-item">
-                                <FontAwesomeIcon icon={faCheckCircle} className="text-success" />
-                                <span>Advanced Semantic Search</span>
-                            </div>
-                            <div className="feature-item">
-                                <FontAwesomeIcon icon={isPro ? faCheckCircle : faTimesCircle} className={isPro ? "text-success" : "text-muted"} />
-                                <span>Unlimited AI Summaries</span>
-                                <span className="pro-badge">Pro</span>
-                            </div>
-                            <div className="feature-item">
-                                <FontAwesomeIcon icon={isPro ? faCheckCircle : faTimesCircle} className={isPro ? "text-success" : "text-muted"} />
-                                <span>AI Podcast Generation</span>
-                                <span className="pro-badge">Pro</span>
-                            </div>
-                            <div className="feature-item">
-                                <FontAwesomeIcon icon={isPro ? faCheckCircle : faTimesCircle} className={isPro ? "text-success" : "text-muted"} />
-                                <span>Article Chat</span>
-                                <span className="pro-badge">Pro</span>
-                            </div>
-                            <div className="feature-item">
-                                <FontAwesomeIcon icon={isPro ? faCheckCircle : faTimesCircle} className={isPro ? "text-success" : "text-muted"} />
-                                <span>AI Research Assistant</span>
-                                <span className="pro-badge">Pro</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="settings-section account-section">
-                        <h2>Account Management</h2>
-                        <p className="section-desc">Manage your profile, security, and billing.</p>
-                        <button className="manage-account-button" onClick={() => openUserProfile()}>
-                            <FontAwesomeIcon icon={faUserShield} />
-                            <span>Manage Account</span>
-                        </button>
-                    </div>
-                </div>
-
-                <div className="settings-column">
-                    <div className="settings-section preferences-section">
-                        <h2>Preferences</h2>
-                        <p className="section-desc">Customize your reading and listening experience.</p>
-                        <div className="preference-item">
-                            <div className="preference-info">
-                                <div className="pref-title">
-                                    <FontAwesomeIcon icon={faWaveSquare} />
-                                    <span>Audio Waveform Animation</span>
+                        {credits && (
+                            <div className="settings-section credits-section">
+                                <h2>Usage & Credits</h2>
+                                <p className="section-desc">Your monthly credit usage for AI features.</p>
+                                <div className="credits-grid">
+                                    <div className="credit-card">
+                                        <div className="credit-header">
+                                            <FontAwesomeIcon icon={faCoins} className="icon-basic" />
+                                            <span>Basic Summaries</span>
+                                        </div>
+                                        <div className="credit-value">
+                                            {credits.basicCreditsLimit === -1 ? (
+                                                <span className="current">Unlimited</span>
+                                            ) : (
+                                                <span className="current">{credits.basicCreditsRemaining} / {credits.basicCreditsLimit}</span>
+                                            )}
+                                        </div>
+                                    </div>
+                                    <div className="credit-card">
+                                        <div className="credit-header">
+                                            <FontAwesomeIcon icon={faGem} className="icon-pro" />
+                                            <span>Pro Content</span>
+                                        </div>
+                                        <div className="credit-value">
+                                            <span className="current">{credits.proCreditsRemaining} / {credits.proCreditsLimit}</span>
+                                        </div>
+                                    </div>
                                 </div>
-                                <p>Show the animated background threads in audio players.</p>
                             </div>
-                            <div className="preference-control">
+                        )}
+                    </div>
+                )}
+
+                {activeTab === 'appearance' && (
+                    <div className="settings-column">
+                        <div className="settings-section appearance-section">
+                            <h2><FontAwesomeIcon icon={faPalette} /> Mode</h2>
+                            <p className="section-desc">Choose between light, dark, or system appearance.</p>
+
+                            <div className="appearance-modes">
                                 <button
-                                    className={`toggle-btn ${showWaveform ? 'active' : ''}`}
-                                    onClick={handleToggleWaveform}
+                                    className={`mode-btn ${appearance === 'light' ? 'active' : ''}`}
+                                    onClick={() => setAppearance('light')}
                                 >
-                                    {showWaveform ? 'Enabled' : 'Disabled'}
+                                    <FontAwesomeIcon icon={faSun} />
+                                    <span>Light</span>
+                                </button>
+                                <button
+                                    className={`mode-btn ${appearance === 'dark' ? 'active' : ''}`}
+                                    onClick={() => setAppearance('dark')}
+                                >
+                                    <FontAwesomeIcon icon={faMoon} />
+                                    <span>Dark</span>
+                                </button>
+                                <button
+                                    className={`mode-btn ${appearance === 'system' ? 'active' : ''}`}
+                                    onClick={() => setAppearance('system')}
+                                >
+                                    <FontAwesomeIcon icon={faDesktop} />
+                                    <span>System</span>
                                 </button>
                             </div>
                         </div>
 
-                        <OfflineModelSettings />
+                        <div className="settings-section appearance-section">
+                            <h2><FontAwesomeIcon icon={faSwatchbook} /> Theme</h2>
+                            <p className="section-desc">Pick a colour palette for the entire app.</p>
+
+                            <div className="theme-selection-grid">
+                                <button
+                                    className={`theme-selection-card default ${theme === 'default' ? 'active' : ''}`}
+                                    onClick={() => setTheme('default')}
+                                >
+                                    <div className="theme-swatch default-swatch"></div>
+                                    <span>Default Leaf</span>
+                                </button>
+                                <button
+                                    className={`theme-selection-card cherry ${theme === 'cherry-blossom' ? 'active' : ''}`}
+                                    onClick={() => setTheme('cherry-blossom')}
+                                >
+                                    <div className="theme-swatch cherry-swatch"></div>
+                                    <span>Cherry Blossom</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div className="settings-section preferences-section span-full">
+                            <h2>Player Preferences</h2>
+                            <div className="preference-item">
+                                <div className="preference-info">
+                                    <div className="pref-title">
+                                        <FontAwesomeIcon icon={faWaveSquare} />
+                                        <span>Audio Waveform Animation</span>
+                                    </div>
+                                    <p>Show the animated background threads in audio players.</p>
+                                </div>
+                                <div className="preference-control">
+                                    <button
+                                        className={`toggle-btn ${showWaveform ? 'active' : ''}`}
+                                        onClick={handleToggleWaveform}
+                                    >
+                                        {showWaveform ? 'Enabled' : 'Disabled'}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
+                )}
 
-                    <div className="settings-section reading-section">
-                        <h2><FontAwesomeIcon icon={faBook} /> Reading Preferences</h2>
-                        <p className="section-desc">Choose your preferred reading font and colour theme. Changes apply to article content only.</p>
+                {activeTab === 'reading' && (
+                    <div className="settings-column">
+                        <div className="settings-section reading-section">
+                            <h2><FontAwesomeIcon icon={faBook} /> Font</h2>
+                            <p className="section-desc">Choose your preferred reading font. Changes apply to article content only.</p>
 
-                        <div className="reading-subsection">
-                            <h3>Font</h3>
                             <div className="font-grid">
                                 {fontOptions.map(font => (
                                     <button
@@ -232,8 +284,10 @@ const Settings = () => {
                             </div>
                         </div>
 
-                        <div className="reading-subsection">
-                            <h3>Colour Theme</h3>
+                        <div className="settings-section reading-section">
+                            <h2>Colour Theme</h2>
+                            <p className="section-desc">Pick a background colour for article reading.</p>
+
                             <div className="theme-grid">
                                 <button
                                     className={`theme-card default ${readingTheme === 'default' ? 'active' : ''}`}
@@ -244,7 +298,7 @@ const Settings = () => {
                                     </div>
                                     <span>Default</span>
                                 </button>
-                                {activeTheme === 'light' && (
+                                {activeAppearance === 'light' && (
                                     <button
                                         className={`theme-card sepia ${readingTheme === 'sepia' ? 'active' : ''}`}
                                         onClick={() => setReadingTheme('sepia')}
@@ -255,7 +309,7 @@ const Settings = () => {
                                         <span>Sepia</span>
                                     </button>
                                 )}
-                                {activeTheme === 'dark' && (
+                                {activeAppearance === 'dark' && (
                                     <button
                                         className={`theme-card black ${readingTheme === 'black' ? 'active' : ''}`}
                                         onClick={() => setReadingTheme('black')}
@@ -269,8 +323,8 @@ const Settings = () => {
                             </div>
                         </div>
 
-                        <div className="reading-subsection">
-                            <h3>Preview</h3>
+                        <div className="settings-section reading-section span-full">
+                            <h2>Preview</h2>
                             <div className={`reading-preview theme-${readingTheme}`}>
                                 <p style={{ fontFamily: currentFontOption.cssFamily }}>
                                     The quick brown fox jumps over the lazy dog. Reading should be comfortable and enjoyable — choose a font that feels right for you.
@@ -281,8 +335,10 @@ const Settings = () => {
                                 Currently using <strong>{currentFontOption.name}</strong> — {currentFontOption.description}
                             </p>
                         </div>
+
+                        <OfflineModelSettings />
                     </div>
-                </div>
+                )}
             </motion.div>
         </div>
     );

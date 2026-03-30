@@ -1,20 +1,20 @@
 import React from 'react';
 import { useTheme } from '../../../context/themeContext';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faSun, faMoon, faDesktop } from '@fortawesome/free-solid-svg-icons';
+import { faSun, faMoon, faDesktop, faLeaf } from '@fortawesome/free-solid-svg-icons';
 import './ThemeSwitcher.scss';
 
 const ThemeSwitcher: React.FC = () => {
-    const { theme, toggleTheme } = useTheme();
+    const { appearance, toggleAppearance } = useTheme();
 
     const getIcon = () => {
-        if (theme === 'system') return faDesktop;
-        if (theme === 'light') return faSun;
+        if (appearance === 'system') return faDesktop;
+        if (appearance === 'light') return faSun;
         return faMoon;
     };
 
     return (
-        <button onClick={toggleTheme} className="theme-switcher" aria-label="Toggle theme">
+        <button onClick={toggleAppearance} className={`theme-switcher theme-switcher--${appearance}`} aria-label="Toggle appearance">
             <FontAwesomeIcon icon={getIcon()} />
         </button>
     );

@@ -56,7 +56,7 @@ export const OfflineModelSettings: React.FC = () => {
 
     if (allUnsupported) {
         return (
-            <div className="preference-item model-settings-item disabled">
+            <div className="settings-section model-section span-full disabled">
                 <div className="preference-info">
                     <div className="pref-title">
                         <FontAwesomeIcon icon={faTimesCircle} className="text-muted" />
@@ -72,53 +72,68 @@ export const OfflineModelSettings: React.FC = () => {
     const needsDownload = statuses.prompt === 'downloadable' || statuses.prompt === 'downloading';
 
     return (
-        <div className="preference-item model-settings-item">
-            <div className="preference-info">
-                <div className="pref-title">
-                    <FontAwesomeIcon icon={faMicrochip} />
-                    <span>On-Device AI (Gemini Nano)</span>
-                </div>
-                <p>Run AI tasks locally — tagging, summarization, language detection, and translation — without sending data to a server.</p>
+        <div className="settings-section model-section span-full">
+            <h2>On-Device AI (Gemini Nano)</h2>
+            <p className="section-desc">Run AI tasks locally — tagging, summarization, language detection, and translation — without sending data to a server.</p>
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginTop: '8px', fontSize: '0.85rem' }}>
-                    <span style={{ color: statusColor(statuses.prompt) }}>Prompt API: {statusLabel(statuses.prompt)}</span>
-                    <span style={{ color: statusColor(statuses.summarizer) }}>Summarizer: {statusLabel(statuses.summarizer)}</span>
-                    <span style={{ color: statusColor(statuses.languageDetector) }}>Language Detector: {statusLabel(statuses.languageDetector)}</span>
-                </div>
-
-                {isDownloading && (
-                    <div className="progress-bar-container" style={{ marginTop: '10px' }}>
-                        <div className="progress-bar" style={{ height: '6px', background: 'var(--border-color)', borderRadius: '3px', overflow: 'hidden' }}>
-                            <div
-                                className="progress-fill"
-                                style={{ width: `${progress}%`, background: 'var(--primary-color)', height: '100%', transition: 'width 0.3s' }}
-                            ></div>
+            <div className="preference-item no-border">
+                <div className="preference-info">
+                    <div className="model-status-grid">
+                        <div className="status-pill">
+                            <span className="label">Prompt API</span>
+                            <span className="value" style={{ color: statusColor(statuses.prompt) }}>
+                                {statusLabel(statuses.prompt)}
+                            </span>
                         </div>
-                        <small style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Downloading model... {progress}%</small>
+                        <div className="status-pill">
+                            <span className="label">Summarizer</span>
+                            <span className="value" style={{ color: statusColor(statuses.summarizer) }}>
+                                {statusLabel(statuses.summarizer)}
+                            </span>
+                        </div>
+                        <div className="status-pill">
+                            <span className="label">Language Detector</span>
+                            <span className="value" style={{ color: statusColor(statuses.languageDetector) }}>
+                                {statusLabel(statuses.languageDetector)}
+                            </span>
+                        </div>
                     </div>
-                )}
-            </div>
 
-            <div className="preference-control">
-                {promptReady ? (
-                    <div className="status-badge" style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--success-color)', fontSize: '0.9rem', fontWeight: 600 }}>
-                        <FontAwesomeIcon icon={faCheckCircle} /> Ready
-                    </div>
-                ) : needsDownload ? (
-                    <button
-                        className="toggle-btn generate-btn"
-                        onClick={handleDownload}
-                        disabled={isDownloading}
-                        style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
-                    >
-                        {isDownloading ? <FontAwesomeIcon icon={faSpinner} spin /> : <FontAwesomeIcon icon={faDownload} />}
-                        {isDownloading ? 'Downloading...' : 'Download Model'}
-                    </button>
-                ) : (
-                    <div className="status-badge" style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
-                        <FontAwesomeIcon icon={faTimesCircle} /> Unavailable
-                    </div>
-                )}
+                    {isDownloading && (
+                        <div className="progress-bar-container" style={{ marginTop: '16px' }}>
+                            <div className="progress-bar" style={{ height: '8px', background: 'var(--border-color)', borderRadius: '4px', overflow: 'hidden' }}>
+                                <div
+                                    className="progress-fill"
+                                    style={{ width: `${progress}%`, background: 'var(--primary-color)', height: '100%', transition: 'width 0.3s' }}
+                                ></div>
+                            </div>
+                            <small style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '4px', display: 'block' }}>
+                                Downloading model... {progress}%
+                            </small>
+                        </div>
+                    )}
+                </div>
+
+                <div className="preference-control">
+                    {promptReady ? (
+                        <div className="status-badge ready">
+                            <FontAwesomeIcon icon={faCheckCircle} /> Ready
+                        </div>
+                    ) : needsDownload ? (
+                        <button
+                            className="download-btn"
+                            onClick={handleDownload}
+                            disabled={isDownloading}
+                        >
+                            {isDownloading ? <FontAwesomeIcon icon={faSpinner} spin /> : <FontAwesomeIcon icon={faDownload} />}
+                            {isDownloading ? 'Downloading...' : 'Download Model'}
+                        </button>
+                    ) : (
+                        <div className="status-badge unavailable">
+                            <FontAwesomeIcon icon={faTimesCircle} /> Unavailable
+                        </div>
+                    )}
+                </div>
             </div>
         </div>
     );

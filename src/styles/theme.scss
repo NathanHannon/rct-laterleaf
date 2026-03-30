@@ -1,5 +1,5 @@
-// LaterLeaf Design System - Light Theme
-[data-theme='light'] {
+// LaterLeaf Design System - Light Appearance
+[data-appearance='light'] {
     // Primary brand colors
     --primary-color: #22c55e; // Primary Green for CTAs, active states
     --primary-color-rgb: 34, 197, 94; // RGB version for opacity usage
@@ -26,8 +26,8 @@
     --related-articles-hover: #0891b2; // Darker cyan for hover states
 }
 
-// LaterLeaf Design System - Dark Theme  
-[data-theme='dark'] {
+// LaterLeaf Design System - Dark Appearance
+[data-appearance='dark'] {
     // Primary brand colors (adjusted for dark mode)
     --primary-color: #22c55e;
     --primary-color-rgb: 34, 197, 94;
@@ -52,4 +52,45 @@
     --related-articles-color: #22d3ee; // Lighter cyan for dark mode
     --related-articles-color-rgb: 34, 211, 238; // RGB version for opacity usage
     --related-articles-hover: #06b6d4; // Medium cyan for hover states
+}
+
+// Default Theme Override
+[data-theme='default'] {
+    // No explicit overrides, uses default green
+}
+
+// Cherry Blossom Theme Override
+[data-theme='cherry-blossom'] {
+    // Primary brand colors
+    --primary-color: #ff9fb2; // Slightly more saturated pink for better contrast
+    --primary-color-rgb: 255, 159, 178;
+    --primary-hover: #ff7f96; // Deeper pink for hover
+
+    // UI elements
+    --button-bg: #ff9fb2;
+    --button-text: #2d1b1e; // Dark text on pink buttons for high legibility
+    --link-color: #d15c71; // Slightly darker link pink for accessibility
+    --accent-color: #fce7f3; // Pale blossom accent
+    --related-articles-color: #f472b6; // Pink shade for related items
+    --related-articles-color-rgb: 244, 114, 182;
+    --related-articles-hover: #db2777;
+
+    &[data-appearance="light"] {
+        // Background colors
+        --background-color: #fff5f7; // Hanakasumi (very pale pink)
+        --header-bg: #fff0f3; // Slightly more pink in the header
+        --text-color: #3b2f2f; // Deep Mahogany for readability
+        --text-color-secondary: #7a6b6b; // Muted grayish brown
+        --card-border: #f7d9df; // Subtle pink border
+    }
+
+    &[data-appearance="dark"] {
+        --background-color: #261417; // Even darker wine for better isolation
+        --card-bg: #351d21; 
+        --header-bg: #351d21;
+        --card-border: #4d2f33;
+        --text-color: #ffd1dc;
+        --text-color-secondary: #cea5ae;
+        --button-text: #1a0a0c; // Near-black on pink for dark mode contrast
+    }
 }
