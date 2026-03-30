@@ -730,24 +730,20 @@
             }
 
             &.theme-sepia {
-                [data-theme='light'] & {
-                    background: #f4ecd8;
-                    border-color: #e0d5bc;
+                background: #f4ecd8;
+                border-color: #e0d5bc;
 
-                    p {
-                        color: #5b4636;
-                    }
+                p {
+                    color: #5b4636;
                 }
             }
 
             &.theme-black {
-                [data-theme='dark'] & {
-                    background: #000000;
-                    border-color: #333;
+                background: #000000;
+                border-color: #333;
 
-                    p {
-                        color: #e0e0e0;
-                    }
+                p {
+                    color: #e0e0e0;
                 }
             }
         }
