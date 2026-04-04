@@ -158,34 +158,66 @@
     }
 }
 
-// Retro Archive Theme Override
-[data-theme='retro-archive'] {
-    --primary-color: #c2410c; // Burnt Orange
-    --primary-color-rgb: 194, 65, 12;
-    --primary-hover: #9a3412;
+// Nord Arctic Theme Override (Arctic / focused)
+[data-theme='nord-arctic'] {
+    --primary-color: #88c0d0; // Nord Frost Blue
+    --primary-color-rgb: 136, 192, 208;
+    --primary-hover: #81a1c1;
 
-    --button-bg: #c2410c;
-    --button-text: #ffffff;
-    --link-color: #ea580c;
-    --accent-color: #fef3c7;
-    --related-articles-color: #92400e;
-    --related-articles-color-rgb: 146, 64, 14;
+    --button-bg: #88c0d0;
+    --button-text: #2e3440;
+    --link-color: #5e81ac;
+    --accent-color: #ebcb8b; // Nord Yellow
+    --related-articles-color: #b48ead; // Nord Purple
+    --related-articles-color-rgb: 180, 142, 173;
 
     &[data-appearance="light"] {
-        --background-color: #fdf6e3; // Solarized Base3 (Warm Paper)
-        --header-bg: #eee8d5; // Solarized Base2
-        --text-color: #073642; // Solarized Content
-        --text-color-secondary: #586e75;
-        --card-bg: #fcf9f2;
-        --card-border: #e0d9c4;
+        --background-color: #eceff4; // Nord Snow Storm
+        --header-bg: #e5e9f0;
+        --text-color: #2e3440; // Nord Polar Night
+        --text-color-secondary: #4c566a;
+        --card-bg: #ffffff;
+        --card-border: #d8dee9;
     }
 
     &[data-appearance="dark"] {
-        --background-color: #002b36; // Solarized Deep Dark
-        --card-bg: #073642; // Solarized Dark Card
-        --header-bg: #073642;
-        --card-border: #586e75;
-        --text-color: #93a1a1; // Solarized Light Gray
-        --text-color-secondary: #657b83;
+        --background-color: #2e3440; // Nord Polar Night
+        --card-bg: #3b4252; 
+        --header-bg: #3b4252;
+        --card-border: #4c566a;
+        --text-color: #d8dee9; // Nord Snow Storm
+        --text-color-secondary: #a3be8c; // Nord Green for secondary/success
+    }
+}
+
+// Neon Nights Theme Override (Synthwave / Cyberpunk)
+[data-theme='neon-nights'] {
+    --primary-color: #ff00ff; // Neon Pink
+    --primary-color-rgb: 255, 0, 255;
+    --primary-hover: #cc00cc;
+
+    --button-bg: #ff00ff;
+    --button-text: #ffffff;
+    --link-color: #00ffff; // Cyan
+    --accent-color: #7000ff; // Ultraviolet
+    --related-articles-color: #00ffff;
+    --related-articles-color-rgb: 0, 255, 255;
+
+    &[data-appearance="light"] {
+        --background-color: #fce7f3; // Pale Fuchsia
+        --header-bg: #fae8ff;
+        --text-color: #4c1d95; // Deep Purple
+        --text-color-secondary: #7e22ce;
+        --card-bg: #ffffff;
+        --card-border: #f5d0fe;
+    }
+
+    &[data-appearance="dark"] {
+        --background-color: #0d0221; // Deepest Space Purple
+        --card-bg: #1a0b2e; 
+        --header-bg: #1a0b2e;
+        --card-border: #2d005d;
+        --text-color: #fdf4ff;
+        --text-color-secondary: #f0abfc; // Faded pink for contrast
     }
 }

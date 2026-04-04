@@ -231,8 +231,12 @@
                             background: #65a30d;
                         }
 
-                        &.retro-swatch {
-                            background: #c2410c;
+                        &.nord-swatch {
+                            background-color: #88c0d0;
+                        }
+
+                        &.neon-swatch {
+                            background: linear-gradient(135deg, #ff00ff 0%, #00ffff 100%);
                         }
                     font-size: 0.9rem;
                     font-weight: 500;

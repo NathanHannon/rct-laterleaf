@@ -247,11 +247,18 @@ const Settings = () => {
                                     <span>Forest Moss</span>
                                 </button>
                                 <button
-                                    className={`theme-selection-card retro ${theme === 'retro-archive' ? 'active' : ''}`}
-                                    onClick={() => setTheme('retro-archive')}
+                                    className={`theme-selection-card nord ${theme === 'nord-arctic' ? 'active' : ''}`}
+                                    onClick={() => setTheme('nord-arctic')}
                                 >
-                                    <div className="theme-swatch retro-swatch"></div>
-                                    <span>Retro Archive</span>
+                                    <div className="theme-swatch nord-swatch"></div>
+                                    <span>Nord Arctic</span>
+                                </button>
+                                <button
+                                    className={`theme-selection-card neon ${theme === 'neon-nights' ? 'active' : ''}`}
+                                    onClick={() => setTheme('neon-nights')}
+                                >
+                                    <div className="theme-swatch neon-swatch"></div>
+                                    <span>Neon Nights</span>
                                 </button>
                             </div>
                         </div>
