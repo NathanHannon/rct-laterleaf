@@ -94,3 +94,98 @@
         --button-text: #1a0a0c; // Near-black on pink for dark mode contrast
     }
 }
+// Midnight Ocean Theme Override
+[data-theme='midnight-ocean'] {
+    --primary-color: #06b6d4; // Cyan 
+    --primary-color-rgb: 6, 182, 212;
+    --primary-hover: #0891b2;
+
+    --button-bg: #06b6d4;
+    --button-text: #ffffff;
+    --link-color: #22d3ee;
+    --accent-color: #1e1b4b; // Indigo base
+    --related-articles-color: #6366f1; // Indigo-500
+    --related-articles-color-rgb: 99, 102, 241;
+
+    &[data-appearance="light"] {
+        --background-color: #eff6ff;
+        --header-bg: #dbeafe;
+        --text-color: #1e3a8a;
+        --text-color-secondary: #475569;
+        --card-bg: #ffffff;
+        --card-border: #bfdbfe;
+    }
+
+    &[data-appearance="dark"] {
+        --background-color: #020617; // Deep Indigo Black
+        --card-bg: #0f172a; // Slate-900
+        --header-bg: #0f172a;
+        --card-border: #1e293b;
+        --text-color: #f1f5f9;
+        --text-color-secondary: #94a3b8;
+    }
+}
+
+// Forest Moss Theme Override
+[data-theme='forest-moss'] {
+    --primary-color: #65a30d; // Lime-600
+    --primary-color-rgb: 101, 163, 13;
+    --primary-hover: #4d7c0f;
+
+    --button-bg: #65a30d;
+    --button-text: #ffffff;
+    --link-color: #4d7c0f;
+    --accent-color: #f7fee7;
+    --related-articles-color: #84cc16;
+    --related-articles-color-rgb: 132, 204, 22;
+
+    &[data-appearance="light"] {
+        --background-color: #f7f9f7;
+        --header-bg: #ecf3ec;
+        --text-color: #1a2e05; // Dark Olive
+        --text-color-secondary: #525252;
+        --card-bg: #ffffff;
+        --card-border: #dcfce7;
+    }
+
+    &[data-appearance="dark"] {
+        --background-color: #0a0a0a; // Near Black
+        --card-bg: #141c0a; // Very Dark Forest
+        --header-bg: #141c0a;
+        --card-border: #2d3a24;
+        --text-color: #ecfccb; // Lime-100
+        --text-color-secondary: #a3a3a3;
+    }
+}
+
+// Retro Archive Theme Override
+[data-theme='retro-archive'] {
+    --primary-color: #c2410c; // Burnt Orange
+    --primary-color-rgb: 194, 65, 12;
+    --primary-hover: #9a3412;
+
+    --button-bg: #c2410c;
+    --button-text: #ffffff;
+    --link-color: #ea580c;
+    --accent-color: #fef3c7;
+    --related-articles-color: #92400e;
+    --related-articles-color-rgb: 146, 64, 14;
+
+    &[data-appearance="light"] {
+        --background-color: #fdf6e3; // Solarized Base3 (Warm Paper)
+        --header-bg: #eee8d5; // Solarized Base2
+        --text-color: #073642; // Solarized Content
+        --text-color-secondary: #586e75;
+        --card-bg: #fcf9f2;
+        --card-border: #e0d9c4;
+    }
+
+    &[data-appearance="dark"] {
+        --background-color: #002b36; // Solarized Deep Dark
+        --card-bg: #073642; // Solarized Dark Card
+        --header-bg: #073642;
+        --card-border: #586e75;
+        --text-color: #93a1a1; // Solarized Light Gray
+        --text-color-secondary: #657b83;
+    }
+}

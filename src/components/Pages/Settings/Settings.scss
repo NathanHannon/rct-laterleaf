@@ -222,9 +222,18 @@
                     &.cherry-swatch {
                         background: #ffb7c5;
                     }
-                }
 
-                span {
+                        &.midnight-swatch {
+                            background: #06b6d4;
+                        }
+
+                        &.forest-swatch {
+                            background: #65a30d;
+                        }
+
+                        &.retro-swatch {
+                            background: #c2410c;
+                        }
                     font-size: 0.9rem;
                     font-weight: 500;
                 }

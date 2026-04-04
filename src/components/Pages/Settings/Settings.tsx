@@ -232,6 +232,27 @@ const Settings = () => {
                                     <div className="theme-swatch cherry-swatch"></div>
                                     <span>Cherry Blossom</span>
                                 </button>
+                                <button
+                                    className={`theme-selection-card midnight ${theme === 'midnight-ocean' ? 'active' : ''}`}
+                                    onClick={() => setTheme('midnight-ocean')}
+                                >
+                                    <div className="theme-swatch midnight-swatch"></div>
+                                    <span>Midnight Ocean</span>
+                                </button>
+                                <button
+                                    className={`theme-selection-card forest ${theme === 'forest-moss' ? 'active' : ''}`}
+                                    onClick={() => setTheme('forest-moss')}
+                                >
+                                    <div className="theme-swatch forest-swatch"></div>
+                                    <span>Forest Moss</span>
+                                </button>
+                                <button
+                                    className={`theme-selection-card retro ${theme === 'retro-archive' ? 'active' : ''}`}
+                                    onClick={() => setTheme('retro-archive')}
+                                >
+                                    <div className="theme-swatch retro-swatch"></div>
+                                    <span>Retro Archive</span>
+                                </button>
                             </div>
                         </div>
 

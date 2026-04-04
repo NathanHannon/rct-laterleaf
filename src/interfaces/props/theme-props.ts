@@ -3,7 +3,7 @@ export interface ThemeProviderProps {
 }
 
 export type AppearancePreference = 'light' | 'dark' | 'system';
-export type ThemeType = 'default' | 'cherry-blossom';
+export type ThemeType = 'default' | 'cherry-blossom' | 'midnight-ocean' | 'forest-moss' | 'retro-archive';
 
 export interface ThemeContextType {
     appearance: AppearancePreference;

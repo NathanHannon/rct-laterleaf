@@ -17,7 +17,8 @@ export const ThemeProvider = ({ children }: ThemeProviderProps) => {
 
     const [theme, setThemeInternal] = useState<ThemeType>(() => {
         const stored = localStorage.getItem('theme');
-        if (stored === 'cherry-blossom' || stored === 'default') {
+        const validThemes: ThemeType[] = ['default', 'cherry-blossom', 'midnight-ocean', 'forest-moss', 'retro-archive'];
+        if (stored && validThemes.includes(stored as ThemeType)) {
             return stored as ThemeType;
         }
         return 'default';
