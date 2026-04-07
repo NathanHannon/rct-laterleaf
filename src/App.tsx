@@ -29,67 +29,74 @@ import Settings from './components/Pages/Settings/Settings';
 import AdminPage from './components/Admin/AdminPage/AdminPage';
 import ResearchPage from './components/Pages/ResearchPage/ResearchPage';
 import AnalyticsProvider from './providers/AnalyticsProvider';
+import CommandPalette from './components/CommandPalette/CommandPalette';
+import GlobalCommands from './components/CommandPalette/GlobalCommands';
+import { CommandProvider } from './context/commandContext';
 
 function App() {
-  const { activeTheme } = useTheme();
+  const { theme } = useTheme();
   return (
     <ToastProvider>
       <CollectionAnimationProvider>
         <SearchProvider>
           <BrowserRouter>
             <AnalyticsProvider>
-              <div className={`app ${activeTheme}`}>
-                <div className="layout-container">
-                  <Header />
-                  <main className="main-content">
-                    <div className="content-container">
-                      <Show when="signed-in">
-                        <Routes>
-                          <Route path="/" element={<ArticleList />} />
-                          <Route path="/articles" element={<ArticleList />} />
-                          <Route path="/archive" element={<ArchivedArticles />} />
-                          <Route path="/bookmarks" element={<BookmarkedArticles />} />
-                          <Route path="/article/:articleId" element={<ArticleReader />} />
-                          <Route path="/collections" element={<CollectionsList />} />
-                          <Route path="/collections/:collectionId" element={<CollectionView />} />
-                          <Route path="/about" element={<AboutPage />} />
-                          <Route path="/contact" element={<ContactPage />} />
-                          <Route path="/privacy" element={<PrivacyPage />} />
-                          <Route path="/terms" element={<TermsPage />} />
-                          <Route path="/faq" element={<FAQPage />} />
-                          <Route path="/export" element={<ExportPage />} />
-                          <Route path="/discover" element={<DiscoverPage />} />
-                          <Route path="/research" element={<ResearchPage />} />
-                          <Route path="/feeds" element={<FeedsPage />} />
-                          <Route path="/import" element={<BulkImporter />} />
-                          <Route path="/dev/ai" element={<AIPlayground />} />
-                          <Route path="/pricing" element={<PricingPage />} />
-                          <Route path="/settings" element={<Settings />} />
-                          <Route path="/admin" element={<AdminPage />} />
-                          <Route path="/hero-page" element={<HeroPage />} />
-                        </Routes>
-                      </Show>
-                      <Show when="signed-out">
-                        <Routes>
-                          <Route path="/about" element={<AboutPage />} />
-                          <Route path="/contact" element={<ContactPage />} />
-                          <Route path="/privacy" element={<PrivacyPage />} />
-                          <Route path="/terms" element={<TermsPage />} />
-                          <Route path="/faq" element={<FAQPage />} />
-                          <Route path="*" element={
-                            // <div className="signed-out-message">
-                            //   <h2>Welcome to Later Leaf</h2>
-                            //   <p>Please sign in to view and save articles.</p>
-                            // </div>
-                            <HeroPage />
-                          } />
-                        </Routes>
-                      </Show>
-                    </div>
-                  </main>
-                  <Footer />
+              <CommandProvider>
+                <GlobalCommands />
+                <CommandPalette />
+                <div className={`app ${theme}`}>
+                  <div className="layout-container">
+                    <Header />
+                    <main className="main-content">
+                      <div className="content-container">
+                        <Show when="signed-in">
+                          <Routes>
+                            <Route path="/" element={<ArticleList />} />
+                            <Route path="/articles" element={<ArticleList />} />
+                            <Route path="/archive" element={<ArchivedArticles />} />
+                            <Route path="/bookmarks" element={<BookmarkedArticles />} />
+                            <Route path="/article/:articleId" element={<ArticleReader />} />
+                            <Route path="/collections" element={<CollectionsList />} />
+                            <Route path="/collections/:collectionId" element={<CollectionView />} />
+                            <Route path="/about" element={<AboutPage />} />
+                            <Route path="/contact" element={<ContactPage />} />
+                            <Route path="/privacy" element={<PrivacyPage />} />
+                            <Route path="/terms" element={<TermsPage />} />
+                            <Route path="/faq" element={<FAQPage />} />
+                            <Route path="/export" element={<ExportPage />} />
+                            <Route path="/discover" element={<DiscoverPage />} />
+                            <Route path="/research" element={<ResearchPage />} />
+                            <Route path="/feeds" element={<FeedsPage />} />
+                            <Route path="/import" element={<BulkImporter />} />
+                            <Route path="/dev/ai" element={<AIPlayground />} />
+                            <Route path="/pricing" element={<PricingPage />} />
+                            <Route path="/settings" element={<Settings />} />
+                            <Route path="/admin" element={<AdminPage />} />
+                            <Route path="/hero-page" element={<HeroPage />} />
+                          </Routes>
+                        </Show>
+                        <Show when="signed-out">
+                          <Routes>
+                            <Route path="/about" element={<AboutPage />} />
+                            <Route path="/contact" element={<ContactPage />} />
+                            <Route path="/privacy" element={<PrivacyPage />} />
+                            <Route path="/terms" element={<TermsPage />} />
+                            <Route path="/faq" element={<FAQPage />} />
+                            <Route path="*" element={
+                              // <div className="signed-out-message">
+                              //   <h2>Welcome to Later Leaf</h2>
+                              //   <p>Please sign in to view and save articles.</p>
+                              // </div>
+                              <HeroPage />
+                            } />
+                          </Routes>
+                        </Show>
+                      </div>
+                    </main>
+                    <Footer />
+                  </div>
                 </div>
-              </div>
+              </CommandProvider>
             </AnalyticsProvider>
           </BrowserRouter>
         </SearchProvider>

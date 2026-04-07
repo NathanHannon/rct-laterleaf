@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faMicrochip, faDownload, faCheckCircle, faTimesCircle, faSpinner } from '@fortawesome/free-solid-svg-icons';
+import { faDownload, faCheckCircle, faTimesCircle, faSpinner } from '@fortawesome/free-solid-svg-icons';
 import { type ChromeAIStatus, getAllAIStatus, downloadNanoModel } from '../../../services/nanoAiService';
 
 const statusLabel = (s: ChromeAIStatus) => {

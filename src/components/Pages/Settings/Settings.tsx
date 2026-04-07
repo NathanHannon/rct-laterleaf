@@ -7,7 +7,7 @@ import { useUserStatus } from '../../../hooks/useUserStatus';
 import { useReadingPreferences } from '../../../hooks/useReadingPreferences';
 import { useTheme } from '../../../context/themeContext';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faGem, faCoins, faCheckCircle, faTimesCircle, faUserShield, faWaveSquare, faBook, faCheck, faSwatchbook, faSun, faMoon, faDesktop, faLeaf, faPalette } from '@fortawesome/free-solid-svg-icons';
+import { faGem, faCoins, faCheckCircle, faTimesCircle, faUserShield, faWaveSquare, faBook, faCheck, faSwatchbook, faSun, faMoon, faDesktop, faPalette, faKeyboard } from '@fortawesome/free-solid-svg-icons';
 import { OfflineModelSettings } from './OfflineModelSettings';
 import './Settings.scss';
 
@@ -145,6 +145,17 @@ const Settings = () => {
                                 <div className="feature-item">
                                     <FontAwesomeIcon icon={isPro ? faCheckCircle : faTimesCircle} className={isPro ? "text-success" : "text-muted"} />
                                     <span>Article Chat {isPro && <span className="pro-badge">Pro</span>}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="settings-section shortcuts-section">
+                            <h2><FontAwesomeIcon icon={faKeyboard} /> Keyboard Shortcuts</h2>
+                            <p className="section-desc">Quick actions available anywhere in the app.</p>
+                            <div className="shortcuts-list">
+                                <div className="shortcut-item">
+                                    <span className="shortcut-label">Command Palette</span>
+                                    <kbd>{navigator.userAgent.includes('Mac') ? '⌘' : 'Ctrl'} + K</kbd>
                                 </div>
                             </div>
                         </div>

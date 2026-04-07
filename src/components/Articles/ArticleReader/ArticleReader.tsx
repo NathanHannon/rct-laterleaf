@@ -24,6 +24,8 @@ import { useReadingPreferences } from '../../../hooks/useReadingPreferences';
 import { LANGUAGES } from '../../../constants/languages';
 import { saveOfflineArticle, removeOfflineArticle, isArticleOffline, getOfflineArticle } from '../../../services/offlineStorageService';
 import { useLanguageDetection } from '../../../hooks/useLanguageDetection';
+import { useCommandContext } from '../../../context/commandContext';
+import type { CommandItem } from '../../../context/commandContext';
 
 const ArticleReader = () => {
     const { articleId } = useParams<{ articleId: string }>();
@@ -257,6 +259,128 @@ const ArticleReader = () => {
 
         return () => window.removeEventListener('scroll', handleScroll);
     }, [showTranslateDropdown, showDropdown]);
+
+    // --- Context-Aware Command Palette Registration ---
+    const { registerCommand, unregisterCommand } = useCommandContext();
+
+    useEffect(() => {
+        if (!article || !articleId) return;
+
+        const cmds: CommandItem[] = [
+            // --- Article Actions ---
+            {
+                id: 'article-bookmark',
+                label: article.isBookmarked ? 'Remove Bookmark' : 'Bookmark Article',
+                icon: article.isBookmarked ? faBookmarkSolid : faBookmarkRegular,
+                section: 'Article Actions',
+                action: () => handleFavorite()
+            },
+            {
+                id: 'article-like',
+                label: article.isLiked ? 'Unlike Article' : 'Like Article',
+                icon: article.isLiked ? faHeartSolid : faHeartRegular,
+                section: 'Article Actions',
+                action: () => handleLike()
+            },
+            {
+                id: 'article-archive',
+                label: article.isArchived ? 'Restore from Archive' : 'Archive Article',
+                icon: faArchive,
+                section: 'Article Actions',
+                action: () => handleArchive()
+            },
+            {
+                id: 'article-collection',
+                label: 'Add to Collection...',
+                icon: faFolderPlus,
+                section: 'Article Actions',
+                action: () => setShowCollectionSelector(true)
+            },
+            {
+                id: 'article-delete',
+                label: 'Delete Article',
+                icon: faTrash,
+                section: 'Article Actions',
+                action: () => setShowDeleteConfirm(true)
+            },
+            {
+                id: 'article-offline',
+                label: isAvailableOffline ? 'Remove Offline Copy' : 'Save for Offline',
+                icon: isAvailableOffline ? faCloud : faCloudArrowDown,
+                section: 'Article Actions',
+                action: () => handleToggleOffline()
+            },
+            {
+                id: 'article-open-original',
+                label: 'Open Original URL',
+                icon: faRotateRight,
+                section: 'Article Actions',
+                action: () => { if (article.url) window.open(article.url, '_blank'); }
+            },
+
+            // --- AI Features ---
+            {
+                id: 'ai-summarize',
+                label: article.summary ? 'Show / Hide Summary' : 'Generate AI Summary',
+                icon: faStarHalfStroke,
+                section: 'AI Features',
+                action: () => handleSummarize()
+            },
+            {
+                id: 'ai-summary-pro',
+                label: 'Regenerate with Pro AI',
+                icon: faGem,
+                section: 'AI Features',
+                action: () => handleRefreshSummary(true)
+            },
+            {
+                id: 'ai-podcast',
+                label: showPodcastPlayer ? 'Hide Podcast Player' : 'Open Podcast Player',
+                icon: faPodcast,
+                section: 'AI Features',
+                action: () => setShowPodcastPlayer(!showPodcastPlayer)
+            },
+            {
+                id: 'ai-audio',
+                label: showAudioPlayer ? 'Hide Audio Reader' : 'Open Audio Reader',
+                icon: faHeadphones,
+                section: 'AI Features',
+                action: () => setShowAudioPlayer(!showAudioPlayer)
+            },
+            {
+                id: 'ai-chat',
+                label: isChatMode ? 'Close Article Chat' : 'Chat About Article',
+                icon: faComments,
+                section: 'AI Features',
+                action: () => setIsChatMode(!isChatMode)
+            },
+
+            // --- Translation ---
+            {
+                id: 'article-translate',
+                label: currentLanguage !== 'original' ? `Restore Original Language` : 'Translate Article...',
+                icon: faLanguage,
+                section: 'Translation',
+                action: () => {
+                    if (currentLanguage !== 'original') {
+                        handleRestoreOriginal();
+                    } else {
+                        setShowTranslateDropdown(!showTranslateDropdown);
+                    }
+                }
+            },
+        ];
+
+        cmds.forEach(registerCommand);
+        return () => { cmds.forEach(cmd => unregisterCommand(cmd.id)); };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [
+        article?.isBookmarked, article?.isLiked, article?.isArchived,
+        article?.summary, article?.url, articleId,
+        isAvailableOffline, showPodcastPlayer, showAudioPlayer,
+        isChatMode, showSummary, currentLanguage, showTranslateDropdown,
+        registerCommand, unregisterCommand
+    ]);
 
     // Fetch user credits on mount
     useEffect(() => {

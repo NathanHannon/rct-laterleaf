@@ -14,6 +14,7 @@ import AddArticleForm from '../AddArticleForm/AddArticleForm';
 import { sortArticles } from '../../../utils/sortUtils';
 import { motion } from 'motion/react';
 import { useUserStatus } from '../../../hooks/useUserStatus';
+import { useToastContext } from '../../../context/toastContextUtils';
 
 const ArticleList = () => {
     // const [articles, setArticles] = useState<Article[]>([]);
@@ -85,6 +86,25 @@ const ArticleList = () => {
 
     // Log pro status for debugging
     console.log('📋 ArticleList: Pro access status:', isPro, '| User loaded:', isLoaded);
+
+    // One-time command palette hint (show on 3rd visit)
+    const { showInfo } = useToastContext();
+    useEffect(() => {
+        if (!isLoaded || !isSignedIn) return;
+        const key = 'laterleaf_cmdk_hint_shown';
+        const visitKey = 'laterleaf_visit_count';
+        if (localStorage.getItem(key)) return;
+
+        const visits = parseInt(localStorage.getItem(visitKey) || '0', 10) + 1;
+        localStorage.setItem(visitKey, String(visits));
+
+        if (visits >= 3) {
+            const isMac = navigator.userAgent.includes('Mac');
+            const shortcut = isMac ? '⌘K' : 'Ctrl+K';
+            showInfo('Pro tip', `Press ${shortcut} to quickly navigate, search, and run actions.`, 8000);
+            localStorage.setItem(key, 'true');
+        }
+    }, [isLoaded, isSignedIn, showInfo]);
 
     // Close sort dropdown when clicking outside
     useEffect(() => {
