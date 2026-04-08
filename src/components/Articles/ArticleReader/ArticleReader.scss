@@ -439,7 +439,7 @@
     flex-direction: column;
     align-items: center;
     gap: 10px;
-    z-index: 50;
+    z-index: 55; // Above chat bottom sheet (z-index: 50)
 
     // Fallback for narrower viewports where sidebar won't fit
     @media (max-width: 1100px) {
