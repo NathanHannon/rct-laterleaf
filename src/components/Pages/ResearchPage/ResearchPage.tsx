@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react';
 import { useAuth } from "@clerk/react";
+import { useMutation } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import ReactMarkdown from 'react-markdown';
@@ -26,21 +27,11 @@ const ResearchPage = () => {
     const { getToken } = useAuth();
     const { isPro, isLoading: isStatusLoading } = useUserStatus();
     const [query, setQuery] = useState('');
-    const [result, setResult] = useState<ResearchResult | null>(null);
-    const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
     const [copied, setCopied] = useState(false);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-    const handleSubmit = async (questionOverride?: string) => {
-        const q = questionOverride || query;
-        if (!q.trim() || q.trim().length < 3) return;
-
-        setIsLoading(true);
-        setError(null);
-        setResult(null);
-
-        try {
+    const researchMutation = useMutation({
+        mutationFn: async (q: string) => {
             const token = await getToken();
             const response = await fetch('/api/articles/research', {
                 method: 'POST',
@@ -56,13 +47,18 @@ const ResearchPage = () => {
                 throw new Error(errData?.error?.message || 'Failed to generate research report');
             }
 
-            const data: ResearchResult = await response.json();
-            setResult(data);
-        } catch (err) {
-            setError(err instanceof Error ? err.message : 'Something went wrong');
-        } finally {
-            setIsLoading(false);
-        }
+            return response.json() as Promise<ResearchResult>;
+        },
+    });
+
+    const result = researchMutation.data ?? null;
+    const isLoading = researchMutation.isPending;
+    const error = researchMutation.error?.message ?? null;
+
+    const handleSubmit = (questionOverride?: string) => {
+        const q = questionOverride || query;
+        if (!q.trim() || q.trim().length < 3) return;
+        researchMutation.mutate(q);
     };
 
     const handleKeyDown = (e: React.KeyboardEvent) => {

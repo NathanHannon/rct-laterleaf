@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useRef } from 'react';
 import { useAuth } from "@clerk/react";
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import ArticleCard from '../Articles/ArticleCard/ArticleCard';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSpinner, faChevronLeft, faChevronRight } from '@fortawesome/free-solid-svg-icons';
@@ -8,64 +9,44 @@ import './RecommendationList.scss';
 
 const RecommendationList: React.FC = () => {
     const { getToken, isSignedIn } = useAuth();
-    const [recommendations, setRecommendations] = useState<Article[]>([]);
-    const [recommendationType, setRecommendationType] = useState<'personalized' | 'popular'>('popular');
-    const [isLoading, setIsLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
+    const queryClient = useQueryClient();
     const trackRef = useRef<HTMLDivElement>(null);
 
-    const fetchRecommendations = useCallback(async () => {
-        if (!isSignedIn) return;
-
-        setIsLoading(true);
-        setError(null);
-
-        try {
+    const { data, isLoading, isError } = useQuery({
+        queryKey: ['recommendations'],
+        queryFn: async () => {
             const token = await getToken();
             const response = await fetch(`/api/recommendations`, {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
+                headers: { 'Authorization': `Bearer ${token}` }
             });
+            if (!response.ok) throw new Error(`Failed to fetch recommendations: ${response.statusText}`);
+            return response.json() as Promise<{ articles: Article[]; type: 'personalized' | 'popular' }>;
+        },
+        enabled: !!isSignedIn,
+    });
 
-            if (!response.ok) {
-                throw new Error(`Failed to fetch recommendations: ${response.statusText}`);
-            }
+    const recommendations = data?.articles ?? [];
+    const recommendationType = data?.type ?? 'popular';
 
-            const data = await response.json();
-            setRecommendations(data.articles);
-            setRecommendationType(data.type);
-        } catch (err) {
-            console.error(err);
-            setError(err instanceof Error ? err.message : 'An unknown error occurred.');
-        } finally {
-            setIsLoading(false);
-        }
-    }, [getToken, isSignedIn]);
-
-    useEffect(() => {
-        fetchRecommendations();
-    }, [fetchRecommendations]);
-
-    const handleAddToLibrary = async (articleId: string) => {
-        try {
+    const addToLibraryMutation = useMutation({
+        mutationFn: async (articleId: string) => {
             const token = await getToken();
-            // This endpoint should create the user_article relation
             const response = await fetch(`/api/articles/${articleId}/save`, {
                 method: 'POST',
                 headers: { 'Authorization': `Bearer ${token}` }
             });
+            if (!response.ok) throw new Error('Failed to add article to library');
+            return articleId;
+        },
+        onSuccess: (articleId) => {
+            queryClient.setQueryData(['recommendations'], (old: typeof data | undefined) =>
+                old ? { ...old, articles: old.articles.filter(a => a.id !== articleId) } : old
+            );
+        },
+    });
 
-            if (!response.ok) {
-                throw new Error('Failed to add article to library');
-            }
-
-            // On success, remove the article from the carousel
-            setRecommendations(prev => prev.filter(article => article.id !== articleId));
-
-        } catch (err) {
-            console.error('Error adding article to library:', err);
-        }
+    const handleAddToLibrary = (articleId: string) => {
+        addToLibraryMutation.mutate(articleId);
     };
 
     const handleScroll = (direction: 'left' | 'right') => {
@@ -102,7 +83,7 @@ const RecommendationList: React.FC = () => {
         );
     }
 
-    if (error) {
+    if (isError) {
         return <div className="recommendation-list-error">Could not load recommendations at this time.</div>;
     }
 

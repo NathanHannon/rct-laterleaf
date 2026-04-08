@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { useAuth } from "@clerk/react";
+import { useQuery, useMutation } from '@tanstack/react-query';
 import RecommendationCard from '../../Articles/RecommendationCard/RecommendationCard';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSpinner, faSync, faCheckCircle } from '@fortawesome/free-solid-svg-icons';
@@ -13,18 +14,33 @@ const DiscoverPage: React.FC = () => {
     const { getToken, isSignedIn } = useAuth();
     const { showSuccess, showError, showInfo } = useToast();
     const [recommendations, setRecommendations] = useState<Article[]>([]);
-    const [discoveredArticles, setDiscoveredArticles] = useState<Article[]>([]);
     const [recommendationType, setRecommendationType] = useState<'personalized' | 'popular' | 'none'>('popular');
-    const [isLoading, setIsLoading] = useState(true);
+    const [isLoadingRecs, setIsLoadingRecs] = useState(true);
     const [isFetchingMore, setIsFetchingMore] = useState(false);
     const [allRecommendationsLoaded, setAllRecommendationsLoaded] = useState(false);
+
+    const { data: discoveredArticles = [], isLoading: isLoadingDiscovered } = useQuery({
+        queryKey: ['curated-articles'],
+        queryFn: async () => {
+            const response = await fetch('/api/curated-articles?limit=12');
+            if (!response.ok) throw new Error('Failed to fetch discovered articles');
+            return response.json() as Promise<Article[]>;
+        },
+    });
+
+    // Keep local copy so dismiss/add can remove items from UI
+    const [dismissedDiscoveredIds, setDismissedDiscoveredIds] = useState<Set<string>>(new Set());
+    const [addedDiscoveredIds, setAddedDiscoveredIds] = useState<Set<string>>(new Set());
+    const visibleDiscoveredArticles = discoveredArticles.filter(
+        a => !dismissedDiscoveredIds.has(a.id) && !addedDiscoveredIds.has(a.id)
+    );
 
     const fetchRecommendations = useCallback(async (isInitialFetch = false) => {
         if (!isSignedIn || isFetchingMore) return;
 
         setIsFetchingMore(true);
         if (isInitialFetch) {
-            setIsLoading(true);
+            setIsLoadingRecs(true);
         }
 
         try {
@@ -52,41 +68,18 @@ const DiscoverPage: React.FC = () => {
         } catch {
             showError("Error", "Could not load recommendations.");
         } finally {
-            setIsLoading(false);
+            setIsLoadingRecs(false);
             setIsFetchingMore(false);
         }
     }, [getToken, isSignedIn, showError, recommendations, isFetchingMore]);
 
     useEffect(() => {
-        // Initial fetch on mount
         fetchRecommendations(true);
-        fetchDiscoveredArticles();
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []); // Run only once
+    }, []);
 
-    const fetchDiscoveredArticles = async () => {
-        try {
-            // This is a public endpoint, no token needed
-            const response = await fetch('/api/curated-articles?limit=12');
-            if (!response.ok) {
-                throw new Error('Failed to fetch discovered articles');
-            }
-            const data = await response.json();
-            setDiscoveredArticles(data);
-        } catch (error) {
-            console.error("Error fetching discovered articles:", error);
-            // Silently fail, this section is not critical
-        }
-    };
-
-    const handleAddToLibrary = async (articleId: string) => {
-        const article = [...recommendations, ...discoveredArticles].find(rec => rec.id === articleId);
-        if (!article || !article.url) {
-            showError("Could not add article", "Article data is missing.");
-            return;
-        }
-
-        try {
+    const addToLibraryMutation = useMutation({
+        mutationFn: async (article: Article) => {
             const token = await getToken();
             const response = await fetch('/api/articles/import', {
                 method: 'POST',
@@ -94,25 +87,35 @@ const DiscoverPage: React.FC = () => {
                 body: JSON.stringify({ url: article.url })
             });
             if (!response.ok) throw new Error('Failed to add article to library');
+            return article;
+        },
+        onSuccess: (article) => {
             showSuccess('Article Added!', `"${article.title}" has been saved to your library.`);
-            setRecommendations(prev => prev.filter(rec => rec.id !== articleId));
-            setDiscoveredArticles(prev => prev.filter(rec => rec.id !== articleId));
-        } catch {
+            setRecommendations(prev => prev.filter(rec => rec.id !== article.id));
+            setAddedDiscoveredIds(prev => new Set(prev).add(article.id));
+        },
+        onError: () => {
             showError("Error", "Could not add article to your library.");
+        },
+    });
+
+    const handleAddToLibrary = (articleId: string) => {
+        const article = [...recommendations, ...discoveredArticles].find(rec => rec.id === articleId);
+        if (!article || !article.url) {
+            showError("Could not add article", "Article data is missing.");
+            return;
         }
+        addToLibraryMutation.mutate(article);
     };
 
     const dismissTimers = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
 
     const handleDismiss = (articleId: string) => {
-        // Capture the article before removing it so we can restore on undo
         const dismissed = [...recommendations, ...discoveredArticles].find(a => a.id === articleId);
 
-        // Optimistically remove from UI
         setRecommendations(prev => prev.filter(rec => rec.id !== articleId));
-        setDiscoveredArticles(prev => prev.filter(rec => rec.id !== articleId));
+        setDismissedDiscoveredIds(prev => new Set(prev).add(articleId));
 
-        // Schedule the actual API call
         const timer = setTimeout(async () => {
             dismissTimers.current.delete(articleId);
             try {
@@ -132,25 +135,26 @@ const DiscoverPage: React.FC = () => {
 
         dismissTimers.current.set(articleId, timer);
 
-        // Show toast with undo action
         showInfo('Article dismissed', undefined, 6000, {
             label: 'Undo',
             onClick: () => {
-                // Cancel the pending API call
                 const pending = dismissTimers.current.get(articleId);
                 if (pending) {
                     clearTimeout(pending);
                     dismissTimers.current.delete(articleId);
                 }
-                // Restore the article
                 if (dismissed) {
                     setRecommendations(prev => [...prev, dismissed]);
+                    setDismissedDiscoveredIds(prev => {
+                        const next = new Set(prev);
+                        next.delete(articleId);
+                        return next;
+                    });
                 }
             },
         });
     };
 
-    // Cleanup pending timers on unmount
     useEffect(() => {
         return () => {
             dismissTimers.current.forEach(timer => clearTimeout(timer));
@@ -166,6 +170,8 @@ const DiscoverPage: React.FC = () => {
     const subtitle = recommendationType === 'popular'
         ? "Here are some articles trending in the community."
         : "Based on your reading history, you might find these interesting.";
+
+    const isLoading = isLoadingRecs || isLoadingDiscovered;
 
     if (isLoading) {
         return (
@@ -195,7 +201,7 @@ const DiscoverPage: React.FC = () => {
             >
                 <RecommendationCarousel
                     title="New from Around the Web"
-                    articles={discoveredArticles}
+                    articles={visibleDiscoveredArticles}
                     onAddToLibrary={handleAddToLibrary}
                     onDismiss={handleDismiss}
                 />

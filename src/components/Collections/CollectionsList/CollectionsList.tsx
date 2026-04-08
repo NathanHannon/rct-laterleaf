@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useAuth } from "@clerk/react";
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSpinner, faPlus } from '@fortawesome/free-solid-svg-icons';
 import { motion } from 'motion/react';
@@ -25,8 +26,7 @@ interface CollectionWithArticles extends Collection {
 
 const CollectionsList: React.FC = () => {
     const { getToken, isLoaded, isSignedIn } = useAuth();
-    const [collections, setCollections] = useState<CollectionWithArticles[]>([]);
-    const [loading, setLoading] = useState(true);
+    const queryClient = useQueryClient();
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [editingCollection, setEditingCollection] = useState<Collection | null>(null);
     const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
@@ -36,145 +36,111 @@ const CollectionsList: React.FC = () => {
         collectionId: null,
         collectionName: ''
     });
-    const [suggestedCollections, setSuggestedCollections] = useState<{ name: string; emoji: string; reason: string }[]>([]);
-    const [loadingSuggestions, setLoadingSuggestions] = useState(false);
 
-    const fetchCollections = async () => {
-        try {
+    const { data: collections = [], isLoading: loading } = useQuery({
+        queryKey: ['collections'],
+        queryFn: async () => {
             const token = await getToken();
             const response = await fetch('/api/collections', {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
+                headers: { 'Authorization': `Bearer ${token}` }
             });
-
-            if (!response.ok) {
-                throw new Error('Failed to fetch collections');
-            }
-
+            if (!response.ok) throw new Error('Failed to fetch collections');
             const data = await response.json();
 
-            // Fetch articles for each collection
             const collectionsWithArticles = await Promise.all(
                 data.map(async (collection: Collection) => {
                     try {
                         const articlesResponse = await fetch(`/api/collections/${collection.id}/articles`, {
-                            headers: {
-                                'Authorization': `Bearer ${token}`
-                            }
+                            headers: { 'Authorization': `Bearer ${token}` }
                         });
                         const articles = articlesResponse.ok ? await articlesResponse.json() : [];
-                        return {
-                            ...collection,
-                            articleCount: articles.length,
-                            articles: articles
-                        };
-                    } catch (error) {
-                        console.error(`Failed to fetch articles for collection ${collection.id}:`, error);
-                        return {
-                            ...collection,
-                            articleCount: 0,
-                            articles: []
-                        };
+                        return { ...collection, articleCount: articles.length, articles };
+                    } catch {
+                        return { ...collection, articleCount: 0, articles: [] };
                     }
                 })
             );
 
-            setCollections(collectionsWithArticles);
-        } catch (error) {
-            console.error('Failed to fetch collections:', error);
-        } finally {
-            setLoading(false);
-        }
-    };
+            return collectionsWithArticles as CollectionWithArticles[];
+        },
+        enabled: isLoaded && !!isSignedIn,
+    });
 
-    const fetchSuggestions = async () => {
-        setLoadingSuggestions(true);
-        try {
+    const { data: suggestedCollections = [], isLoading: loadingSuggestions } = useQuery({
+        queryKey: ['collection-suggestions'],
+        queryFn: async () => {
             const token = await getToken();
             const response = await fetch('/api/collections/suggest-new', {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
+                headers: { 'Authorization': `Bearer ${token}` }
             });
+            if (!response.ok) return [];
+            return response.json() as Promise<{ name: string; emoji: string; reason: string }[]>;
+        },
+        enabled: isLoaded && !!isSignedIn,
+    });
 
-            if (response.ok) {
-                const data = await response.json();
-                setSuggestedCollections(data);
-            }
-        } catch (error) {
-            console.error('Failed to fetch suggestions:', error);
-        } finally {
-            setLoadingSuggestions(false);
-        }
-    };
-
-    useEffect(() => {
-        if (isLoaded && isSignedIn) {
-            fetchCollections();
-            fetchSuggestions();
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isLoaded, isSignedIn]);
-
-    const handleCreateCollection = async (data: Partial<{ name: string; description: string; emoji: string }>) => {
-        if (!data.name?.trim()) return;
-
-        try {
+    const createMutation = useMutation({
+        mutationFn: async (data: Partial<{ name: string; description: string; emoji: string }>) => {
             const token = await getToken();
             const response = await fetch('/api/collections', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify(data)
             });
-
-            if (!response.ok) {
-                throw new Error('Failed to create collection');
-            }
-
+            if (!response.ok) throw new Error('Failed to create collection');
+        },
+        onSuccess: () => {
             setShowCreateModal(false);
-            fetchCollections();
-        } catch (error) {
-            console.error('Failed to create collection:', error);
-        }
-    };
+            queryClient.invalidateQueries({ queryKey: ['collections'] });
+        },
+    });
 
-    const handleEditCollection = async (data: Partial<Collection>) => {
-        if (!editingCollection) return;
-
-        // Only send editable fields to avoid 422 validation errors
-        const payload = {
-            name: data.name,
-            description: data.description,
-            emoji: data.emoji,
-        };
-
-        try {
+    const editMutation = useMutation({
+        mutationFn: async (data: Partial<Collection>) => {
+            if (!editingCollection) return;
             const token = await getToken();
             const response = await fetch(`/api/collections/${editingCollection.id}`, {
                 method: 'PATCH',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify(payload)
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify({ name: data.name, description: data.description, emoji: data.emoji })
             });
-
-            if (!response.ok) {
-                throw new Error(`Failed to update collection ${response.status}`);
-            }
-
+            if (!response.ok) throw new Error('Failed to update collection');
+        },
+        onSuccess: () => {
             setEditingCollection(null);
-            fetchCollections();
-        } catch (error) {
-            console.error('Failed to update collection:', error);
-        }
+            queryClient.invalidateQueries({ queryKey: ['collections'] });
+        },
+    });
+
+    const deleteMutation = useMutation({
+        mutationFn: async (collectionId: string) => {
+            const token = await getToken();
+            const response = await fetch(`/api/collections/${collectionId}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (!response.ok) throw new Error('Failed to delete collection');
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['collections'] });
+            setDeleteConfirm({ show: false, collectionId: '', collectionName: '' });
+        },
+        onError: () => {
+            setDeleteConfirm({ show: false, collectionId: '', collectionName: '' });
+        },
+    });
+
+    const handleCreateCollection = (data: Partial<{ name: string; description: string; emoji: string }>) => {
+        if (!data.name?.trim()) return;
+        createMutation.mutate(data);
     };
 
-    const handleDeleteCollection = async (collectionId: string) => {
+    const handleEditCollection = (data: Partial<Collection>) => {
+        if (!editingCollection) return;
+        editMutation.mutate(data);
+    };
+
+    const handleDeleteCollection = (collectionId: string) => {
         const collection = collections.find(c => c.id === collectionId);
         setDeleteConfirm({
             show: true,
@@ -183,28 +149,9 @@ const CollectionsList: React.FC = () => {
         });
     };
 
-    const confirmDeleteCollection = async () => {
+    const confirmDeleteCollection = () => {
         if (!deleteConfirm.collectionId) return;
-
-        try {
-            const token = await getToken();
-            const response = await fetch(`/api/collections/${deleteConfirm.collectionId}`, {
-                method: 'DELETE',
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
-
-            if (!response.ok) {
-                throw new Error('Failed to delete collection');
-            }
-
-            fetchCollections();
-            setDeleteConfirm({ show: false, collectionId: '', collectionName: '' });
-        } catch (error) {
-            console.error('Failed to delete collection:', error);
-            setDeleteConfirm({ show: false, collectionId: '', collectionName: '' });
-        }
+        deleteMutation.mutate(deleteConfirm.collectionId);
     };
 
     const handleUseSuggestion = (suggestion: { name: string; emoji: string; reason: string }) => {

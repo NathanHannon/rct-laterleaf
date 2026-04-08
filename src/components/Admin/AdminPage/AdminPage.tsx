@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useAuth } from "@clerk/react";
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import LoadingSpinner from '../../Common/LoadingSpinner/LoadingSpinner';
 import './AdminPage.scss';
@@ -7,13 +8,9 @@ import type { AdminAccess, BlockedDomain, AdminStats, AdminUser, QueueStats } fr
 
 const AdminPage: React.FC = () => {
     const { getToken } = useAuth();
-    const [adminAccess, setAdminAccess] = useState<AdminAccess | null>(null);
-    const [blockedDomains, setBlockedDomains] = useState<BlockedDomain[]>([]);
-    const [stats, setStats] = useState<AdminStats | null>(null);
-    const [users, setUsers] = useState<AdminUser[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
+    const queryClient = useQueryClient();
     const [activeTab, setActiveTab] = useState<'system' | 'users' | 'domains'>('system');
+    const [error, setError] = useState<string | null>(null);
 
     // Form state for adding new domain
     type BlockReason = 'spam' | 'malicious' | 'inappropriate' | 'scam' | 'phishing';
@@ -29,7 +26,6 @@ const AdminPage: React.FC = () => {
 
     const fetchWithAuth = async (endpoint: string, options: RequestInit = {}) => {
         const token = await getToken();
-        // Use relative path for the proxy
         return fetch(`/api${endpoint}`, {
             ...options,
             headers: {
@@ -40,81 +36,85 @@ const AdminPage: React.FC = () => {
         });
     };
 
-    const checkAdminAccess = async () => {
-        try {
+    const { data: adminAccess = null, isLoading: loadingAccess } = useQuery({
+        queryKey: ['admin', 'access'],
+        queryFn: async () => {
             const response = await fetchWithAuth('/admin/check-access');
             if (!response.ok) throw new Error('Failed to check admin access');
-            const data = await response.json();
-            setAdminAccess(data);
-            return data.isAdmin;
-        } catch {
-            setError('Failed to verify admin access');
-            return false;
-        }
-    };
+            return response.json() as Promise<AdminAccess>;
+        },
+    });
 
-    const fetchData = async () => {
-        try {
-            const [domainsRes, statsRes, usersRes] = await Promise.all([
-                fetchWithAuth('/admin/blocked-domains'),
-                fetchWithAuth('/admin/stats'),
-                fetchWithAuth('/admin/users')
-            ]);
+    const isAdmin = adminAccess?.isAdmin ?? false;
 
-            if (domainsRes.ok) setBlockedDomains(await domainsRes.json());
-            if (statsRes.ok) setStats(await statsRes.json());
-            if (usersRes.ok) setUsers(await usersRes.json());
-        } catch (e) {
-            console.error(e);
-            setError('Failed to fetch admin data');
-        }
-    };
+    const { data: blockedDomains = [] } = useQuery({
+        queryKey: ['admin', 'blocked-domains'],
+        queryFn: async () => {
+            const response = await fetchWithAuth('/admin/blocked-domains');
+            if (!response.ok) throw new Error('Failed to fetch blocked domains');
+            return response.json() as Promise<BlockedDomain[]>;
+        },
+        enabled: isAdmin,
+    });
 
-    useEffect(() => {
-        const initializeAdmin = async () => {
-            setLoading(true);
-            const isAdmin = await checkAdminAccess();
+    const { data: stats = null } = useQuery({
+        queryKey: ['admin', 'stats'],
+        queryFn: async () => {
+            const response = await fetchWithAuth('/admin/stats');
+            if (!response.ok) throw new Error('Failed to fetch stats');
+            return response.json() as Promise<AdminStats>;
+        },
+        enabled: isAdmin,
+    });
 
-            if (isAdmin) {
-                await fetchData();
-            }
+    const { data: users = [] } = useQuery({
+        queryKey: ['admin', 'users'],
+        queryFn: async () => {
+            const response = await fetchWithAuth('/admin/users');
+            if (!response.ok) throw new Error('Failed to fetch users');
+            return response.json() as Promise<AdminUser[]>;
+        },
+        enabled: isAdmin,
+    });
 
-            setLoading(false);
-        };
-
-        initializeAdmin();
-    }, []);
-
-    const handleBlockDomain = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!newDomain.domain.trim()) return;
-
-        try {
+    const blockDomainMutation = useMutation({
+        mutationFn: async (domainData: typeof newDomain) => {
             const response = await fetchWithAuth('/admin/blocked-domains', {
                 method: 'POST',
-                body: JSON.stringify(newDomain),
+                body: JSON.stringify(domainData),
             });
-
             if (!response.ok) throw new Error('Failed to block domain');
-
-            await fetchData();
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['admin', 'blocked-domains'] });
+            queryClient.invalidateQueries({ queryKey: ['admin', 'stats'] });
             setNewDomain({ domain: '', reason: 'spam', notes: '' });
-        } catch {
-            setError('Failed to block domain');
-        }
-    };
+        },
+        onError: () => setError('Failed to block domain'),
+    });
 
-    const handleUnblockDomain = async (domain: string) => {
-        try {
+    const unblockDomainMutation = useMutation({
+        mutationFn: async (domain: string) => {
             const response = await fetchWithAuth(`/admin/blocked-domains/${encodeURIComponent(domain)}`, {
                 method: 'DELETE',
             });
-
             if (!response.ok) throw new Error('Failed to unblock domain');
-            await fetchData();
-        } catch {
-            setError('Failed to unblock domain');
-        }
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['admin', 'blocked-domains'] });
+            queryClient.invalidateQueries({ queryKey: ['admin', 'stats'] });
+        },
+        onError: () => setError('Failed to unblock domain'),
+    });
+
+    const handleBlockDomain = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!newDomain.domain.trim()) return;
+        blockDomainMutation.mutate(newDomain);
+    };
+
+    const handleUnblockDomain = (domain: string) => {
+        unblockDomainMutation.mutate(domain);
     };
 
     const renderQueueStats = (name: string, queue: QueueStats) => (
@@ -141,7 +141,7 @@ const AdminPage: React.FC = () => {
         </div>
     );
 
-    if (loading) {
+    if (loadingAccess) {
         return <LoadingSpinner size="large" label="Verifying admin access..." />;
     }
 

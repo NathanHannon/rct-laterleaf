@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState } from 'react';
 import { useAuth } from "@clerk/react";
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSpinner, faPlus, faRss } from '@fortawesome/free-solid-svg-icons';
 import type { Article } from '../../../interfaces/article';
@@ -39,60 +40,43 @@ const FeedsPage: React.FC = () => {
     const { getToken } = useAuth();
     const { showSuccess, showError } = useToast();
     const posthog = usePostHog();
-    const [feedArticles, setFeedArticles] = useState<FeedArticle[]>([]);
-    const [feeds, setFeeds] = useState<RssFeed[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
+    const queryClient = useQueryClient();
     const [isManageOpen, setIsManageOpen] = useState(false);
     const [selectedFeedId, setSelectedFeedId] = useState<string | null>(null);
 
-    const fetchFeeds = useCallback(async () => {
-        try {
+    const { data: feeds = [] } = useQuery({
+        queryKey: ['feeds'],
+        queryFn: async () => {
             const token = await getToken();
             const response = await fetch('/api/users/me/feeds', {
                 headers: { 'Authorization': `Bearer ${token}` },
             });
             if (!response.ok) throw new Error('Failed to fetch feeds');
             const data = await response.json();
-
-            // Map UserFeed[] to RssFeed[]
-            const mappedFeeds: RssFeed[] = data.map((item: FeedItem) => ({
-                id: item.id, // We need the junction ID to delete it
+            return data.map((item: FeedItem) => ({
+                id: item.id,
                 feedId: item.feed?.id,
                 name: item.titleOverride || item.feed?.title || 'Unknown Feed',
                 url: item.feed?.url || '',
                 createdAt: item.feed?.createdAt
-            }));
+            })) as RssFeed[];
+        },
+    });
 
-            setFeeds(mappedFeeds);
-        } catch {
-            // Silently fail — feeds list is secondary
-        }
-    }, [getToken]);
-
-    const fetchFeedArticles = useCallback(async () => {
-        try {
+    const { data: feedArticles = [], isLoading } = useQuery({
+        queryKey: ['feed-articles'],
+        queryFn: async () => {
             const token = await getToken();
             const response = await fetch('/api/users/me/feed-articles', {
                 headers: { 'Authorization': `Bearer ${token}` },
             });
             if (!response.ok) throw new Error('Failed to fetch feed articles');
-            const data = await response.json();
-            setFeedArticles(data);
-        } catch {
-            showError('Error', 'Could not load your feed articles.');
-        } finally {
-            setIsLoading(false);
-        }
-    }, [getToken, showError]);
+            return response.json() as Promise<FeedArticle[]>;
+        },
+    });
 
-    useEffect(() => {
-        fetchFeeds();
-        fetchFeedArticles();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
-
-    const handleAddFeed = async (url: string) => {
-        try {
+    const addFeedMutation = useMutation({
+        mutationFn: async (url: string) => {
             const token = await getToken();
             const response = await fetch('/api/users/me/feeds', {
                 method: 'POST',
@@ -106,7 +90,9 @@ const FeedsPage: React.FC = () => {
                 const err = await response.json().catch(() => ({}));
                 throw new Error(err.error?.message || 'Failed to add feed');
             }
-            const item = await response.json();
+            return response.json();
+        },
+        onSuccess: (item) => {
             const mappedNewFeed: RssFeed = {
                 id: item.id,
                 feedId: item.feed?.id,
@@ -114,40 +100,41 @@ const FeedsPage: React.FC = () => {
                 url: item.feed?.url || '',
                 createdAt: item.feed?.createdAt
             };
-
-            setFeeds(prev => [...prev, mappedNewFeed]);
-            showSuccess('Feed Added!', `You're now subscribed to "${mappedNewFeed.name || url}".`);
-            // Refresh articles to include the new feed
-            fetchFeedArticles();
-        } catch {
+            queryClient.setQueryData(['feeds'], (old: RssFeed[] | undefined) =>
+                old ? [...old, mappedNewFeed] : [mappedNewFeed]
+            );
+            queryClient.invalidateQueries({ queryKey: ['feed-articles'] });
+            showSuccess('Feed Added!', `You're now subscribed to "${mappedNewFeed.name || item.feed?.url}".`);
+        },
+        onError: () => {
             showError('Could not add feed', 'Please check the URL and try again.');
-        }
-    };
+        },
+    });
 
-    const handleRemoveFeed = async (feedId: string) => {
-        try {
+    const removeFeedMutation = useMutation({
+        mutationFn: async (feedId: string) => {
             const token = await getToken();
             const response = await fetch(`/api/users/me/feeds/${feedId}`, {
                 method: 'DELETE',
                 headers: { 'Authorization': `Bearer ${token}` },
             });
             if (!response.ok) throw new Error('Failed to remove feed');
-            setFeeds(prev => prev.filter(f => f.id !== feedId));
+            return feedId;
+        },
+        onSuccess: (feedId) => {
+            queryClient.setQueryData(['feeds'], (old: RssFeed[] | undefined) =>
+                old ? old.filter(f => f.id !== feedId) : []
+            );
+            queryClient.invalidateQueries({ queryKey: ['feed-articles'] });
             showSuccess('Feed Removed', 'You have unsubscribed from this feed.');
-            fetchFeedArticles();
-        } catch {
+        },
+        onError: () => {
             showError('Error', 'Could not remove the feed.');
-        }
-    };
+        },
+    });
 
-    const handleAddToLibrary = async (articleId: string) => {
-        const article = feedArticles.find(a => a.id === articleId);
-        if (!article?.url) {
-            showError('Could not add article', 'Article data is missing.');
-            return;
-        }
-
-        try {
+    const addToLibraryMutation = useMutation({
+        mutationFn: async (article: FeedArticle) => {
             const token = await getToken();
             const response = await fetch('/api/articles/import', {
                 method: 'POST',
@@ -158,18 +145,38 @@ const FeedsPage: React.FC = () => {
                 body: JSON.stringify({ url: article.url }),
             });
             if (!response.ok) throw new Error('Failed to add article to library');
+            return article;
+        },
+        onSuccess: (article) => {
             showSuccess('Article Added!', `"${article.title}" has been saved to your library.`);
-
-            // Track the event
             posthog.capture('feed_article_added', {
                 article_url: article.url,
                 feed_title: article.feedTitle
             });
-
-            setFeedArticles(prev => prev.filter(a => a.id !== articleId));
-        } catch {
+            queryClient.setQueryData(['feed-articles'], (old: FeedArticle[] | undefined) =>
+                old ? old.filter(a => a.id !== article.id) : []
+            );
+        },
+        onError: () => {
             showError('Error', 'Could not add article to your library.');
+        },
+    });
+
+    const handleAddFeed = async (url: string) => {
+        await addFeedMutation.mutateAsync(url);
+    };
+
+    const handleRemoveFeed = async (feedId: string) => {
+        await removeFeedMutation.mutateAsync(feedId);
+    };
+
+    const handleAddToLibrary = (articleId: string) => {
+        const article = feedArticles.find(a => a.id === articleId);
+        if (!article?.url) {
+            showError('Could not add article', 'Article data is missing.');
+            return;
         }
+        addToLibraryMutation.mutate(article);
     };
 
     const itemVariants: Variants = {

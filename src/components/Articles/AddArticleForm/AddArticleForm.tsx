@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from "@clerk/react";
+import { useMutation } from '@tanstack/react-query';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlus, faSpinner, faPuzzlePiece } from '@fortawesome/free-solid-svg-icons';
 import { useToastContext } from '../../../context/toastContextUtils';
@@ -15,15 +16,9 @@ const AddArticleForm: React.FC<AddArticleFormProps> = ({ onArticleAdded }) => {
     const { showSuccess, showWarning } = useToastContext();
     const { handleApiError, handleGenericError } = useApiErrorHandler();
     const [newLink, setNewLink] = useState('');
-    const [isImporting, setIsImporting] = useState(false);
 
-    const handleImportArticle = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!newLink || isImporting) return;
-
-        setIsImporting(true);
-
-        try {
+    const importMutation = useMutation({
+        mutationFn: async (url: string) => {
             const token = await getToken();
             const response = await fetch('/api/articles/import', {
                 method: 'POST',
@@ -31,36 +26,41 @@ const AddArticleForm: React.FC<AddArticleFormProps> = ({ onArticleAdded }) => {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
                 },
-                body: JSON.stringify({ url: newLink })
+                body: JSON.stringify({ url })
             });
 
             if (!response.ok) {
                 await handleApiError(response, 'Save Failed');
-                return;
+                return null;
             }
 
-            const data = await response.json();
+            return response.json();
+        },
+        onSuccess: (data) => {
+            if (data === null) return; // Error was already handled
+            setNewLink('');
+            onArticleAdded();
 
             if (data.success === false) {
-                setNewLink('');
-                onArticleAdded();
-                // It was saved as a URL-only bookmark
                 showWarning(
                     'Saved Link Only',
                     'We couldn\'t extract the content (likely due to a paywall). Try using the LaterLeaf Browser Extension directly on the page for better results!'
                 );
-                return;
+            } else {
+                showSuccess('Article Saved!', 'The article has been successfully added to your list.');
             }
-
-            setNewLink('');
-            onArticleAdded();
-            showSuccess('Article Saved!', 'The article has been successfully added to your list.');
-
-        } catch (err) {
+        },
+        onError: (err) => {
             handleGenericError(err, 'Import Failed');
-        } finally {
-            setIsImporting(false);
-        }
+        },
+    });
+
+    const isImporting = importMutation.isPending;
+
+    const handleImportArticle = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!newLink || isImporting) return;
+        importMutation.mutate(newLink);
     };
 
     return (

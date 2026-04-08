@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from "@clerk/react";
+import { useQuery, useMutation } from '@tanstack/react-query';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlay, faPause, faSpinner, faCog, faRedo, faRotateLeft, faRotateRight, faTimes, faDownload, faVolumeUp } from '@fortawesome/free-solid-svg-icons';
 import WaveformAnimation from '../../Common/WaveformAnimation/WaveformAnimation';
@@ -30,7 +31,6 @@ const ArticleAudioPlayer: React.FC<ArticleAudioPlayerProps> = ({
     const audioRef = useRef<HTMLAudioElement>(null);
 
     // Audio state
-    const [isLoading, setIsLoading] = useState(false);
     const [isPlaying, setIsPlaying] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [audioUrl, setAudioUrl] = useState<string | null>(audioLocation || null);
@@ -40,13 +40,33 @@ const ArticleAudioPlayer: React.FC<ArticleAudioPlayerProps> = ({
     // Audio controls
     const [selectedVoice, setSelectedVoice] = useState<string>('');
     const [showSettings, setShowSettings] = useState(false);
-    const [downloadUrl, setDownloadUrl] = useState<string | null>(audioLocation || null); // Initialize with prop
+    const [downloadUrl, setDownloadUrl] = useState<string | null>(audioLocation || null);
     const [speed, setSpeed] = useState(1.0);
-    const [availableVoices, setAvailableVoices] = useState<TTSVoice[]>([]);
     const [showWaveform, setShowWaveform] = useState(() => {
         const saved = localStorage.getItem('laterleaf_show_waveform');
         return saved !== null ? JSON.parse(saved) : true;
     });
+
+    const { data: availableVoices = [] } = useQuery({
+        queryKey: ['tts-voices'],
+        queryFn: async () => {
+            const token = await getToken();
+            const response = await fetch('/api/ai/tts-voices', {
+                headers: { 'Authorization': `Bearer ${token}` },
+            });
+            if (!response.ok) return [];
+            return response.json() as Promise<TTSVoice[]>;
+        },
+        enabled: showSettings,
+        staleTime: Infinity,
+    });
+
+    // Set default voice when voices load
+    useEffect(() => {
+        if (availableVoices.length > 0 && !selectedVoice) {
+            setSelectedVoice(availableVoices[0].voice);
+        }
+    }, [availableVoices, selectedVoice]);
 
     const skipBackward = () => {
         if (audioRef.current) {
@@ -77,13 +97,6 @@ const ArticleAudioPlayer: React.FC<ArticleAudioPlayerProps> = ({
         }
     }, [audioLocation]);
 
-    // Fetch voices when settings panel opens
-    useEffect(() => {
-        if (showSettings && availableVoices.length === 0) {
-            fetchAvailableVoices();
-        }
-    }, [showSettings]);
-
     // Cleanup audio URL on unmount if blob
     useEffect(() => {
         return () => {
@@ -93,58 +106,18 @@ const ArticleAudioPlayer: React.FC<ArticleAudioPlayerProps> = ({
         };
     }, [audioUrl]);
 
-    const fetchAvailableVoices = async () => {
-        try {
+    const generateAudioMutation = useMutation({
+        mutationFn: async () => {
             const token = await getToken();
-            const response = await fetch('/api/ai/tts-voices', {
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                },
-            });
-
-            if (response.ok) {
-                const voices = await response.json();
-                setAvailableVoices(voices);
-                if (voices.length > 0 && !selectedVoice) {
-                    // Set default voice - use the first available voice (Puck)
-                    setSelectedVoice(voices[0].voice);
-                }
-            }
-        } catch (error) {
-            console.error('Failed to fetch voices:', error);
-        }
-    };
-
-    // Generate Audio Function - Updated to just set URL
-    const generateAudio = async () => {
-        if (!content?.trim()) {
-            setError('No content available for audio generation');
-            return;
-        }
-
-        setIsLoading(true);
-        setError(null);
-
-        try {
-            const token = await getToken();
-
-            // Build query parameters
             const params = new URLSearchParams();
-            if (selectedVoice) {
-                params.append('voice', selectedVoice);
-            }
-            if (speed !== 1.0) {
-                params.append('speed', speed.toString());
-            }
-
+            if (selectedVoice) params.append('voice', selectedVoice);
+            if (speed !== 1.0) params.append('speed', speed.toString());
             const queryString = params.toString();
             const url = `/api/articles/${articleId}/audio${queryString ? `?${queryString}` : ''}`;
 
             const response = await fetch(url, {
                 method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                },
+                headers: { 'Authorization': `Bearer ${token}` },
             });
 
             if (!response.ok) {
@@ -152,34 +125,35 @@ const ArticleAudioPlayer: React.FC<ArticleAudioPlayerProps> = ({
                 throw new Error(`Audio generation failed: ${errorText}`);
             }
 
-            const audioBlob = await response.blob();
-            const url2 = URL.createObjectURL(audioBlob);
-
-            // Clean up previous URL if it was a blob URL
+            return response.blob();
+        },
+        onSuccess: (audioBlob) => {
             if (audioUrl && audioUrl.startsWith('blob:')) {
                 URL.revokeObjectURL(audioUrl);
             }
-
+            const url2 = URL.createObjectURL(audioBlob);
             setAudioUrl(url2);
-            // We rely on the src prop update now, but we can force load if needed
             if (audioRef.current) {
                 audioRef.current.load();
             }
+        },
+        onError: (err) => {
+            setError(err instanceof Error ? err.message : 'Failed to generate audio');
+        },
+    });
 
-        } catch (error) {
-            console.error('Audio generation error:', error);
-            setError(error instanceof Error ? error.message : 'Failed to generate audio');
-        } finally {
-            setIsLoading(false);
-        }
-    };
+    const isLoading = generateAudioMutation.isPending;
 
     const togglePlayback = async () => {
         const audio = audioRef.current;
         if (!audio) return;
 
         if (!audioUrl) {
-            await generateAudio();
+            if (!content?.trim()) {
+                setError('No content available for audio generation');
+                return;
+            }
+            generateAudioMutation.mutate();
             return;
         }
 

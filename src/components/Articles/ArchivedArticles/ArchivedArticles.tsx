@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState } from 'react';
 import { useAuth } from "@clerk/react";
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion } from 'motion/react';
 import ArticleCard from '../ArticleCard/ArticleCard';
 import ConfirmationDialog from '../../Common/ConfirmationDialog/ConfirmationDialog';
@@ -10,82 +11,79 @@ import { faSpinner } from '@fortawesome/free-solid-svg-icons';
 
 const ArchivedArticles: React.FC = () => {
     const { getToken, isLoaded, isSignedIn } = useAuth();
-    const [articles, setArticles] = useState<Article[]>([]);
+    const queryClient = useQueryClient();
     const [deleteConfirm, setDeleteConfirm] = useState<{ show: boolean; articleId: string | null }>({
         show: false,
         articleId: null
     });
 
-    const fetchArticles = useCallback(async () => {
-        try {
+    const { data: articles = [] } = useQuery({
+        queryKey: ['articles', 'archived'],
+        queryFn: async () => {
             const token = await getToken();
             const filter = encodeURIComponent(JSON.stringify({ where: { isArchived: true } }));
             const response = await fetch(`/api/articles?filter=${filter}`, {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
-
-            if (!response.ok) {
-                const errorText = await response.text();
-                throw new Error(`Network response was not ok: ${errorText}`);
-            }
-
-            const data: Article[] = await response.json();
-            setArticles(data);
-        } catch (error) {
-            console.error("Failed to fetch archived articles:", error);
-        }
-    }, [getToken]);
-
-    useEffect(() => {
-        if (isLoaded && isSignedIn) {
-            fetchArticles();
-        }
-    }, [isLoaded, isSignedIn, fetchArticles]);
-
-    const handleAction = async (articleId: string, endpoint: string, method: 'POST' | 'DELETE' = 'POST') => {
-        try {
-            const token = await getToken();
-            const url = endpoint ? `/api/articles/${articleId}/${endpoint}` : `/api/articles/${articleId}`;
-            const response = await fetch(url, {
-                method,
                 headers: { 'Authorization': `Bearer ${token}` }
             });
-            if (!response.ok) throw new Error(`Action failed: ${endpoint}`);
-            return true;
-        } catch (error) {
-            console.error(`Failed to ${endpoint || 'delete'}:`, error);
-            return false;
-        }
-    };
+            if (!response.ok) throw new Error('Failed to fetch archived articles');
+            return response.json() as Promise<Article[]>;
+        },
+        enabled: isLoaded && !!isSignedIn,
+    });
 
-    const handleDelete = async (articleId: string) => {
+    const actionMutation = useMutation({
+        mutationFn: async ({ articleId, endpoint, method = 'POST' }: { articleId: string; endpoint: string; method?: 'POST' | 'DELETE' }) => {
+            const token = await getToken();
+            const url = endpoint ? `/api/articles/${articleId}/${endpoint}` : `/api/articles/${articleId}`;
+            const response = await fetch(url, { method, headers: { 'Authorization': `Bearer ${token}` } });
+            if (!response.ok) throw new Error(`Action failed: ${endpoint}`);
+        },
+    });
+
+    const handleDelete = (articleId: string) => {
         setDeleteConfirm({ show: true, articleId });
     };
 
     const confirmDelete = async () => {
         if (!deleteConfirm.articleId) return;
-        const success = await handleAction(deleteConfirm.articleId, '', 'DELETE');
-        if (success) setArticles(prev => prev.filter(a => a.id !== deleteConfirm.articleId));
+        actionMutation.mutate(
+            { articleId: deleteConfirm.articleId, endpoint: '', method: 'DELETE' },
+            {
+                onSuccess: () => {
+                    queryClient.setQueryData(['articles', 'archived'], (old: Article[] | undefined) =>
+                        old ? old.filter(a => a.id !== deleteConfirm.articleId) : []
+                    );
+                },
+            }
+        );
         setDeleteConfirm({ show: false, articleId: null });
     };
 
-    const handleArchive = async (articleId: string) => {
-        const success = await handleAction(articleId, 'archive');
-        if (success) {
-            // Since this is the archive page, un-archiving should remove it from the list
-            setArticles(prev => prev.filter(a => a.id !== articleId));
-        }
+    const handleArchive = (articleId: string) => {
+        actionMutation.mutate(
+            { articleId, endpoint: 'archive' },
+            {
+                onSuccess: () => {
+                    // Un-archiving removes from archive page
+                    queryClient.setQueryData(['articles', 'archived'], (old: Article[] | undefined) =>
+                        old ? old.filter(a => a.id !== articleId) : []
+                    );
+                },
+            }
+        );
     };
 
-    const handleToggleBookmark = async (articleId: string) => {
-        const success = await handleAction(articleId, 'bookmark');
-        if (success) {
-            setArticles(prev => prev.map(a =>
-                a.id === articleId ? { ...a, isBookmarked: !a.isBookmarked } : a
-            ));
-        }
+    const handleToggleBookmark = (articleId: string) => {
+        actionMutation.mutate(
+            { articleId, endpoint: 'bookmark' },
+            {
+                onSuccess: () => {
+                    queryClient.setQueryData(['articles', 'archived'], (old: Article[] | undefined) =>
+                        old ? old.map(a => a.id === articleId ? { ...a, isBookmarked: !a.isBookmarked } : a) : []
+                    );
+                },
+            }
+        );
     };
 
     if (!isLoaded) {

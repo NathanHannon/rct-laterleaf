@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useAuth } from "@clerk/react";
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'motion/react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -20,62 +21,40 @@ interface ArticleChatProps {
 
 const ArticleChat = ({ articleId, isOpen, onClose, userHasProAccess }: ArticleChatProps) => {
     const { getToken } = useAuth();
+    const queryClient = useQueryClient();
     const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
-    const [savedChatHistory, setSavedChatHistory] = useState<ChatMessage[]>([]);
-    const [isGeneratingChat, setIsGeneratingChat] = useState(false);
     const [chatInput, setChatInput] = useState('');
 
-    const loadHistory = async () => {
-        try {
+    const { data: savedChatHistory = [] } = useQuery({
+        queryKey: ['chat-history', articleId],
+        queryFn: async () => {
             const token = await getToken();
             const response = await fetch(`/api/articles/${articleId}/chat`, {
                 headers: { 'Authorization': `Bearer ${token}` },
             });
-            if (response.ok) {
-                const data = await response.json();
-                setSavedChatHistory(data.chatHistory || []);
-            }
-        } catch {
-            // silently fail — user can still start a new chat
-        }
-    };
+            if (!response.ok) return [];
+            const data = await response.json();
+            return (data.chatHistory || []) as ChatMessage[];
+        },
+        enabled: isOpen,
+    });
 
-    // Load history when panel opens (but don't show it — just cache for recall button)
-    const handleOpen = () => {
-        setChatMessages([]);
-        loadHistory();
-    };
-
-    const handleRecallHistory = () => {
-        setChatMessages(savedChatHistory);
-        setSavedChatHistory([]);
-    };
-
-    const handleClearHistory = async () => {
-        try {
+    const clearMutation = useMutation({
+        mutationFn: async () => {
             const token = await getToken();
             await fetch(`/api/articles/${articleId}/chat/clear`, {
                 method: 'POST',
                 headers: { 'Authorization': `Bearer ${token}` },
             });
+        },
+        onSuccess: () => {
             setChatMessages([]);
-            setSavedChatHistory([]);
-        } catch {
-            // silently fail
-        }
-    };
+            queryClient.setQueryData(['chat-history', articleId], []);
+        },
+    });
 
-    const handleSendMessage = async (message: string) => {
-        if (!message.trim()) return;
-
-        if (!userHasProAccess) {
-            alert('Chat functionality is available for Pro users only. Please upgrade to access this feature.');
-            return;
-        }
-
-        setIsGeneratingChat(true);
-
-        try {
+    const sendMutation = useMutation({
+        mutationFn: async (message: string) => {
             const token = await getToken();
             const response = await fetch(`/api/articles/${articleId}/chat`, {
                 method: 'POST',
@@ -85,17 +64,35 @@ const ArticleChat = ({ articleId, isOpen, onClose, userHasProAccess }: ArticleCh
                 },
                 body: JSON.stringify({ message }),
             });
-
             if (!response.ok) throw new Error('Failed to generate chat response');
-
-            const data = await response.json();
+            return response.json();
+        },
+        onSuccess: (data) => {
             setChatMessages(data.chatHistory || []);
-        } catch {
-            // no-op: could show an inline error in future
-        } finally {
-            setIsGeneratingChat(false);
-        }
+        },
+    });
+
+    const handleOpen = () => {
+        setChatMessages([]);
     };
+
+    const handleRecallHistory = () => {
+        setChatMessages(savedChatHistory);
+        queryClient.setQueryData(['chat-history', articleId], []);
+    };
+
+    const handleSendMessage = (message: string) => {
+        if (!message.trim()) return;
+
+        if (!userHasProAccess) {
+            alert('Chat functionality is available for Pro users only. Please upgrade to access this feature.');
+            return;
+        }
+
+        sendMutation.mutate(message);
+    };
+
+    const isGeneratingChat = sendMutation.isPending;
 
     return (
         <AnimatePresence onExitComplete={() => setChatMessages([])}>
@@ -112,7 +109,7 @@ const ArticleChat = ({ articleId, isOpen, onClose, userHasProAccess }: ArticleCh
                         <h3>💬 Article Chat</h3>
                         <div className="chat-header-actions">
                             {chatMessages.length > 0 && (
-                                <button onClick={handleClearHistory} className="clear-chat-button" title="Clear chat history">
+                                <button onClick={() => clearMutation.mutate()} className="clear-chat-button" title="Clear chat history">
                                     🗑
                                 </button>
                             )}

@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useAuth } from "@clerk/react";
+import { useQuery, useMutation } from '@tanstack/react-query';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlus, faSpinner, faCheck } from '@fortawesome/free-solid-svg-icons';
 import { motion, AnimatePresence } from 'motion/react';
@@ -28,23 +29,10 @@ const CollectionSelector: React.FC<CollectionSelectorProps> = ({
 }) => {
     const { getToken } = useAuth();
     const { showSuccess, showError, showWarning } = useToastContext();
-    const [collections, setCollections] = useState<Collection[]>([]);
-    const [suggestedNames, setSuggestedNames] = useState<string[]>([]);
-    const [loading, setLoading] = useState(false);
-    const [loadingSuggestions, setLoadingSuggestions] = useState(false);
-    const [addingToCollection, setAddingToCollection] = useState<string | null>(null);
 
-    useEffect(() => {
-        if (isOpen) {
-            fetchCollections();
-            fetchSuggestions();
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isOpen]);
-
-    const fetchSuggestions = async () => {
-        setLoadingSuggestions(true);
-        try {
+    const { data: suggestedNames = [], isLoading: loadingSuggestions } = useQuery({
+        queryKey: ['collection-suggestions-for-article', articleId],
+        queryFn: async () => {
             const token = await getToken();
             const response = await fetch('/api/collections/suggest-for-article', {
                 method: 'POST',
@@ -54,71 +42,45 @@ const CollectionSelector: React.FC<CollectionSelectorProps> = ({
                 },
                 body: JSON.stringify({ articleId })
             });
+            if (!response.ok) return [];
+            return response.json() as Promise<string[]>;
+        },
+        enabled: isOpen,
+    });
 
-            if (response.ok) {
-                const data = await response.json();
-                setSuggestedNames(data);
-            }
-        } catch (error) {
-            console.error('Failed to fetch suggestions:', error);
-        } finally {
-            setLoadingSuggestions(false);
-        }
-    };
-
-    const fetchCollections = async () => {
-        setLoading(true);
-        try {
+    const { data: collections = [], isLoading: loading } = useQuery({
+        queryKey: ['collections-for-article', articleId],
+        queryFn: async () => {
             const token = await getToken();
-            // Fetch all collections
-            const collectionsResponse = await fetch('/api/collections', {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
+            const [collectionsResponse, articleCollectionsResponse] = await Promise.all([
+                fetch('/api/collections', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                }),
+                fetch(`/api/articles/${articleId}/collections`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                })
+            ]);
 
-            // Fetch collections this article is already in
-            const articleCollectionsResponse = await fetch(`/api/articles/${articleId}/collections`, {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
+            if (!collectionsResponse.ok) throw new Error('Failed to fetch collections');
 
-            if (collectionsResponse.ok) {
-                const allCollections = await collectionsResponse.json();
-                let articleCollectionIds: string[] = [];
+            const allCollections = await collectionsResponse.json();
+            let articleCollectionIds: string[] = [];
 
-                if (articleCollectionsResponse.ok) {
-                    const articleCollections = await articleCollectionsResponse.json();
-                    articleCollectionIds = articleCollections.map((c: any) => c.id);
-                }
-
-                // Mark collections that already have this article
-                const collectionsWithStatus = allCollections.map((c: Collection) => ({
-                    ...c,
-                    hasArticle: articleCollectionIds.includes(c.id)
-                }));
-
-                setCollections(collectionsWithStatus);
+            if (articleCollectionsResponse.ok) {
+                const articleCollections = await articleCollectionsResponse.json();
+                articleCollectionIds = articleCollections.map((c: any) => c.id);
             }
-        } catch (error) {
-            showError('Failed to fetch collections', 'Please try again later.');
-            console.error('Failed to fetch collections:', error);
-        } finally {
-            setLoading(false);
-        }
-    };
 
-    const handleAddToCollection = async (collectionId: string) => {
-        const selectedCollection = collections.find(c => c.id === collectionId);
-        if (selectedCollection?.hasArticle) {
-            return; // Already in collection
-        }
+            return allCollections.map((c: Collection) => ({
+                ...c,
+                hasArticle: articleCollectionIds.includes(c.id)
+            })) as Collection[];
+        },
+        enabled: isOpen,
+    });
 
-        setAddingToCollection(collectionId);
-        const collectionName = selectedCollection?.name || 'collection';
-
-        try {
+    const addToCollectionMutation = useMutation({
+        mutationFn: async (collectionId: string) => {
             const token = await getToken();
             const response = await fetch(`/api/collections/${collectionId}/link-article`, {
                 method: 'POST',
@@ -128,24 +90,30 @@ const CollectionSelector: React.FC<CollectionSelectorProps> = ({
                 },
                 body: JSON.stringify({ articleId })
             });
-
-            if (response.ok) {
+            return { ok: response.ok, status: response.status, collectionId };
+        },
+        onSuccess: (result) => {
+            const collectionName = collections.find(c => c.id === result.collectionId)?.name || 'collection';
+            if (result.ok) {
                 showSuccess('Article added to collection', `Successfully added to "${collectionName}"`);
                 onSuccess?.();
                 onClose();
-            } else if (response.status === 409) {
-                // Article already in collection
+            } else if (result.status === 409) {
                 showWarning('Article already in collection', `This article is already in "${collectionName}"`);
-            } else {
-                throw new Error('Failed to add to collection');
             }
-        } catch (error) {
+        },
+        onError: () => {
             showError('Failed to add to collection', 'Please try again later.');
-            console.error('Failed to add article to collection:', error);
-        } finally {
-            setAddingToCollection(null);
-        }
+        },
+    });
+
+    const handleAddToCollection = (collectionId: string) => {
+        const selectedCollection = collections.find(c => c.id === collectionId);
+        if (selectedCollection?.hasArticle) return;
+        addToCollectionMutation.mutate(collectionId);
     };
+
+    const addingToCollection = addToCollectionMutation.isPending ? addToCollectionMutation.variables : null;
 
     if (!isOpen) return null;
 

@@ -1,5 +1,6 @@
-import React, { useState, useEffect, type FormEvent, useCallback } from 'react';
+import React, { useState, type FormEvent } from 'react';
 import { useAuth } from "@clerk/react";
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNanoTags } from '../../hooks/useNanoTags';
 import './TagsManager.scss';
 
@@ -15,85 +16,53 @@ interface TagsManagerProps {
 }
 
 const TagsManager: React.FC<TagsManagerProps> = ({ userArticleId, articleTitle, articleContent }) => {
-    const [tags, setTags] = useState<Tag[]>([]);
-    const [suggestedTags, setSuggestedTags] = useState<Tag[]>([]);
     const [newTagName, setNewTagName] = useState('');
-    const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const { getToken } = useAuth();
+    const queryClient = useQueryClient();
 
     const { isAvailable: isNanoAvailable, generateTags } = useNanoTags();
 
-    const fetchAllTags = useCallback(async () => {
-        if (!userArticleId) return;
-        setIsLoading(true);
-        try {
+    const { data: tags = [], isLoading } = useQuery({
+        queryKey: ['tags', userArticleId],
+        queryFn: async () => {
             const token = await getToken();
-            const fetchActions = [
-                fetch(`/api/user-articles/${userArticleId}/tags`, {
-                    headers: { 'Authorization': `Bearer ${token}` },
-                })
-            ];
+            const response = await fetch(`/api/user-articles/${userArticleId}/tags`, {
+                headers: { 'Authorization': `Bearer ${token}` },
+            });
+            if (!response.ok) throw new Error('Failed to fetch tags.');
+            return response.json() as Promise<Tag[]>;
+        },
+        enabled: !!userArticleId,
+    });
 
-            // Trigger server-side tagging refresh or just fetch existing suggestedTags/similar ones
-            // The backend /tags/suggest/{userArticleId} now returns a blend of AI and similar tags.
-            if (navigator.onLine) {
-                fetchActions.push(
-                    fetch(`/api/tags/suggest/${userArticleId}`, {
-                        headers: { 'Authorization': `Bearer ${token}` },
-                    })
-                );
+    const { data: suggestedTags = [] } = useQuery({
+        queryKey: ['tag-suggestions', userArticleId],
+        queryFn: async () => {
+            if (!navigator.onLine) {
+                if (isNanoAvailable && articleTitle && articleContent) {
+                    const nanoSuggested = await generateTags(articleTitle, articleContent, 3);
+                    return nanoSuggested.map(t => ({ id: `nano-${t}`, name: t }));
+                }
+                return [];
             }
+            const token = await getToken();
+            const response = await fetch(`/api/tags/suggest/${userArticleId}`, {
+                headers: { 'Authorization': `Bearer ${token}` },
+            });
+            if (!response.ok) return [];
+            return response.json() as Promise<Tag[]>;
+        },
+        enabled: !!userArticleId,
+        select: (serverSuggested) => {
+            const existingNames = tags.map(t => t.name.toLowerCase());
+            return serverSuggested.filter(s => !existingNames.includes(s.name.toLowerCase()));
+        },
+    });
 
-            const responses = await Promise.all(fetchActions);
-            const tagsResponse = responses[0];
-            const suggestedResponse = responses[1];
-
-            if (!tagsResponse.ok) throw new Error('Failed to fetch tags.');
-            const tagsData: Tag[] = await tagsResponse.json();
-            setTags(tagsData);
-
-            let serverSuggestedData: Tag[] = [];
-            if (suggestedResponse && suggestedResponse.ok) {
-                serverSuggestedData = await suggestedResponse.json();
-            }
-
-            // Exclude tags that are already assigned
-            const existingNames = tagsData.map(t => t.name.toLowerCase());
-            const filteredSuggestions = serverSuggestedData.filter(
-                s => !existingNames.includes(s.name.toLowerCase())
-            );
-
-            // Fallback to offline Nano AI if server returned nothing or we are offline
-            if (!navigator.onLine && isNanoAvailable && articleTitle && articleContent && filteredSuggestions.length === 0) {
-                const nanoSuggested = await generateTags(articleTitle, articleContent, 3);
-                setSuggestedTags(nanoSuggested.map(t => ({ id: `nano-${t}`, name: t })));
-            } else {
-                setSuggestedTags(filteredSuggestions);
-            }
-
-            setError(null);
-        } catch (err) {
-            // ... error handling
-            setError(err instanceof Error ? err.message : 'An unknown error occurred.');
-        } finally {
-            setIsLoading(false);
-        }
-    }, [userArticleId, getToken, isNanoAvailable, articleTitle, articleContent, generateTags]);
-
-    useEffect(() => {
-        fetchAllTags();
-    }, [fetchAllTags]);
-
-    const addTag = async (tagName: string) => {
-        if (!tagName.trim()) return;
-
-        if (!navigator.onLine) {
-            setError('Cannot add tags while offline. Please connect to the internet.');
-            return;
-        }
-
-        try {
+    const addTagMutation = useMutation({
+        mutationFn: async (tagName: string) => {
+            if (!navigator.onLine) throw new Error('Cannot add tags while offline. Please connect to the internet.');
             const token = await getToken();
             const response = await fetch(`/api/tags/add-to-article`, {
                 method: 'POST',
@@ -101,60 +70,50 @@ const TagsManager: React.FC<TagsManagerProps> = ({ userArticleId, articleTitle, 
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({
-                    name: tagName.trim(),
-                    userArticleId: userArticleId,
-                }),
+                body: JSON.stringify({ name: tagName.trim(), userArticleId }),
             });
+            if (!response.ok) throw new Error('Failed to add tag.');
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['tags', userArticleId] });
+            queryClient.invalidateQueries({ queryKey: ['tag-suggestions', userArticleId] });
+            setError(null);
+        },
+        onError: (err: Error) => setError(err.message),
+    });
 
-            if (!response.ok) {
-                throw new Error('Failed to add tag.');
-            }
-
-            // Immediately update the local state to show the tag is added
-            // This prevents the user from clicking the suggestion twice
-            const normalizedTag = tagName.trim();
-            setTags(prev => [...prev, { id: 'temp-' + Date.now(), name: normalizedTag }]);
-            setSuggestedTags(prev => prev.filter(t => t.name.toLowerCase() !== normalizedTag.toLowerCase()));
-
-            await fetchAllTags();
-        } catch (err) {
-            setError(err instanceof Error ? err.message : 'An unknown error occurred.');
-        }
-    };
-
-    const handleAddTagFromInput = async (e: FormEvent) => {
-        e.preventDefault();
-        await addTag(newTagName);
-        setNewTagName('');
-    };
-
-    const handleAddSuggestedTag = async (tagName: string) => {
-        await addTag(tagName);
-    };
-
-    const handleRemoveTag = async (tagId: string) => {
-        if (!navigator.onLine) {
-            setError('Cannot remove tags while offline. Please connect to the internet.');
-            return;
-        }
-
-        try {
+    const removeTagMutation = useMutation({
+        mutationFn: async (tagId: string) => {
+            if (!navigator.onLine) throw new Error('Cannot remove tags while offline. Please connect to the internet.');
             const token = await getToken();
             const where = JSON.stringify({ id: tagId });
             const response = await fetch(`/api/user-articles/${userArticleId}/tags?where=${encodeURIComponent(where)}`, {
                 method: 'DELETE',
                 headers: { 'Authorization': `Bearer ${token}` },
             });
+            if (!response.ok) throw new Error('Failed to remove tag.');
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['tags', userArticleId] });
+            queryClient.invalidateQueries({ queryKey: ['tag-suggestions', userArticleId] });
+            setError(null);
+        },
+        onError: (err: Error) => setError(err.message),
+    });
 
-            if (!response.ok) {
-                throw new Error('Failed to remove tag.');
-            }
+    const handleAddTagFromInput = async (e: FormEvent) => {
+        e.preventDefault();
+        if (!newTagName.trim()) return;
+        addTagMutation.mutate(newTagName);
+        setNewTagName('');
+    };
 
-            await fetchAllTags();
-        } catch (err) {
-            setError(err instanceof Error ? err.message : 'An unknown error occurred.');
-        }
+    const handleAddSuggestedTag = (tagName: string) => {
+        addTagMutation.mutate(tagName);
+    };
+
+    const handleRemoveTag = (tagId: string) => {
+        removeTagMutation.mutate(tagId);
     };
 
     return (

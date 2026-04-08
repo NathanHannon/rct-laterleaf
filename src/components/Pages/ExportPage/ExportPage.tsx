@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useAuth } from "@clerk/react";
+import { useMutation } from '@tanstack/react-query';
 import { motion } from 'motion/react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faDownload, faSpinner, faFileCsv, faFileCode } from '@fortawesome/free-solid-svg-icons';
@@ -7,36 +8,24 @@ import './ExportPage.scss';
 
 const ExportPage: React.FC = () => {
     const { getToken } = useAuth();
-    const [isExporting, setIsExporting] = useState<string | null>(null);
 
-    const handleExport = async (format: 'csv' | 'html' | 'json') => {
-        setIsExporting(format);
-
-        try {
+    const exportMutation = useMutation({
+        mutationFn: async (format: 'csv' | 'html' | 'json') => {
             const token = await getToken();
             const response = await fetch(`/api/export/${format}`, {
                 method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                },
+                headers: { 'Authorization': `Bearer ${token}` },
             });
 
-            if (!response.ok) {
-                throw new Error(`Failed to export data: ${response.statusText}`);
-            }
+            if (!response.ok) throw new Error(`Failed to export data: ${response.statusText}`);
 
-            // Get the filename from the response headers
             const contentDisposition = response.headers.get('content-disposition');
             let filename = `laterleaf-export.${format}`;
-
             if (contentDisposition) {
                 const filenameMatch = contentDisposition.match(/filename="(.+)"/);
-                if (filenameMatch) {
-                    filename = filenameMatch[1];
-                }
+                if (filenameMatch) filename = filenameMatch[1];
             }
 
-            // Create blob and download
             const blob = await response.blob();
             const url = window.URL.createObjectURL(blob);
             const link = document.createElement('a');
@@ -44,17 +33,19 @@ const ExportPage: React.FC = () => {
             link.download = filename;
             document.body.appendChild(link);
             link.click();
-
-            // Cleanup
             window.URL.revokeObjectURL(url);
             document.body.removeChild(link);
-
-        } catch (error) {
+        },
+        onError: (error) => {
             console.error('Export failed:', error);
             alert('Export failed. Please try again.');
-        } finally {
-            setIsExporting(null);
-        }
+        },
+    });
+
+    const isExporting = exportMutation.isPending ? exportMutation.variables : null;
+
+    const handleExport = (format: 'csv' | 'html' | 'json') => {
+        exportMutation.mutate(format);
     };
 
     const exportFormats = [

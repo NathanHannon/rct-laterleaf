@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useAuth } from "@clerk/react";
+import { useQuery } from '@tanstack/react-query';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTimes, faChevronRight, faChevronLeft, faShareNodes } from '@fortawesome/free-solid-svg-icons';
 import './Wrapped.scss';
@@ -23,29 +24,19 @@ interface WrappedProps {
 
 const Wrapped = ({ year = new Date().getFullYear(), onClose }: WrappedProps) => {
     const { getToken } = useAuth();
-    const [stats, setStats] = useState<WrappedStats | null>(null);
-    const [loading, setLoading] = useState(true);
     const [currentSlide, setCurrentSlide] = useState(0);
 
-    useEffect(() => {
-        const fetchStats = async () => {
-            try {
-                const token = await getToken();
-                const res = await fetch(`/api/stats/wrapped/${year}`, {
-                    headers: { Authorization: `Bearer ${token}` },
-                });
-                if (res.ok) {
-                    const data = await res.json();
-                    setStats(data);
-                }
-            } catch (err) {
-                console.error('Failed to load wrapped stats', err);
-            } finally {
-                setLoading(false);
-            }
-        };
-        fetchStats();
-    }, [getToken, year]);
+    const { data: stats, isLoading: loading } = useQuery({
+        queryKey: ['wrapped', year],
+        queryFn: async () => {
+            const token = await getToken();
+            const res = await fetch(`/api/stats/wrapped/${year}`, {
+                headers: { Authorization: `Bearer ${token}` },
+            });
+            if (!res.ok) throw new Error('Failed to load wrapped stats');
+            return res.json() as Promise<WrappedStats>;
+        },
+    });
 
     const slides = (stats: WrappedStats) => [
         {

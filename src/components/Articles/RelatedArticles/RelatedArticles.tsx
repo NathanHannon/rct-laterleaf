@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useAuth } from "@clerk/react";
+import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBookmark as faBookmarkSolid } from '@fortawesome/free-solid-svg-icons';
@@ -21,34 +22,20 @@ interface RelatedArticlesProps {
 
 const RelatedArticles: React.FC<RelatedArticlesProps> = ({ articleId }) => {
     const [isExpanded, setIsExpanded] = useState(false);
-    const [relatedArticles, setRelatedArticles] = useState<RelatedArticle[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
     const { getToken } = useAuth();
     const navigate = useNavigate();
 
-    useEffect(() => {
-        const fetchRelated = async () => {
-            try {
-                const token = await getToken();
-                const response = await fetch(`/api/articles/${articleId}/related?limit=3`, {
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                    },
-                });
-
-                if (response.ok) {
-                    const data = await response.json();
-                    setRelatedArticles(data);
-                }
-            } catch (error) {
-                console.error('Failed to fetch related articles:', error);
-            } finally {
-                setIsLoading(false);
-            }
-        };
-
-        fetchRelated();
-    }, [articleId, getToken]);
+    const { data: relatedArticles = [], isLoading } = useQuery({
+        queryKey: ['related-articles', articleId],
+        queryFn: async () => {
+            const token = await getToken();
+            const response = await fetch(`/api/articles/${articleId}/related?limit=3`, {
+                headers: { 'Authorization': `Bearer ${token}` },
+            });
+            if (!response.ok) throw new Error('Failed to fetch related articles');
+            return response.json() as Promise<RelatedArticle[]>;
+        },
+    });
 
     // Don't render if no related articles
     if (!isLoading && relatedArticles.length === 0) {
