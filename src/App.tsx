@@ -20,6 +20,7 @@ import FAQPage from './components/Pages/StaticPages/FAQPage/FAQPage';
 import ExportPage from './components/Pages/ExportPage/ExportPage';
 import DiscoverPage from './components/Pages/DiscoverPage/DiscoverPage';
 import FeedsPage from './components/Pages/FeedsPage/FeedsPage';
+import ImportPage from './components/Pages/ImportPage/ImportPage';
 import BulkImporter from './components/Developer/BulkImporter/BulkImporter';
 import AIPlayground from './components/Developer/AIPlayground/AIPlayground';
 import { useTheme } from './context/themeContext';
@@ -30,6 +31,7 @@ import AdminPage from './components/Admin/AdminPage/AdminPage';
 import ResearchPage from './components/Pages/ResearchPage/ResearchPage';
 import AnalyticsProvider from './providers/AnalyticsProvider';
 import CommandPalette from './components/CommandPalette/CommandPalette';
+import KeyboardShortcuts from './components/CommandPalette/KeyboardShortcuts';
 import GlobalCommands from './components/CommandPalette/GlobalCommands';
 import { CommandProvider } from './context/commandContext';
 
@@ -44,6 +46,7 @@ function App() {
               <CommandProvider>
                 <GlobalCommands />
                 <CommandPalette />
+                <KeyboardShortcuts />
                 <div className={`app ${theme}`}>
                   <div className="layout-container">
                     <Header />
@@ -67,7 +70,8 @@ function App() {
                             <Route path="/discover" element={<DiscoverPage />} />
                             <Route path="/research" element={<ResearchPage />} />
                             <Route path="/feeds" element={<FeedsPage />} />
-                            <Route path="/import" element={<BulkImporter />} />
+                            <Route path="/import" element={<ImportPage />} />
+                            <Route path="/dev/import" element={<BulkImporter />} />
                             <Route path="/dev/ai" element={<AIPlayground />} />
                             <Route path="/pricing" element={<PricingPage />} />
                             <Route path="/settings" element={<Settings />} />

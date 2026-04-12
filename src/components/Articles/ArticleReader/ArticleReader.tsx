@@ -13,6 +13,7 @@ import ArticleAudioPlayer from '../ArticleAudioPlayer/ArticleAudioPlayer';
 import RelatedArticles from '../RelatedArticles/RelatedArticles';
 import TagsManager from '../../TagsManager/TagsManager';
 import ArticleChat from '../ArticleChat/ArticleChat';
+import SelectionToolbar from '../SelectionToolbar/SelectionToolbar';
 import './ArticleReader.scss';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBookmark as faBookmarkSolid, faHeart as faHeartSolid, faArchive, faTrash, faRotateRight, faFolderPlus, faEllipsisV, faGem, faClock, faStarHalfStroke, faPodcast, faHeadphones, faLanguage, faCheck, faCloudArrowDown, faCloud, faComments } from '@fortawesome/free-solid-svg-icons';
@@ -381,6 +382,7 @@ const ArticleReader = () => {
         isChatMode, showSummary, currentLanguage, showTranslateDropdown,
         registerCommand, unregisterCommand
     ]);
+
 
     // Fetch user credits on mount
     useEffect(() => {
@@ -1017,6 +1019,10 @@ const ArticleReader = () => {
                 dangerouslySetInnerHTML={{ __html: displayContent }}
             />
 
+            {articleId && (
+                <SelectionToolbar articleId={articleId} contentRef={contentRef} />
+            )}
+
             <CollectionSelector
                 isOpen={showCollectionSelector}
                 onClose={() => setShowCollectionSelector(false)}
@@ -1051,6 +1057,8 @@ const ArticleReader = () => {
                 isOpen={isChatMode}
                 onClose={() => setIsChatMode(false)}
                 userHasProAccess={userHasProAccess}
+                articleTitle={article?.title}
+                articleSummary={article?.summary}
             />
         </div>
     );

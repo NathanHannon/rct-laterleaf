@@ -6,6 +6,40 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import './ArticleChat.scss';
 
+function getSuggestions(title?: string, summary?: string): string[] {
+    const suggestions: string[] = [];
+
+    // Always include a generic main point question
+    if (title) {
+        suggestions.push(`What are the key takeaways from this article?`);
+    } else {
+        suggestions.push('Summarise the main points');
+    }
+
+    // Context-aware suggestions based on content signals
+    const text = `${title || ''} ${summary || ''}`.toLowerCase();
+
+    if (text.match(/study|research|data|findings|evidence|experiment/)) {
+        suggestions.push('What methodology was used in this research?');
+        suggestions.push('Are there any limitations to these findings?');
+    } else if (text.match(/opinion|argue|debate|controversy|disagree/)) {
+        suggestions.push('What are the strongest counter-arguments?');
+        suggestions.push('How balanced is the author\'s perspective?');
+    } else if (text.match(/how to|guide|tutorial|step|tips|advice/)) {
+        suggestions.push('What are the most actionable steps?');
+        suggestions.push('What common mistakes should I avoid?');
+    } else if (text.match(/announce|launch|release|update|new/)) {
+        suggestions.push('Why does this matter?');
+        suggestions.push('How does this compare to alternatives?');
+    } else {
+        suggestions.push('What assumptions does the author make?');
+        suggestions.push('What are the practical implications?');
+    }
+
+    // Cap at 3 suggestions
+    return suggestions.slice(0, 3);
+}
+
 interface ChatMessage {
     role: 'user' | 'assistant';
     content: string;
@@ -17,9 +51,11 @@ interface ArticleChatProps {
     isOpen: boolean;
     onClose: () => void;
     userHasProAccess: boolean;
+    articleTitle?: string;
+    articleSummary?: string;
 }
 
-const ArticleChat = ({ articleId, isOpen, onClose, userHasProAccess }: ArticleChatProps) => {
+const ArticleChat = ({ articleId, isOpen, onClose, userHasProAccess, articleTitle, articleSummary }: ArticleChatProps) => {
     const { getToken } = useAuth();
     const queryClient = useQueryClient();
     const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
@@ -123,6 +159,20 @@ const ArticleChat = ({ articleId, isOpen, onClose, userHasProAccess }: ArticleCh
                             {chatMessages.length === 0 && !isGeneratingChat && (
                                 <div className="chat-empty-state">
                                     <p>Ask anything about this article</p>
+                                    <div className="suggestion-chips">
+                                        {getSuggestions(articleTitle, articleSummary).map((s, i) => (
+                                            <button
+                                                key={i}
+                                                className="suggestion-chip"
+                                                onClick={() => {
+                                                    setChatInput('');
+                                                    handleSendMessage(s);
+                                                }}
+                                            >
+                                                {s}
+                                            </button>
+                                        ))}
+                                    </div>
                                     {savedChatHistory.length > 0 && (
                                         <button
                                             className="recall-history-button"
