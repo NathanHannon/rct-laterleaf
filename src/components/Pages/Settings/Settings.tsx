@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useClerk } from "@clerk/react";
+import { useClerk, useUser } from "@clerk/react";
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { useUserCredits } from '../../../hooks/useUserCredits';
@@ -7,12 +7,13 @@ import { useUserStatus } from '../../../hooks/useUserStatus';
 import { useReadingPreferences } from '../../../hooks/useReadingPreferences';
 import { useTheme } from '../../../context/themeContext';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faGem, faCoins, faCheckCircle, faTimesCircle, faUserShield, faWaveSquare, faBook, faCheck, faSwatchbook, faSun, faMoon, faDesktop, faPalette, faKeyboard } from '@fortawesome/free-solid-svg-icons';
+import { faCopy, faPodcast, faGem, faCoins, faCheckCircle, faTimesCircle, faUserShield, faWaveSquare, faBook, faCheck, faSwatchbook, faSun, faMoon, faDesktop, faPalette, faKeyboard } from '@fortawesome/free-solid-svg-icons';
 import { OfflineModelSettings } from './OfflineModelSettings';
 import './Settings.scss';
 
 const Settings = () => {
     const { openUserProfile } = useClerk();
+    const { user } = useUser();
     const navigate = useNavigate();
     const { credits, fetchCredits, loading } = useUserCredits();
     const { isPro } = useUserStatus();
@@ -187,6 +188,45 @@ const Settings = () => {
                                             <span className="current">{credits.proCreditsRemaining} / {credits.proCreditsLimit}</span>
                                         </div>
                                     </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {isPro && (
+                            <div className="settings-section integrations-section">
+                                <h2><FontAwesomeIcon icon={faPodcast} /> Personal Podcast Feed</h2>
+                                <p className="section-desc">Subscribe to your generated AI conversations in Apple Podcasts, Spotify, or your favorite player.</p>
+                                <div className="feed-url-container" style={{ display: 'flex', gap: '8px', marginTop: '12px' }}>
+                                    <input
+                                        type="text"
+                                        readOnly
+                                        value={`${window.location.origin.replace('http://localhost:5173', 'http://localhost:3000')}/api/rss/podcast/${user?.id || ''}.xml`}
+                                        style={{
+                                            flex: 1,
+                                            padding: '8px 12px',
+                                            background: 'var(--background-color)',
+                                            border: '1px solid var(--card-border)',
+                                            borderRadius: '6px',
+                                            color: 'var(--text-color)',
+                                            fontFamily: 'monospace'
+                                        }}
+                                    />
+                                    <button
+                                        onClick={() => navigator.clipboard.writeText(`${window.location.origin.replace('http://localhost:5173', 'http://localhost:3000')}/api/rss/podcast/${user?.id || ''}.xml`)}
+                                        style={{
+                                            padding: '8px 16px',
+                                            background: 'var(--primary-color)',
+                                            color: '#fff',
+                                            border: 'none',
+                                            borderRadius: '6px',
+                                            cursor: 'pointer',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '8px'
+                                        }}
+                                    >
+                                        <FontAwesomeIcon icon={faCopy} /> Copy
+                                    </button>
                                 </div>
                             </div>
                         )}
