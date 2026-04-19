@@ -1,8 +1,9 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from "@clerk/react";
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlay, faPause, faSpinner, faCog, faRedo, faRotateLeft, faRotateRight, faTimes, faDownload, faVolumeUp } from '@fortawesome/free-solid-svg-icons';
+import { useAudio } from '../../../context/audioContext';
 import WaveformAnimation from '../../Common/WaveformAnimation/WaveformAnimation';
 import './ArticleAudioPlayer.scss';
 
@@ -28,14 +29,13 @@ const ArticleAudioPlayer: React.FC<ArticleAudioPlayerProps> = ({
     onClose
 }) => {
     const { getToken } = useAuth();
-    const audioRef = useRef<HTMLAudioElement>(null);
 
-    // Audio state
-    const [isPlaying, setIsPlaying] = useState(false);
+    // Global Audio state
+    const { currentTrack, isPlaying, playTrack, togglePlayback: globalTogglePlayback, currentTime, duration, seek, skipForward, skipBackward, setPlaybackRate } = useAudio();
+
+    // Local component state
     const [error, setError] = useState<string | null>(null);
     const [audioUrl, setAudioUrl] = useState<string | null>(audioLocation || null);
-    const [currentTime, setCurrentTime] = useState(0);
-    const [duration, setDuration] = useState(0);
 
     // Audio controls
     const [selectedVoice, setSelectedVoice] = useState<string>('');
@@ -68,27 +68,6 @@ const ArticleAudioPlayer: React.FC<ArticleAudioPlayerProps> = ({
         }
     }, [availableVoices, selectedVoice]);
 
-    const skipBackward = () => {
-        if (audioRef.current) {
-            audioRef.current.currentTime = Math.max(0, audioRef.current.currentTime - 10);
-        }
-    };
-
-    const skipForward = () => {
-        if (audioRef.current) {
-            const d = audioRef.current.duration || duration;
-            audioRef.current.currentTime = Math.min(d, audioRef.current.currentTime + 10);
-        }
-    };
-
-    // Remove verbose event listeners since we use React props on <audio> now
-    // But we still need to manage speed
-    useEffect(() => {
-        if (audioRef.current) {
-            audioRef.current.playbackRate = speed;
-        }
-    }, [speed, audioUrl]);
-
     // Handle audioLocation prop changes
     useEffect(() => {
         if (audioLocation) {
@@ -97,14 +76,12 @@ const ArticleAudioPlayer: React.FC<ArticleAudioPlayerProps> = ({
         }
     }, [audioLocation]);
 
-    // Cleanup audio URL on unmount if blob
+    // Sync speed with global player
     useEffect(() => {
-        return () => {
-            if (audioUrl && audioUrl.startsWith('blob:')) {
-                URL.revokeObjectURL(audioUrl);
-            }
-        };
-    }, [audioUrl]);
+        if (currentTrack?.id === articleId) {
+            setPlaybackRate(speed);
+        }
+    }, [speed, currentTrack?.id]);
 
     const generateAudioMutation = useMutation({
         mutationFn: async () => {
@@ -128,14 +105,9 @@ const ArticleAudioPlayer: React.FC<ArticleAudioPlayerProps> = ({
             return response.blob();
         },
         onSuccess: (audioBlob) => {
-            if (audioUrl && audioUrl.startsWith('blob:')) {
-                URL.revokeObjectURL(audioUrl);
-            }
             const url2 = URL.createObjectURL(audioBlob);
             setAudioUrl(url2);
-            if (audioRef.current) {
-                audioRef.current.load();
-            }
+            playTrack({ id: articleId, url: url2, title: 'Read Aloud' });
         },
         onError: (err) => {
             setError(err instanceof Error ? err.message : 'Failed to generate audio');
@@ -144,10 +116,11 @@ const ArticleAudioPlayer: React.FC<ArticleAudioPlayerProps> = ({
 
     const isLoading = generateAudioMutation.isPending;
 
-    const togglePlayback = async () => {
-        const audio = audioRef.current;
-        if (!audio) return;
+    // Is this article currently the active track in global player?
+    const isThisTrackPlaying = currentTrack?.id === articleId && isPlaying;
+    const isThisTrackLoaded = currentTrack?.id === articleId;
 
+    const togglePlayback = async () => {
         if (!audioUrl) {
             if (!content?.trim()) {
                 setError('No content available for audio generation');
@@ -157,33 +130,23 @@ const ArticleAudioPlayer: React.FC<ArticleAudioPlayerProps> = ({
             return;
         }
 
-        if (isPlaying) {
-            audio.pause();
-            setIsPlaying(false);
+        if (isThisTrackLoaded) {
+            globalTogglePlayback();
         } else {
-            try {
-                await audio.play();
-                setIsPlaying(true);
-            } catch {
-                setError('Playback failed');
-                setIsPlaying(false);
-            }
+            playTrack({ id: articleId, url: audioUrl, title: 'Read Aloud' });
         }
     };
 
     const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const audio = audioRef.current;
-        if (!audio) return;
-
+        if (!isThisTrackLoaded) return;
         const newTime = parseFloat(e.target.value);
-        audio.currentTime = newTime;
-        setCurrentTime(newTime);
+        seek(newTime);
     };
 
     const handleSpeedChange = (newSpeed: number) => {
         setSpeed(newSpeed);
-        if (audioRef.current) {
-            audioRef.current.playbackRate = newSpeed;
+        if (isThisTrackLoaded) {
+            setPlaybackRate(newSpeed);
         }
     };
 
@@ -200,7 +163,7 @@ const ArticleAudioPlayer: React.FC<ArticleAudioPlayerProps> = ({
 
     return (
         <div className={`article-audio-player ${className}`}>
-            {showWaveform && <WaveformAnimation isPlaying={isPlaying} className="player-background-waveform" />}
+            {showWaveform && isThisTrackPlaying && <WaveformAnimation isPlaying={true} className="player-background-waveform" />}
 
             <div className="player-header">
                 <div className="player-title">
@@ -241,19 +204,6 @@ const ArticleAudioPlayer: React.FC<ArticleAudioPlayerProps> = ({
                     )}
                 </div>
             </div>
-
-            <audio
-                ref={audioRef}
-                src={audioUrl || undefined}
-                preload="metadata"
-                onTimeUpdate={(e) => setCurrentTime(e.currentTarget.currentTime)}
-                onLoadedMetadata={(e) => setDuration(e.currentTarget.duration)}
-                onEnded={() => setIsPlaying(false)}
-                onError={() => {
-                    setError('Audio playback failed');
-                    setIsPlaying(false);
-                }}
-            />
 
             {showSettings && (
                 <div className="audio-settings-panel">
@@ -319,14 +269,14 @@ const ArticleAudioPlayer: React.FC<ArticleAudioPlayerProps> = ({
                         onClick={togglePlayback}
                         disabled={isLoading}
                         className={`main-play-button ${audioUrl ? 'compact' : ''}`}
-                        title={audioUrl ? (isPlaying ? 'Pause' : 'Play') : 'Generate Audio'}
+                        title={audioUrl ? (isThisTrackPlaying ? 'Pause' : 'Play') : 'Generate Audio'}
                     >
                         {isLoading ? (
                             <FontAwesomeIcon icon={faSpinner} spin />
-                        ) : isPlaying ? (
+                        ) : isThisTrackPlaying ? (
                             <FontAwesomeIcon icon={faPause} />
                         ) : (
-                            <FontAwesomeIcon icon={audioUrl ? (currentTime >= duration && duration > 0 ? faRedo : faPlay) : faPlay} />
+                            <FontAwesomeIcon icon={audioUrl && isThisTrackLoaded ? (currentTime >= duration && duration > 0 ? faRedo : faPlay) : faPlay} />
                         )}
                         {!audioUrl && !isLoading && <span className="generate-text">Generate Audio</span>}
                     </button>
@@ -344,19 +294,20 @@ const ArticleAudioPlayer: React.FC<ArticleAudioPlayerProps> = ({
                 {audioUrl && (
                     <div className="time-display-group">
                         <div className="time-text">
-                            <span className="current">{formatTime(currentTime)}</span>
+                            <span className="current">{formatTime(isThisTrackLoaded ? currentTime : 0)}</span>
                             <span className="separator">/</span>
-                            <span className="total">{formatTime(duration)}</span>
+                            <span className="total">{formatTime(isThisTrackLoaded ? duration : 0)}</span>
                         </div>
                         <div className="progress-container">
                             <input
                                 type="range"
                                 min="0"
-                                max={duration || 0}
-                                value={currentTime}
+                                max={(isThisTrackLoaded ? duration : 0) || 0}
+                                value={isThisTrackLoaded ? currentTime : 0}
                                 onChange={handleSeek}
+                                disabled={!isThisTrackLoaded}
                                 className="progress-slider"
-                                style={{ '--progress': `${(currentTime / (duration || 1)) * 100}%` } as React.CSSProperties}
+                                style={{ '--progress': `${((isThisTrackLoaded ? currentTime : 0) / ((isThisTrackLoaded ? duration : 0) || 1)) * 100}%` } as React.CSSProperties}
                             />
                         </div>
                     </div>

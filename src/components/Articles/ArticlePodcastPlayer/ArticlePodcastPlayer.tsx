@@ -1,9 +1,10 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from "@clerk/react";
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlay, faPause, faSpinner, faPodcast, faCog, faRotateLeft, faRotateRight, faRedo, faDownload } from '@fortawesome/free-solid-svg-icons';
 import { useUserStatus } from '../../../hooks/useUserStatus';
+import { useAudio } from '../../../context/audioContext';
 import ConfirmationDialog from '../../Common/ConfirmationDialog/ConfirmationDialog';
 import WaveformAnimation from '../../Common/WaveformAnimation/WaveformAnimation';
 import { LANGUAGES } from '../../../constants/languages';
@@ -33,15 +34,10 @@ const ArticlePodcastPlayer: React.FC<ArticlePodcastPlayerProps> = ({
 }) => {
     const { getToken } = useAuth();
     const { isPro } = useUserStatus();
-    const audioRef = useRef<HTMLAudioElement>(null);
     const queryClient = useQueryClient();
 
-    // Audio state
-    // Replaced manual loading/generating state with React Query status
-    const [isPlaying, setIsPlaying] = useState(false);
-    const [currentTime, setCurrentTime] = useState(0);
-    const [duration, setDuration] = useState(0);
-    const [hasEnded, setHasEnded] = useState(false);
+    // Global Audio state
+    const { currentTrack, isPlaying, playTrack, togglePlayback: globalTogglePlayback, currentTime, duration, seek, skipForward, skipBackward, setPlaybackRate, closePlayer } = useAudio();
 
     // Simple local error state (separate from query error)
     const [localError, setLocalError] = useState<string | null>(null);
@@ -87,6 +83,9 @@ const ArticlePodcastPlayer: React.FC<ArticlePodcastPlayerProps> = ({
     const isLoading = isQueryLoading || isGenerating;
     const error = localError || (queryError ? (queryError as Error).message : null);
 
+    const isThisTrackPlaying = currentTrack?.id === articleId && isPlaying;
+    const isThisTrackLoaded = currentTrack?.id === articleId;
+
     const handleDownload = async () => {
         if (!audioUrl) return;
 
@@ -127,15 +126,11 @@ const ArticlePodcastPlayer: React.FC<ArticlePodcastPlayerProps> = ({
 
     // Effect: Handle audio URL updates
     useEffect(() => {
-        if (podcastStatus?.audioUrl && audioRef.current && !isPlaying && !hasEnded) {
-            // Only set src if it changed or if we are just loading it
-            if (audioRef.current.src !== podcastStatus.audioUrl) {
-                console.log(`🎵 Found existing audio URL: ${podcastStatus.audioUrl}`);
-                audioRef.current.src = podcastStatus.audioUrl;
-                // audioRef.current.load(); // Browser usually auto-loads metadata
-            }
+        if (podcastStatus?.audioUrl && currentTrack?.id === articleId && isPlaying) {
+            // No local effect needed; the global context manages the URL now.
+            console.log(`🎵 Found existing audio URL: ${podcastStatus.audioUrl}`);
         }
-    }, [podcastStatus?.audioUrl]);
+    }, [podcastStatus?.audioUrl, currentTrack?.id, isPlaying]);
 
 
     // Check supported languages
@@ -200,40 +195,12 @@ const ArticlePodcastPlayer: React.FC<ArticlePodcastPlayerProps> = ({
         }
     ];
 
-    // Audio event handlers
+    // Sync speed with global player
     useEffect(() => {
-        const audio = audioRef.current;
-        if (!audio) return;
-
-        const updateTime = () => {
-            setCurrentTime(audio.currentTime);
-            updateProgressFill(audio.currentTime, audio.duration);
-        };
-        const updateDuration = () => {
-            setDuration(audio.duration);
-            updateProgressFill(audio.currentTime, audio.duration);
-        };
-        const handleEnd = () => {
-            setIsPlaying(false);
-            setHasEnded(true);
-        };
-        const handleError = () => {
-            setLocalError('Audio playback failed');
-            setIsPlaying(false);
-        };
-
-        audio.addEventListener('timeupdate', updateTime);
-        audio.addEventListener('loadedmetadata', updateDuration);
-        audio.addEventListener('ended', handleEnd);
-        audio.addEventListener('error', handleError);
-
-        return () => {
-            audio.removeEventListener('timeupdate', updateTime);
-            audio.removeEventListener('loadedmetadata', updateDuration);
-            audio.removeEventListener('ended', handleEnd);
-            audio.removeEventListener('error', handleError);
-        };
-    }, [audioUrl]);
+        if (currentTrack?.id === articleId) {
+            setPlaybackRate(speed);
+        }
+    }, [speed, currentTrack?.id]);
 
     // --- MUTATION: Generate Podcast ---
     const generateMutation = useMutation({
@@ -270,10 +237,7 @@ const ArticlePodcastPlayer: React.FC<ArticlePodcastPlayerProps> = ({
             console.log(`✅ Generation request successful`, data);
             queryClient.invalidateQueries({ queryKey: ['podcast', articleId] });
             if (data.audioUrl && data.audioUrl !== 'processing') {
-                // If we got a URL immediately
-                if (audioRef.current) {
-                    audioRef.current.src = data.audioUrl;
-                }
+                playTrack({ id: articleId, url: data.audioUrl, title: title, artist: "LaterLeaf Podcast" });
             }
         },
         onError: (err: Error) => {
@@ -302,15 +266,11 @@ const ArticlePodcastPlayer: React.FC<ArticlePodcastPlayerProps> = ({
             queryClient.setQueryData(['podcast', articleId], null);
             queryClient.invalidateQueries({ queryKey: ['podcast', articleId] });
 
-            // Reset local player state
-            if (audioRef.current) {
-                audioRef.current.src = '';
-                audioRef.current.load();
+            // Reset global player if this was the track
+            if (isThisTrackLoaded) {
+                closePlayer();
             }
-            setHasEnded(false);
-            setIsPlaying(false);
-            setCurrentTime(0);
-            setDuration(0);
+
             setShowDeleteConfirm(false);
         },
         onError: (err: Error) => {
@@ -353,72 +313,40 @@ const ArticlePodcastPlayer: React.FC<ArticlePodcastPlayerProps> = ({
     };
 
     const togglePlayback = async () => {
-        const audio = audioRef.current;
-        if (!audio || !audioUrl) {
+        if (!audioUrl) {
             setLocalError('No audio available for playback');
             return;
         }
 
-        if (isPlaying) {
-            audio.pause();
-            setIsPlaying(false);
+        if (isThisTrackLoaded) {
+            globalTogglePlayback();
         } else {
-            try {
-                if (hasEnded) {
-                    audio.currentTime = 0;
-                    setHasEnded(false);
-                }
-                await audio.play();
-                setIsPlaying(true);
-            } catch (err) {
-                console.error('Playback error:', err);
-                setLocalError('Audio playback failed');
-                setIsPlaying(false);
-            }
+            playTrack({ id: articleId, url: audioUrl, title: title, artist: "LaterLeaf Podcast" });
         }
     };
 
     const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const audio = audioRef.current;
-        if (!audio) return;
+        if (!isThisTrackLoaded) return;
         const newTime = parseFloat(e.target.value);
-        audio.currentTime = newTime;
-        setCurrentTime(newTime);
-        updateProgressFill(newTime, duration);
-        setHasEnded(false);
+        seek(newTime);
     };
 
     const deletePodcast = () => {
         deleteMutation.mutate();
     };
 
-    const skipForward = () => {
-        const audio = audioRef.current;
-        if (!audio) return;
-        audio.currentTime = Math.min(audio.currentTime + 10, audio.duration || 0);
-        setHasEnded(false);
+    const skipForwardHandler = () => {
+        if (isThisTrackLoaded) skipForward();
     };
 
-    const skipBackward = () => {
-        const audio = audioRef.current;
-        if (!audio) return;
-        audio.currentTime = Math.max(audio.currentTime - 10, 0);
-        setHasEnded(false);
-    };
-
-    // Update progress fill dynamically
-    const updateProgressFill = (currentTime: number, duration: number) => {
-        const progressSlider = document.querySelector('.progress-slider') as HTMLElement;
-        if (progressSlider && duration > 0) {
-            const progress = (currentTime / duration) * 100;
-            progressSlider.style.setProperty('--progress', `${progress}%`);
-        }
+    const skipBackwardHandler = () => {
+        if (isThisTrackLoaded) skipBackward();
     };
 
     const handleSpeedChange = (newSpeed: number) => {
         setSpeed(newSpeed);
-        if (audioRef.current) {
-            audioRef.current.playbackRate = newSpeed;
+        if (isThisTrackLoaded) {
+            setPlaybackRate(newSpeed);
         }
     };
 
@@ -430,8 +358,7 @@ const ArticlePodcastPlayer: React.FC<ArticlePodcastPlayerProps> = ({
 
     return (
         <div className={`article-podcast-player ${className} ${isLoading ? 'is-loading' : ''}`}>
-            {showWaveform && !isLoading && <WaveformAnimation isPlaying={isPlaying} className="player-background-waveform" />}
-            <audio ref={audioRef} preload="metadata" />
+            {showWaveform && !isLoading && isThisTrackPlaying && <WaveformAnimation isPlaying={true} className="player-background-waveform" />}
 
             <div className="podcast-header">
                 <div className="podcast-info">
@@ -568,7 +495,7 @@ const ArticlePodcastPlayer: React.FC<ArticlePodcastPlayerProps> = ({
                         ) : audioUrl ? (
                             <div className="playback-controls">
                                 <button
-                                    onClick={skipBackward}
+                                    onClick={skipBackwardHandler}
                                     disabled={!audioUrl}
                                     className="skip-button skip-backward"
                                     title="Skip backward 10s"
@@ -578,18 +505,18 @@ const ArticlePodcastPlayer: React.FC<ArticlePodcastPlayerProps> = ({
                                 <button
                                     onClick={togglePlayback}
                                     className="play-button"
-                                    title={isPlaying ? 'Pause' : hasEnded ? 'Replay' : 'Play'}
+                                    title={isThisTrackPlaying ? 'Pause' : (isThisTrackLoaded && currentTime >= duration && duration > 0) ? 'Replay' : 'Play'}
                                 >
-                                    {isPlaying ? (
+                                    {isThisTrackPlaying ? (
                                         <FontAwesomeIcon icon={faPause} />
-                                    ) : hasEnded ? (
+                                    ) : (isThisTrackLoaded && currentTime >= duration && duration > 0) ? (
                                         <FontAwesomeIcon icon={faRedo} />
                                     ) : (
                                         <FontAwesomeIcon icon={faPlay} />
                                     )}
                                 </button>
                                 <button
-                                    onClick={skipForward}
+                                    onClick={skipForwardHandler}
                                     disabled={!audioUrl}
                                     className="skip-button skip-forward"
                                     title="Skip forward 10s"
@@ -628,9 +555,9 @@ const ArticlePodcastPlayer: React.FC<ArticlePodcastPlayerProps> = ({
                             <div className="time-display">
                                 {audioUrl ? (
                                     <>
-                                        <span>{formatTime(currentTime)}</span>
+                                        <span>{formatTime(isThisTrackLoaded ? currentTime : 0)}</span>
                                         <span>/</span>
-                                        <span>{formatTime(duration)}</span>
+                                        <span>{formatTime(isThisTrackLoaded ? duration : 0)}</span>
                                     </>
                                 ) : (
                                     <span>Ready to generate podcast discussion</span>
@@ -653,10 +580,12 @@ const ArticlePodcastPlayer: React.FC<ArticlePodcastPlayerProps> = ({
                         <input
                             type="range"
                             min="0"
-                            max={duration || 0}
-                            value={currentTime}
+                            max={(isThisTrackLoaded ? duration : 0) || 0}
+                            value={isThisTrackLoaded ? currentTime : 0}
                             onChange={handleSeek}
+                            disabled={!isThisTrackLoaded}
                             className="progress-slider"
+                            style={{ '--progress': `${((isThisTrackLoaded ? currentTime : 0) / ((isThisTrackLoaded ? duration : 0) || 1)) * 100}%` } as React.CSSProperties}
                         />
                     </div>
                 )}
