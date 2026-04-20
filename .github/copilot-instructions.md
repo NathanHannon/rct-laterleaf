@@ -72,7 +72,17 @@ Purpose: Give AI agents the minimum, project-specific context (NOT generic advic
 -   **`ContentModerationService`**: Uses **OpenAI's** moderation endpoint (`omni-moderation-latest`) to check content before it's recommended to users. This is a deliberate choice to use a best-in-class specialized model for safety.
 -   **`RecommendationService`**: Generates personalized recommendations by averaging user article embeddings into an "interest vector", then using `findSimilarWeighted` for recommendations.
 
-### 7. Common Pitfalls & Key Reminders
+### 7. Content Extraction Pipeline (`lb-laterleaf/src/services/content-extraction.service.ts`)
+
+-   **Architecture**: Static fetch → `preCleanHtml` (regex) → JSDOM → `cleanDomForReadability` (DOM) → Readability.js → Hybrid merge with JSON-LD structured data.
+-   **`preCleanHtml`**: Regex-strips `<script>`, `<style>`, `<nav>`, `<header>`, `<footer>` tags before JSDOM parsing.
+-   **`cleanDomForReadability`**: Removes nav/share/ad/summary elements by CSS selector, then **converts leaf `<div>` elements to `<p>` tags**. This leaf-div conversion is critical — sites like Apple Newsroom use `<div class="pagebody-copy">` instead of `<p>` tags, which Readability.js cannot score reliably without the conversion.
+-   **Leaf-div rule**: A div is "leaf" if it has no block-level children AND ≥25 chars of text content. Safe to convert to `<p>` — Readability's own scoring still applies afterward.
+-   **Hybrid merge**: Readability.js output is compared against JSON-LD `articleBody`. If JSON-LD is >500 chars longer, it wins (but only if no visual paywall detected — white-hat compliance).
+-   **Paywall detection**: Word-count ratio (< 30% of `wordCount` metadata = teaser), keyword tail scan, and `isAccessibleForFree: false` schema flag.
+-   **Same logic is mirrored** in `browser-extension/src/content/extractor.ts` — keep both in sync when modifying extraction logic.
+
+### 8. Common Pitfalls & Key Reminders
 
 -   **Error: "Invalid hasMany definition… missing definition of foreign key X"**: Usually, the foreign key property (e.g., `userId`) is missing from the target model's `@property` definitions or is misnamed in the relation mapping.
 -   **Modifying User/Article Status**: When a user bookmarks or archives an article, you are updating the `UserArticle` junction record, not the global `Article`.
