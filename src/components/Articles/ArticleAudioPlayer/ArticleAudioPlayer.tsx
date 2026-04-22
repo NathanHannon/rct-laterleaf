@@ -3,7 +3,7 @@ import { useAuth } from "@clerk/react";
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlay, faPause, faSpinner, faCog, faRedo, faRotateLeft, faRotateRight, faTimes, faDownload, faVolumeUp } from '@fortawesome/free-solid-svg-icons';
-import { useAudio } from '../../../context/audioContext';
+import { useAudio } from '../../../context/useAudio';
 import WaveformAnimation from '../../Common/WaveformAnimation/WaveformAnimation';
 import './ArticleAudioPlayer.scss';
 

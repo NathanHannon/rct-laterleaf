@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useAudio } from '../../../context/audioContext';
+import { useAudio } from '../../../context/useAudio';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlay, faPause, faTimes, faChevronUp, faRotateLeft, faRotateRight } from '@fortawesome/free-solid-svg-icons';

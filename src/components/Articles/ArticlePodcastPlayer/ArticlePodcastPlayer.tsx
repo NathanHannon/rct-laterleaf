@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlay, faPause, faSpinner, faPodcast, faCog, faRotateLeft, faRotateRight, faRedo, faDownload } from '@fortawesome/free-solid-svg-icons';
 import { useUserStatus } from '../../../hooks/useUserStatus';
-import { useAudio } from '../../../context/audioContext';
+import { useAudio } from '../../../context/useAudio';
 import ConfirmationDialog from '../../Common/ConfirmationDialog/ConfirmationDialog';
 import WaveformAnimation from '../../Common/WaveformAnimation/WaveformAnimation';
 import { LANGUAGES } from '../../../constants/languages';

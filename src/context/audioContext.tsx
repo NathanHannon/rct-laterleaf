@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useRef, useEffect, type ReactNode } from 'react';
+import React, { createContext, useState, useRef, useEffect, type ReactNode } from 'react';
 
 export interface TrackData {
     id: string; // usually articleId
@@ -180,10 +180,4 @@ export const AudioProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     );
 };
 
-export const useAudio = () => {
-    const context = useContext(AudioContext);
-    if (context === undefined) {
-        throw new Error('useAudio must be used within an AudioProvider');
-    }
-    return context;
-};
+export { AudioContext };
