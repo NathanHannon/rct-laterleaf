@@ -42,6 +42,7 @@ export const AudioProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     // Initialize audio element once
     useEffect(() => {
         const audio = new Audio();
+        audio.preload = 'metadata'; // Fetch just enough to know the duration before play
         audioRef.current = audio;
 
         const updateTime = () => setCurrentTime(audio.currentTime);
