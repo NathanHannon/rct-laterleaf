@@ -41,6 +41,7 @@ const ArticlePodcastPlayer: React.FC<ArticlePodcastPlayerProps> = ({
 
     // Simple local error state (separate from query error)
     const [localError, setLocalError] = useState<string | null>(null);
+    const [prefetchedDuration, setPrefetchedDuration] = useState(0);
 
     // Podcast settings - Simplified for fixed backend voices
     const [showSettings, setShowSettings] = useState(false);
@@ -131,6 +132,20 @@ const ArticlePodcastPlayer: React.FC<ArticlePodcastPlayerProps> = ({
             console.log(`🎵 Found existing audio URL: ${podcastStatus.audioUrl}`);
         }
     }, [podcastStatus?.audioUrl, currentTrack?.id, isPlaying]);
+
+    // Prefetch audio duration so it shows before the user presses play
+    useEffect(() => {
+        if (!audioUrl) return;
+        const tempAudio = new Audio();
+        tempAudio.preload = 'metadata';
+        tempAudio.src = audioUrl;
+        const onMetadata = () => setPrefetchedDuration(tempAudio.duration || 0);
+        tempAudio.addEventListener('loadedmetadata', onMetadata);
+        return () => {
+            tempAudio.removeEventListener('loadedmetadata', onMetadata);
+            tempAudio.src = '';
+        };
+    }, [audioUrl]);
 
 
     // Check supported languages
@@ -557,7 +572,7 @@ const ArticlePodcastPlayer: React.FC<ArticlePodcastPlayerProps> = ({
                                     <>
                                         <span>{formatTime(isThisTrackLoaded ? currentTime : 0)}</span>
                                         <span>/</span>
-                                        <span>{formatTime(isThisTrackLoaded ? duration : 0)}</span>
+                                        <span>{formatTime(isThisTrackLoaded ? duration : prefetchedDuration)}</span>
                                     </>
                                 ) : (
                                     <span>Ready to generate podcast discussion</span>

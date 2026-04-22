@@ -36,6 +36,7 @@ const ArticleAudioPlayer: React.FC<ArticleAudioPlayerProps> = ({
     // Local component state
     const [error, setError] = useState<string | null>(null);
     const [audioUrl, setAudioUrl] = useState<string | null>(audioLocation || null);
+    const [prefetchedDuration, setPrefetchedDuration] = useState(0);
 
     // Audio controls
     const [selectedVoice, setSelectedVoice] = useState<string>('');
@@ -75,6 +76,20 @@ const ArticleAudioPlayer: React.FC<ArticleAudioPlayerProps> = ({
             setDownloadUrl(audioLocation);
         }
     }, [audioLocation]);
+
+    // Prefetch audio duration so it shows before the user presses play
+    useEffect(() => {
+        if (!audioUrl) return;
+        const tempAudio = new Audio();
+        tempAudio.preload = 'metadata';
+        tempAudio.src = audioUrl;
+        const onMetadata = () => setPrefetchedDuration(tempAudio.duration || 0);
+        tempAudio.addEventListener('loadedmetadata', onMetadata);
+        return () => {
+            tempAudio.removeEventListener('loadedmetadata', onMetadata);
+            tempAudio.src = '';
+        };
+    }, [audioUrl]);
 
     // Sync speed with global player
     useEffect(() => {
@@ -296,7 +311,7 @@ const ArticleAudioPlayer: React.FC<ArticleAudioPlayerProps> = ({
                         <div className="time-text">
                             <span className="current">{formatTime(isThisTrackLoaded ? currentTime : 0)}</span>
                             <span className="separator">/</span>
-                            <span className="total">{formatTime(isThisTrackLoaded ? duration : 0)}</span>
+                            <span className="total">{formatTime(isThisTrackLoaded ? duration : prefetchedDuration)}</span>
                         </div>
                         <div className="progress-container">
                             <input
