@@ -18,6 +18,7 @@ if (
     api_host: import.meta.env.VITE_PUBLIC_POSTHOG_HOST || 'https://us.i.posthog.com',
     person_profiles: 'identified_only',
     capture_pageview: false, // Handled manually by AnalyticsProvider
+    persistence: 'memory', // No persistent cookies or localStorage — no cookie consent banner needed
   });
 }
 
