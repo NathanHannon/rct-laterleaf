@@ -190,6 +190,39 @@
     }
 }
 
+// Dark Coffee Theme Override (Warm sepia / coffee tones)
+[data-theme='dark-coffee'] {
+    --primary-color: #c07d2a; // Warm amber/caramel
+    --primary-color-rgb: 192, 125, 42;
+    --primary-hover: #a0661e;
+
+    --button-bg: #c07d2a;
+    --button-text: #ffffff;
+    --link-color: #a0661e;
+    --accent-color: #e8b44b; // Warm golden accent
+    --related-articles-color: #c47a5a; // Terracotta
+    --related-articles-color-rgb: 196, 122, 90;
+    --related-articles-hover: #a85e42;
+
+    &[data-appearance="light"] {
+        --background-color: #faf3e0; // Ivory Mist
+        --card-bg: #fffdf7; // Warm white
+        --header-bg: #f3e8cc; // Warm parchment
+        --text-color: #36251e; // Dark Coffee
+        --text-color-secondary: #7a6555;
+        --card-border: #e6d5b0;
+    }
+
+    &[data-appearance="dark"] {
+        --background-color: #1c0f09; // Deepest espresso
+        --card-bg: #36251e; // Dark Coffee
+        --header-bg: #36251e;
+        --card-border: #4d3628;
+        --text-color: #faf3e0; // Ivory Mist
+        --text-color-secondary: #c0a07a;
+    }
+}
+
 // Neon Nights Theme Override (Synthwave / Cyberpunk)
 [data-theme='neon-nights'] {
     --primary-color: #ff00ff; // Neon Pink

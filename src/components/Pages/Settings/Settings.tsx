@@ -311,6 +311,13 @@ const Settings = () => {
                                     <div className="theme-swatch neon-swatch"></div>
                                     <span>Neon Nights</span>
                                 </button>
+                                <button
+                                    className={`theme-selection-card coffee ${theme === 'dark-coffee' ? 'active' : ''}`}
+                                    onClick={() => setTheme('dark-coffee')}
+                                >
+                                    <div className="theme-swatch coffee-swatch"></div>
+                                    <span>Dark Coffee</span>
+                                </button>
                             </div>
                         </div>
 
