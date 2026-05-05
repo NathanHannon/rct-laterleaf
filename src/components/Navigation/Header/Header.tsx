@@ -2,14 +2,17 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Show, SignInButton, SignUpButton, UserButton } from "@clerk/react";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBars, faCog } from '@fortawesome/free-solid-svg-icons';
+import { faBars, faCog, faSearch, faTimes } from '@fortawesome/free-solid-svg-icons';
 import ThemeSwitcher from '../../Common/ThemeSwitcher/ThemeSwitcher';
 import Sidebar from '../Sidebar/Sidebar';
+import SearchModeToggle from '../../Search/SearchModeToggle/SearchModeToggle';
+import { useSearch } from '../../../hooks/searchHook';
 import './Header.scss';
 import logo from '../../../assets/logo/icon-transparent.png';
 
 const Header: React.FC = () => {
     const navigate = useNavigate();
+    const { searchTerm, setSearchTerm } = useSearch();
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [isScrolled, setIsScrolled] = useState(false);
     const [isLogoHovered, setIsLogoHovered] = useState(false);
@@ -111,6 +114,30 @@ const Header: React.FC = () => {
                         </div>
                     </Link>
                 </div>
+
+                <Show when="signed-in">
+                    <div className="header-center">
+                        <div className="header-search">
+                            <FontAwesomeIcon icon={faSearch} className="search-icon" />
+                            <input
+                                type="text"
+                                placeholder="Search your library..."
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                            />
+                            {searchTerm && (
+                                <button
+                                    onClick={() => setSearchTerm('')}
+                                    className="clear-search-button"
+                                    aria-label="Clear search"
+                                >
+                                    <FontAwesomeIcon icon={faTimes} />
+                                </button>
+                            )}
+                        </div>
+                        <SearchModeToggle />
+                    </div>
+                </Show>
 
                 <div className="header-right">
                     <ThemeSwitcher />

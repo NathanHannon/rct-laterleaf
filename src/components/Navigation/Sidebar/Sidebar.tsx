@@ -2,10 +2,8 @@ import { forwardRef, useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import { Show } from "@clerk/react";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faInbox, faBookmark, faArchive, faFolderOpen, faFileExport, faCompass, faRss, faTimes, faSearch, faCog, faQuestionCircle, faAtom } from '@fortawesome/free-solid-svg-icons';
-import { useSearch } from '../../../hooks/searchHook';
+import { faInbox, faBookmark, faArchive, faFolderOpen, faFileExport, faCompass, faRss, faTimes, faCog, faQuestionCircle, faAtom } from '@fortawesome/free-solid-svg-icons';
 import { hasProAccess } from '../../../utils/tierUtils';
-import SearchModeToggle from '../../Search/SearchModeToggle/SearchModeToggle';
 import HelpModal from '../../Common/HelpModal/HelpModal';
 import Wrapped from '../../Wrapped/Wrapped';
 import './Sidebar.scss';
@@ -19,7 +17,6 @@ interface SidebarProps {
 }
 
 const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(({ isOpen, onClose }, ref) => {
-    const { searchTerm, setSearchTerm } = useSearch();
     // Use the UserStatusProvider for pro status
     const { isPro, isLoading } = useUserStatus();
 
@@ -62,34 +59,6 @@ const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(({ isOpen, onClose }, r
                 </div>
 
                 <div className="sidebar__content">
-                    {/* Search Section */}
-                    <div className="sidebar__search">
-                        <div className="search-container">
-                            <FontAwesomeIcon icon={faSearch} className="search-icon" />
-                            <input
-                                type="text"
-                                placeholder="Search your library..."
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                            />
-                            {searchTerm && (
-                                <button
-                                    onClick={() => setSearchTerm('')}
-                                    className="clear-search-button"
-                                    aria-label="Clear search"
-                                >
-                                    <FontAwesomeIcon icon={faTimes} />
-                                </button>
-                            )}
-                        </div>
-                        {/* Show search mode toggle for everyone since semantic search is free */}
-                        <Show when="signed-in">
-                            <div className="search-mode-container">
-                                <SearchModeToggle />
-                            </div>
-                        </Show>
-                    </div>
-
                     {/* Navigation Links */}
                     <nav className="sidebar__nav">
                         <div className="nav-section">
