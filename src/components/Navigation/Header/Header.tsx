@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Show, SignInButton, SignUpButton, UserButton } from "@clerk/react";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBars, faCog, faSearch, faTimes } from '@fortawesome/free-solid-svg-icons';
@@ -12,7 +12,12 @@ import logo from '../../../assets/logo/icon-transparent.png';
 
 const Header: React.FC = () => {
     const navigate = useNavigate();
+    const location = useLocation();
     const { searchTerm, setSearchTerm } = useSearch();
+
+    const SEARCH_PATHS = ['/', '/articles', '/bookmarks', '/archive'];
+    const showSearch = SEARCH_PATHS.includes(location.pathname)
+        || location.pathname.startsWith('/collections/');
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [isScrolled, setIsScrolled] = useState(false);
     const [isLogoHovered, setIsLogoHovered] = useState(false);
@@ -116,27 +121,29 @@ const Header: React.FC = () => {
                 </div>
 
                 <Show when="signed-in">
-                    <div className="header-center">
-                        <div className="header-search">
-                            <FontAwesomeIcon icon={faSearch} className="search-icon" />
-                            <input
-                                type="text"
-                                placeholder="Search your library..."
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                            />
-                            {searchTerm && (
-                                <button
-                                    onClick={() => setSearchTerm('')}
-                                    className="clear-search-button"
-                                    aria-label="Clear search"
-                                >
-                                    <FontAwesomeIcon icon={faTimes} />
-                                </button>
-                            )}
+                    {showSearch && (
+                        <div className="header-center">
+                            <div className="header-search">
+                                <FontAwesomeIcon icon={faSearch} className="search-icon" />
+                                <input
+                                    type="text"
+                                    placeholder="Search your library..."
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                />
+                                {searchTerm && (
+                                    <button
+                                        onClick={() => setSearchTerm('')}
+                                        className="clear-search-button"
+                                        aria-label="Clear search"
+                                    >
+                                        <FontAwesomeIcon icon={faTimes} />
+                                    </button>
+                                )}
+                            </div>
+                            <SearchModeToggle />
                         </div>
-                        <SearchModeToggle />
-                    </div>
+                    )}
                 </Show>
 
                 <div className="header-right">

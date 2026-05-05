@@ -254,3 +254,70 @@
         --text-color-secondary: #f0abfc; // Faded pink for contrast
     }
 }
+
+// Wild Strawberry Theme Override (Hot pink / lime cream)
+[data-theme='wild-strawberry'] {
+    --primary-color: #fe4e96; // Wild Strawberry
+    --primary-color-rgb: 254, 78, 150;
+    --primary-hover: #e03080;
+
+    --button-bg: #fe4e96;
+    --button-text: #ffffff;
+    --link-color: #e03080;
+    --accent-color: #c8e83a; // Lime Cream accent
+    --related-articles-color: #fe4e96;
+    --related-articles-color-rgb: 254, 78, 150;
+    --related-articles-hover: #e03080;
+
+    &[data-appearance="light"] {
+        --background-color: #e3f482; // Lime Cream
+        --card-bg: #f0f9a0; // Lighter lime
+        --header-bg: #d6ed6a; // Slightly deeper lime
+        --text-color: #1a1a0a; // Near-black
+        --text-color-secondary: #4a5a10; // Olive-green
+        --card-border: #c8de55;
+    }
+
+    &[data-appearance="dark"] {
+        --background-color: #160610; // Deep berry-black
+        --card-bg: #270d1e; // Dark fuchsia
+        --header-bg: #270d1e;
+        --card-border: #55143a;
+        --text-color: #fff0f7; // Pale pink-white
+        --text-color-secondary: #fda8cd; // Soft strawberry
+    }
+}
+
+// Berry Red Theme Override (Crisp red / icy blue)
+[data-theme='berry-red'] {
+    --primary-color: #c21121; // Berry Red
+    --primary-color-rgb: 194, 17, 33;
+    --primary-hover: #a00e1b;
+
+    --button-bg: #c21121;
+    --button-text: #ffffff;
+    --link-color: #a00e1b;
+    --accent-color: #e53545; // Lighter red accent
+    --related-articles-color: #c21121;
+    --related-articles-color-rgb: 194, 17, 33;
+    --related-articles-hover: #a00e1b;
+
+    &[data-appearance="light"] {
+        --background-color: #b3e6fb; // Icy Blue
+        --card-bg: #e8f7fe; // Soft icy card
+        --header-bg: #9ddcf9; // Slightly deeper ice
+        --text-color: #0d1b2a; // Near-black
+        --text-color-secondary: #1e4d6b; // Deep steel blue
+        --card-border: #80d0f5;
+    }
+
+    &[data-appearance="dark"] {
+        --background-color: #100407; // Deep crimson-black
+        --card-bg: #1e0810; // Dark berry
+        --header-bg: #1e0810;
+        --card-border: #4a0e1a;
+        --text-color: #fce8ea; // Pale blush white
+        --text-color-secondary: #f4a0aa; // Soft pink-red
+    }
+}
+

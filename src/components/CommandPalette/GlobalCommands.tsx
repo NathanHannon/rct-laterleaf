@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useTheme } from '../../context/themeContext';
+import { useTheme } from '../../hooks/useTheme';
 import { useCommandContext } from '../../context/commandContext';
 import type { CommandItem } from '../../context/commandContext';
 import {

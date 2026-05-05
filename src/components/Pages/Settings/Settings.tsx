@@ -5,7 +5,7 @@ import { motion } from 'motion/react';
 import { useUserCredits } from '../../../hooks/useUserCredits';
 import { useUserStatus } from '../../../hooks/useUserStatus';
 import { useReadingPreferences } from '../../../hooks/useReadingPreferences';
-import { useTheme } from '../../../context/themeContext';
+import { useTheme } from '../../../hooks/useTheme';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCopy, faPodcast, faGem, faCoins, faCheckCircle, faTimesCircle, faUserShield, faWaveSquare, faBook, faCheck, faSwatchbook, faSun, faMoon, faDesktop, faPalette, faKeyboard } from '@fortawesome/free-solid-svg-icons';
 import { OfflineModelSettings } from './OfflineModelSettings';
@@ -318,6 +318,21 @@ const Settings = () => {
                                     <div className="theme-swatch coffee-swatch"></div>
                                     <span>Dark Coffee</span>
                                 </button>
+                                <button
+                                    className={`theme-selection-card berry ${theme === 'berry-red' ? 'active' : ''}`}
+                                    onClick={() => setTheme('berry-red')}
+                                >
+                                    <div className="theme-swatch berry-swatch"></div>
+                                    <span>Berry Red</span>
+                                </button>
+                                <button
+                                    className={`theme-selection-card strawberry ${theme === 'wild-strawberry' ? 'active' : ''}`}
+                                    onClick={() => setTheme('wild-strawberry')}
+                                >
+                                    <div className="theme-swatch strawberry-swatch"></div>
+                                    <span>Wild Strawberry</span>
+                                </button>
+
                             </div>
                         </div>
 

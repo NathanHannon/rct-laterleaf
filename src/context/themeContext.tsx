@@ -1,8 +1,10 @@
-import { createContext, useContext, useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useAuth } from '@clerk/react';
-import type { ThemeProviderProps, ThemeContextType, AppearancePreference, ThemeType } from '../interfaces/props/theme-props';
+import type { ThemeProviderProps, AppearancePreference, ThemeType } from '../interfaces/props/theme-props';
+import { ThemeContext } from './themeContextDef';
+export { ThemeContext } from './themeContextDef';
 
-const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
+
 
 export const ThemeProvider = ({ children }: ThemeProviderProps) => {
     const { getToken, isSignedIn } = useAuth();
@@ -17,7 +19,7 @@ export const ThemeProvider = ({ children }: ThemeProviderProps) => {
 
     const [theme, setThemeInternal] = useState<ThemeType>(() => {
         const stored = localStorage.getItem('theme');
-        const validThemes: ThemeType[] = ['default', 'cherry-blossom', 'midnight-ocean', 'forest-moss', 'nord-arctic', 'neon-nights', 'dark-coffee'];
+        const validThemes: ThemeType[] = ['default', 'cherry-blossom', 'midnight-ocean', 'forest-moss', 'nord-arctic', 'neon-nights', 'dark-coffee', 'berry-red', 'wild-strawberry'];
         if (stored && validThemes.includes(stored as ThemeType)) {
             return stored as ThemeType;
         }
@@ -106,12 +108,4 @@ export const ThemeProvider = ({ children }: ThemeProviderProps) => {
             {children}
         </ThemeContext.Provider>
     );
-};
-
-export const useTheme = () => {
-    const context = useContext(ThemeContext);
-    if (context === undefined) {
-        throw new Error('useTheme must be used within a ThemeProvider');
-    }
-    return context;
 };

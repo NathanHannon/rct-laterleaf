@@ -1,5 +1,5 @@
 import React from 'react';
-import { useTheme } from '../../../context/themeContext';
+import { useTheme } from '../../../hooks/useTheme';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSun, faMoon, faDesktop } from '@fortawesome/free-solid-svg-icons';
 import './ThemeSwitcher.scss';

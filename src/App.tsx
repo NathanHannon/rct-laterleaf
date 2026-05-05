@@ -24,7 +24,7 @@ import FeedsPage from './components/Pages/FeedsPage/FeedsPage';
 import ImportPage from './components/Pages/ImportPage/ImportPage';
 import BulkImporter from './components/Developer/BulkImporter/BulkImporter';
 import AIPlayground from './components/Developer/AIPlayground/AIPlayground';
-import { useTheme } from './context/themeContext';
+import { useTheme } from './hooks/useTheme';
 import HeroPage from './components/Pages/HeroPage/HeroPage';
 import PricingPage from './components/Pages/PricingPage/PricingPage';
 import Settings from './components/Pages/Settings/Settings';
