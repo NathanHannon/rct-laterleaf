@@ -27,6 +27,7 @@ import AIPlayground from './components/Developer/AIPlayground/AIPlayground';
 import { useTheme } from './hooks/useTheme';
 import HeroPage from './components/Pages/HeroPage/HeroPage';
 import PricingPage from './components/Pages/PricingPage/PricingPage';
+import BillingReturnPage from './components/Pages/BillingReturnPage/BillingReturnPage';
 import Settings from './components/Pages/Settings/Settings';
 import AdminPage from './components/Admin/AdminPage/AdminPage';
 import ResearchPage from './components/Pages/ResearchPage/ResearchPage';
@@ -78,6 +79,7 @@ function App() {
                               <Route path="/dev/import" element={<BulkImporter />} />
                               <Route path="/dev/ai" element={<AIPlayground />} />
                               <Route path="/pricing" element={<PricingPage />} />
+                              <Route path="/billing/return" element={<BillingReturnPage />} />
                               <Route path="/settings" element={<Settings />} />
                               <Route path="/admin" element={<AdminPage />} />
                               <Route path="/hero-page" element={<HeroPage />} />
