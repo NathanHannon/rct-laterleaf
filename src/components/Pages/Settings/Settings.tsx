@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useClerk, useUser } from "@clerk/react";
+import { useAuth, useClerk } from "@clerk/react";
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { useUserCredits } from '../../../hooks/useUserCredits';
@@ -12,8 +12,8 @@ import { OfflineModelSettings } from './OfflineModelSettings';
 import './Settings.scss';
 
 const Settings = () => {
+    const { getToken } = useAuth();
     const { openUserProfile } = useClerk();
-    const { user } = useUser();
     const navigate = useNavigate();
     const { credits, fetchCredits, loading } = useUserCredits();
     const { isPro } = useUserStatus();
@@ -21,6 +21,7 @@ const Settings = () => {
     const { readingFont, readingTheme, setReadingFont, setReadingTheme, fontOptions } = useReadingPreferences();
 
     const [activeTab, setActiveTab] = useState('account');
+    const [podcastFeedUrl, setPodcastFeedUrl] = useState('');
     const [showWaveform, setShowWaveform] = useState(() => {
         const saved = localStorage.getItem('laterleaf_show_waveform');
         return saved !== null ? JSON.parse(saved) : true;
@@ -37,6 +38,44 @@ const Settings = () => {
     useEffect(() => {
         fetchCredits();
     }, []);
+
+    useEffect(() => {
+        let isCancelled = false;
+
+        const loadFeedUrl = async () => {
+            if (!isPro) {
+                setPodcastFeedUrl('');
+                return;
+            }
+
+            try {
+                const token = await getToken();
+                const response = await fetch('/api/rss/podcast/feed-url', {
+                    headers: { Authorization: `Bearer ${token}` },
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to load podcast feed URL.');
+                }
+
+                const data = await response.json();
+                if (!isCancelled) {
+                    setPodcastFeedUrl(data.url || '');
+                }
+            } catch (error) {
+                console.error('Failed to fetch podcast feed URL:', error);
+                if (!isCancelled) {
+                    setPodcastFeedUrl('');
+                }
+            }
+        };
+
+        void loadFeedUrl();
+
+        return () => {
+            isCancelled = true;
+        };
+    }, [getToken, isPro]);
 
     const currentFontOption = fontOptions.find(f => f.id === readingFont) || fontOptions[0];
 
@@ -200,7 +239,7 @@ const Settings = () => {
                                         <input
                                             type="text"
                                             readOnly
-                                            value={`${window.location.origin.replace('http://localhost:5173', 'http://localhost:3000')}/api/rss/podcast/${user?.id || ''}.xml`}
+                                            value={podcastFeedUrl || 'Generating secure feed URL...'}
                                             style={{
                                                 flex: 1,
                                                 padding: '8px 12px',
@@ -212,7 +251,12 @@ const Settings = () => {
                                             }}
                                         />
                                         <button
-                                            onClick={() => navigator.clipboard.writeText(`${window.location.origin.replace('http://localhost:5173', 'http://localhost:3000')}/api/rss/podcast/${user?.id || ''}.xml`)}
+                                            onClick={() => {
+                                                if (podcastFeedUrl) {
+                                                    navigator.clipboard.writeText(podcastFeedUrl);
+                                                }
+                                            }}
+                                            disabled={!podcastFeedUrl}
                                             style={{
                                                 padding: '8px 16px',
                                                 background: 'var(--primary-color)',
