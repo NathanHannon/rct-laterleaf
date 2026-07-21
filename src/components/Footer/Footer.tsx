@@ -22,10 +22,10 @@ const Footer: React.FC = () => {
                 <a href="https://x.com/laterleaf" target="_blank" rel="noopener noreferrer" aria-label="X (Twitter)">
                     <FontAwesomeIcon icon={faXTwitter as IconProp} />
                 </a>
-                <a href="https://instagram.com/laterleaf" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
+                <a href="https://instagram.com/laterleafhq" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
                     <FontAwesomeIcon icon={faInstagram as IconProp} />
                 </a>
-                <a href="https://threads.net/@laterleaf" target="_blank" rel="noopener noreferrer" aria-label="Threads">
+                <a href="https://www.threads.net/@laterleafhq" target="_blank" rel="noopener noreferrer" aria-label="Threads">
                     <FontAwesomeIcon icon={faThreads as IconProp} />
                 </a>
             </div>
