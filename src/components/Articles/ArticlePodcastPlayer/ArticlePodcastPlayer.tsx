@@ -5,6 +5,8 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlay, faPause, faSpinner, faPodcast, faCog, faRotateLeft, faRotateRight, faRedo, faDownload } from '@fortawesome/free-solid-svg-icons';
 import { useUserStatus } from '../../../hooks/useUserStatus';
 import { useAudio } from '../../../context/useAudio';
+import { useNavigate } from 'react-router-dom';
+import { useToastContext } from '../../../context/toastContextUtils';
 import ConfirmationDialog from '../../Common/ConfirmationDialog/ConfirmationDialog';
 import WaveformAnimation from '../../Common/WaveformAnimation/WaveformAnimation';
 import { LANGUAGES } from '../../../constants/languages';
@@ -33,7 +35,9 @@ const ArticlePodcastPlayer: React.FC<ArticlePodcastPlayerProps> = ({
     selectedLanguage
 }) => {
     const { getToken } = useAuth();
+    const navigate = useNavigate();
     const { isPro } = useUserStatus();
+    const { showWarning } = useToastContext();
     const queryClient = useQueryClient();
 
     // Global Audio state
@@ -310,7 +314,15 @@ const ArticlePodcastPlayer: React.FC<ArticlePodcastPlayerProps> = ({
     const generatePodcast = async (forceRegenerate = false) => {
         setLocalError(null);
         if (!isPro) {
-            alert('Podcast generation is a Pro-only feature.');
+            showWarning(
+                'Podcast generation is Pro-only',
+                'Upgrade to generate audio versions of your articles.',
+                8000,
+                {
+                    label: 'View plans',
+                    onClick: () => navigate('/pricing'),
+                },
+            );
             return;
         }
 

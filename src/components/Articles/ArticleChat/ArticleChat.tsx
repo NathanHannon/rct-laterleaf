@@ -4,6 +4,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'motion/react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { useNavigate } from 'react-router-dom';
+import { useToastContext } from '../../../context/toastContextUtils';
 import './ArticleChat.scss';
 
 function getSuggestions(title?: string, summary?: string): string[] {
@@ -57,6 +59,8 @@ interface ArticleChatProps {
 
 const ArticleChat = ({ articleId, isOpen, onClose, userHasProAccess, articleTitle, articleSummary }: ArticleChatProps) => {
     const { getToken } = useAuth();
+    const navigate = useNavigate();
+    const { showWarning } = useToastContext();
     const queryClient = useQueryClient();
     const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
     const [chatInput, setChatInput] = useState('');
@@ -121,7 +125,15 @@ const ArticleChat = ({ articleId, isOpen, onClose, userHasProAccess, articleTitl
         if (!message.trim()) return;
 
         if (!userHasProAccess) {
-            alert('Chat functionality is available for Pro users only. Please upgrade to access this feature.');
+            showWarning(
+                'Chat is a Pro feature',
+                'Upgrade to access article chat and ask questions about this piece.',
+                8000,
+                {
+                    label: 'View plans',
+                    onClick: () => navigate('/pricing'),
+                },
+            );
             return;
         }
 

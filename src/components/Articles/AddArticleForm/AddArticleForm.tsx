@@ -5,6 +5,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlus, faSpinner, faPuzzlePiece } from '@fortawesome/free-solid-svg-icons';
 import { useToastContext } from '../../../context/toastContextUtils';
 import { useApiErrorHandler } from '../../../hooks/useApiErrorHandler';
+import { TIP_STORAGE_KEYS, hasSeenTip, markTipSeen, notificationTips } from '../../../constants/notificationTips';
 import './AddArticleForm.scss';
 
 interface AddArticleFormProps {
@@ -13,7 +14,7 @@ interface AddArticleFormProps {
 
 const AddArticleForm: React.FC<AddArticleFormProps> = ({ onArticleAdded }) => {
     const { getToken } = useAuth();
-    const { showSuccess, showWarning } = useToastContext();
+    const { showSuccess, showWarning, showInfo } = useToastContext();
     const { handleApiError, handleGenericError } = useApiErrorHandler();
     const [newLink, setNewLink] = useState('');
 
@@ -44,10 +45,19 @@ const AddArticleForm: React.FC<AddArticleFormProps> = ({ onArticleAdded }) => {
             if (data.success === false) {
                 showWarning(
                     'Saved Link Only',
-                    'We couldn\'t extract the content (likely due to a paywall). Try using the LaterLeaf Browser Extension directly on the page for better results!'
+                    `${notificationTips.extensionImport.message} We couldn\'t extract the content, so this article was saved as a link.`
                 );
             } else {
                 showSuccess('Article Saved!', 'The article has been successfully added to your list.');
+
+                if (!hasSeenTip(TIP_STORAGE_KEYS.extensionImport)) {
+                    showInfo(
+                        notificationTips.extensionImport.title,
+                        notificationTips.extensionImport.message,
+                        8000,
+                    );
+                    markTipSeen(TIP_STORAGE_KEYS.extensionImport);
+                }
             }
         },
         onError: (err) => {

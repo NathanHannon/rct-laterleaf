@@ -4,10 +4,13 @@ import { useMutation } from '@tanstack/react-query';
 import { motion } from 'motion/react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faDownload, faSpinner, faFileCsv, faFileCode } from '@fortawesome/free-solid-svg-icons';
+import { useToastContext } from '../../../context/toastContextUtils';
+import { TIP_STORAGE_KEYS, hasSeenTip, markTipSeen, notificationTips } from '../../../constants/notificationTips';
 import './ExportPage.scss';
 
 const ExportPage: React.FC = () => {
     const { getToken } = useAuth();
+    const { showError, showSuccess, showInfo } = useToastContext();
 
     const exportMutation = useMutation({
         mutationFn: async (format: 'csv' | 'html' | 'json') => {
@@ -35,10 +38,24 @@ const ExportPage: React.FC = () => {
             link.click();
             window.URL.revokeObjectURL(url);
             document.body.removeChild(link);
+
+            return format;
+        },
+        onSuccess: (format) => {
+            showSuccess('Export ready', 'Your download should begin automatically.');
+
+            if (!hasSeenTip(TIP_STORAGE_KEYS.exportFormats)) {
+                showInfo(
+                    notificationTips.exportFormats.title,
+                    `${notificationTips.exportFormats.message} You just exported ${format.toUpperCase()}.`,
+                    8000,
+                );
+                markTipSeen(TIP_STORAGE_KEYS.exportFormats);
+            }
         },
         onError: (error) => {
             console.error('Export failed:', error);
-            alert('Export failed. Please try again.');
+            showError('Export failed', 'Please try again in a moment.');
         },
     });
 

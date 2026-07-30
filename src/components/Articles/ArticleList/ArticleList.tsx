@@ -15,6 +15,7 @@ import { sortArticles } from '../../../utils/sortUtils';
 import { motion } from 'motion/react';
 import { useUserStatus } from '../../../hooks/useUserStatus';
 import { useToastContext } from '../../../context/toastContextUtils';
+import { TIP_STORAGE_KEYS, getKeyboardShortcutLabel, hasSeenTip, markTipSeen, notificationTips } from '../../../constants/notificationTips';
 
 const ArticleList = () => {
     // const [articles, setArticles] = useState<Article[]>([]);
@@ -91,18 +92,16 @@ const ArticleList = () => {
     const { showInfo } = useToastContext();
     useEffect(() => {
         if (!isLoaded || !isSignedIn) return;
-        const key = 'laterleaf_cmdk_hint_shown';
         const visitKey = 'laterleaf_visit_count';
-        if (localStorage.getItem(key)) return;
+        if (hasSeenTip(TIP_STORAGE_KEYS.commandPalette)) return;
 
         const visits = parseInt(localStorage.getItem(visitKey) || '0', 10) + 1;
         localStorage.setItem(visitKey, String(visits));
 
         if (visits >= 3) {
-            const isMac = navigator.userAgent.includes('Mac');
-            const shortcut = isMac ? '⌘K' : 'Ctrl+K';
-            showInfo('Pro tip', `Press ${shortcut} to quickly navigate, search, and run actions.`, 8000);
-            localStorage.setItem(key, 'true');
+            const shortcut = getKeyboardShortcutLabel();
+            showInfo(notificationTips.commandPalette.title, notificationTips.commandPalette.message(shortcut), 8000);
+            markTipSeen(TIP_STORAGE_KEYS.commandPalette);
         }
     }, [isLoaded, isSignedIn, showInfo]);
 

@@ -9,10 +9,18 @@ interface ToastContainerProps {
 }
 
 const ToastContainer: React.FC<ToastContainerProps> = ({ toasts, onDismiss }) => {
+    const orderedToasts = [...toasts].sort((a, b) => {
+        if (a.priority !== b.priority) {
+            return b.priority - a.priority;
+        }
+
+        return b.createdAt - a.createdAt;
+    });
+
     return (
         <div className="toast-container">
             <AnimatePresence mode="popLayout">
-                {toasts.map((toast) => (
+                {orderedToasts.map((toast) => (
                     <Toast
                         key={toast.id}
                         toast={toast}

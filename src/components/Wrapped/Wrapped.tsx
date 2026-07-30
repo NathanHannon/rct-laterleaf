@@ -3,6 +3,7 @@ import { useAuth } from "@clerk/react";
 import { useQuery } from '@tanstack/react-query';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTimes, faChevronRight, faChevronLeft, faShareNodes } from '@fortawesome/free-solid-svg-icons';
+import { useToastContext } from '../../context/toastContextUtils';
 import './Wrapped.scss';
 
 interface WrappedStats {
@@ -24,6 +25,7 @@ interface WrappedProps {
 
 const Wrapped = ({ year = new Date().getFullYear(), onClose }: WrappedProps) => {
     const { getToken } = useAuth();
+    const { showInfo } = useToastContext();
     const [currentSlide, setCurrentSlide] = useState(0);
 
     const { data: stats, isLoading: loading } = useQuery({
@@ -113,7 +115,10 @@ const Wrapped = ({ year = new Date().getFullYear(), onClose }: WrappedProps) => 
             render: () => (
                 <div className="wrapped-slide outro">
                     <h1>See you in {year + 1}!</h1>
-                    <button className="share-btn" onClick={() => alert('Screenshot to share!')}>
+                    <button
+                        className="share-btn"
+                        onClick={() => showInfo('Sharing tip', 'Use your browser or OS screenshot/share tools to capture this recap.', 7000)}
+                    >
                         Share <FontAwesomeIcon icon={faShareNodes} />
                     </button>
                 </div>
