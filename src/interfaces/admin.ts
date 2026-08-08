@@ -45,6 +45,26 @@ export interface AdminUser {
 
 export interface AdminAccess {
     isAdmin: boolean;
+    canSelectAiProvider: boolean;
     clerkId: string;
     metadata?: Record<string, unknown>;
+}
+
+export type AiProvider = 'gemini' | 'openai-compatible';
+export type AiProviderMode = AiProvider | 'compare';
+export type AiModelTier = 'free' | 'pro' | 'podcast';
+
+export interface AiComparisonResult {
+    provider: AiProvider;
+    model?: string;
+    text?: string;
+    inputTokens?: number;
+    outputTokens?: number;
+    estimatedCostUsd?: number;
+    durationMs: number;
+    error?: string;
+}
+
+export interface AiComparisonResponse {
+    results: AiComparisonResult[];
 }

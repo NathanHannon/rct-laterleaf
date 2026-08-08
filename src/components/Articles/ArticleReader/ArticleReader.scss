@@ -39,6 +39,68 @@
         margin-top: 1rem;
     }
 
+    .admin-summary-provider {
+        width: fit-content;
+        margin: 1.25rem 0 0;
+        padding: 0;
+        border: 0;
+
+        legend {
+            margin-bottom: 0.45rem;
+            color: var(--secondary-color);
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        &__options {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(4.5rem, 1fr));
+            padding: 0.2rem;
+            border: 1px solid var(--card-border);
+            border-radius: 8px;
+            background: var(--background-color);
+
+            label {
+                position: relative;
+                cursor: pointer;
+            }
+
+            input {
+                position: absolute;
+                inline-size: 1px;
+                block-size: 1px;
+                opacity: 0;
+            }
+
+            span {
+                display: grid;
+                min-block-size: 2rem;
+                padding-inline: 0.65rem;
+                place-items: center;
+                border-radius: 6px;
+                color: var(--secondary-color);
+                font-size: 0.78rem;
+                font-weight: 600;
+                transition: background-color 0.15s ease, color 0.15s ease;
+            }
+
+            label:has(input:checked) span {
+                background: var(--primary-color);
+                color: var(--button-text);
+            }
+
+            input:focus-visible + span {
+                outline: 2px solid var(--primary-color);
+                outline-offset: 2px;
+            }
+
+            input:disabled + span {
+                cursor: not-allowed;
+                opacity: 0.55;
+            }
+        }
+    }
+
     .article-author,
     .article-date {
         color: var(--secondary-color);

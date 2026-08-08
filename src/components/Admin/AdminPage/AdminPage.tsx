@@ -5,11 +5,12 @@ import { motion } from 'framer-motion';
 import LoadingSpinner from '../../Common/LoadingSpinner/LoadingSpinner';
 import './AdminPage.scss';
 import type { AdminAccess, BlockedDomain, AdminStats, AdminUser, QueueStats } from '../../../interfaces/admin';
+import AiComparisonPanel from '../AiComparisonPanel/AiComparisonPanel';
 
 const AdminPage: React.FC = () => {
     const { getToken } = useAuth();
     const queryClient = useQueryClient();
-    const [activeTab, setActiveTab] = useState<'system' | 'users' | 'domains'>('system');
+    const [activeTab, setActiveTab] = useState<'system' | 'users' | 'domains' | 'ai'>('system');
     const [error, setError] = useState<string | null>(null);
 
     // Form state for adding new domain
@@ -188,7 +189,7 @@ const AdminPage: React.FC = () => {
                 </motion.div>
             )}
 
-            <div className="admin-tabs">
+            <div className="admin-tabs" role="tablist" aria-label="Admin sections">
                 <button
                     className={`tab-button ${activeTab === 'system' ? 'active' : ''}`}
                     onClick={() => setActiveTab('system')}
@@ -207,6 +208,16 @@ const AdminPage: React.FC = () => {
                 >
                     Blocked Domains
                 </button>
+                {adminAccess.canSelectAiProvider && (
+                    <button
+                        className={`tab-button ${activeTab === 'ai' ? 'active' : ''}`}
+                        onClick={() => setActiveTab('ai')}
+                        role="tab"
+                        aria-selected={activeTab === 'ai'}
+                    >
+                        AI Lab
+                    </button>
+                )}
             </div>
 
             <div className="admin-content">
@@ -363,6 +374,8 @@ const AdminPage: React.FC = () => {
                         </div>
                     </motion.div>
                 )}
+
+                {activeTab === 'ai' && adminAccess.canSelectAiProvider && <AiComparisonPanel />}
             </div>
         </div>
     );

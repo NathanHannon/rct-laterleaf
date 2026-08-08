@@ -73,6 +73,7 @@
 
     .admin-tabs {
         display: flex;
+        flex-wrap: wrap;
         gap: 1rem;
         margin-bottom: 2rem;
         border-bottom: 1px solid var(--card-border);

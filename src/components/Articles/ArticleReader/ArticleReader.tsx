@@ -27,6 +27,9 @@ import { saveOfflineArticle, removeOfflineArticle, isArticleOffline, getOfflineA
 import { useLanguageDetection } from '../../../hooks/useLanguageDetection';
 import { useCommandContext } from '../../../context/commandContext';
 import type { CommandItem } from '../../../context/commandContext';
+import type { AdminAccess, AiProvider } from '../../../interfaces/admin';
+
+type SummaryProvider = AiProvider | 'default';
 
 const ArticleReader = () => {
     const { articleId } = useParams<{ articleId: string }>();
@@ -36,6 +39,20 @@ const ArticleReader = () => {
     const { readingTheme, currentFontOption } = useReadingPreferences();
     const navigate = useNavigate();
     const queryClient = useQueryClient();
+
+    const { data: adminAccess } = useQuery({
+        queryKey: ['admin', 'access'],
+        queryFn: async () => {
+            const token = await getToken();
+            const response = await fetch('/api/admin/check-access', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (!response.ok) throw new Error('Failed to check admin access');
+            return response.json() as Promise<AdminAccess>;
+        },
+        retry: false,
+        staleTime: 5 * 60 * 1000,
+    });
 
     // Replaced manual fetch with TanStack Query
     const { data: article, isLoading: loading, error: queryError } = useQuery({
@@ -111,6 +128,7 @@ const ArticleReader = () => {
     const [showSummaryLangDropdown, setShowSummaryLangDropdown] = useState(false);
     const [isTranslating, setIsTranslating] = useState(false);
     const [currentLanguage, setCurrentLanguage] = useState<string>('original');
+    const [summaryProvider, setSummaryProvider] = useState<SummaryProvider>('default');
 
     // Offline status
     const [isAvailableOffline, setIsAvailableOffline] = useState(false);
@@ -451,6 +469,7 @@ const ArticleReader = () => {
             const params = new URLSearchParams();
             if (useProSummary && !userHasProAccess) params.append('usePro', 'true');
             if (detectedLanguage) params.append('language', detectedLanguage);
+            if (adminAccess?.canSelectAiProvider && summaryProvider !== 'default') params.append('provider', summaryProvider);
             const qs = params.toString();
             const url = `/api/articles/${articleId}/summarize${qs ? `?${qs}` : ''}`;
             const response = await fetch(url, {
@@ -496,6 +515,7 @@ const ArticleReader = () => {
             // Build query params
             const params = new URLSearchParams({ force: 'true' });
             if (effectiveUsePro) params.append('usePro', 'true');
+            if (adminAccess?.canSelectAiProvider && summaryProvider !== 'default') params.append('provider', summaryProvider);
 
             // Send the ISO code (e.g., 'es') directly to the backend
             if (targetLangCode) params.append('language', targetLangCode);
@@ -853,6 +873,26 @@ const ArticleReader = () => {
                         </div>
                     )}
                 </div>
+                {adminAccess?.canSelectAiProvider && (
+                    <fieldset className="admin-summary-provider">
+                        <legend>Admin summary provider</legend>
+                        <div className="admin-summary-provider__options">
+                            {([['default', 'Default'], ['gemini', 'Gemini'], ['openai-compatible', 'OpenAI']] as const).map(([value, label]) => (
+                                <label key={value}>
+                                    <input
+                                        type="radio"
+                                        name="summaryProvider"
+                                        value={value}
+                                        checked={summaryProvider === value}
+                                        onChange={() => setSummaryProvider(value)}
+                                        disabled={isGeneratingSummary}
+                                    />
+                                    <span>{label}</span>
+                                </label>
+                            ))}
+                        </div>
+                    </fieldset>
+                )}
             </div>
 
 
