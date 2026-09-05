@@ -28,8 +28,24 @@ import { useLanguageDetection } from '../../../hooks/useLanguageDetection';
 import { useCommandContext } from '../../../context/commandContext';
 import type { CommandItem } from '../../../context/commandContext';
 import type { AdminAccess, AiProvider } from '../../../interfaces/admin';
+import { useToastContext } from '../../../context/toastContextUtils';
 
 type SummaryProvider = AiProvider | 'default';
+
+interface SummarySoftCapWarning {
+    enabled: boolean;
+    limit: number;
+    remaining: number;
+    threshold: number;
+}
+
+interface SummaryResponse {
+    summary: string;
+    model?: string;
+    status: 'completed' | 'pending';
+    fallbackUsed?: boolean;
+    softCapWarning?: SummarySoftCapWarning | null;
+}
 
 const ArticleReader = () => {
     const { articleId } = useParams<{ articleId: string }>();
@@ -37,6 +53,7 @@ const ArticleReader = () => {
     const { isPro } = useUserStatus();
     const { credits, fetchCredits } = useUserCredits();
     const { readingTheme, currentFontOption } = useReadingPreferences();
+    const { showWarning } = useToastContext();
     const navigate = useNavigate();
     const queryClient = useQueryClient();
 
@@ -163,6 +180,16 @@ const ArticleReader = () => {
 
     const getLanguageName = (code: string) => {
         return LANGUAGES.find(l => l.code === code)?.name || 'English';
+    };
+
+    const showSummaryCreditWarning = (softCapWarning?: SummarySoftCapWarning | null) => {
+        if (!softCapWarning?.enabled) return;
+
+        const summaryLabel = softCapWarning.remaining === 1 ? 'summary' : 'summaries';
+        showWarning(
+            'Approaching your monthly summary limit',
+            `${softCapWarning.remaining} free ${summaryLabel} remaining this month. Upgrade to Pro for unlimited summaries.`,
+        );
     };
 
     const handleTranslate = async (langCode: string) => {
@@ -483,7 +510,7 @@ const ArticleReader = () => {
                 throw new Error('Failed to generate summary');
             }
 
-            const data = await response.json();
+            const data = await response.json() as SummaryResponse;
             setArticle(prev => prev ? { ...prev, summary: data.summary, summaryStatus: data.status, summaryLanguage: detectedLanguage || 'en' } : null);
             // Store metadata about the summary generation
             setSummaryMetadata({
@@ -491,6 +518,8 @@ const ArticleReader = () => {
                 fallbackUsed: data.fallbackUsed,
                 status: data.status
             });
+            showSummaryCreditWarning(data.softCapWarning);
+            void fetchCredits();
             setShowSummary(true);
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Failed to generate summary');
@@ -532,7 +561,7 @@ const ArticleReader = () => {
                 throw new Error('Failed to regenerate summary');
             }
 
-            const data = await response.json();
+            const data = await response.json() as SummaryResponse;
             // Optimistically update the language if we requested a specific one
             const newLang = languageCode || article.summaryLanguage || 'en';
 
@@ -549,6 +578,8 @@ const ArticleReader = () => {
                 fallbackUsed: data.fallbackUsed,
                 status: data.status
             });
+            showSummaryCreditWarning(data.softCapWarning);
+            void fetchCredits();
             setShowSummary(true);
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Failed to regenerate summary');
