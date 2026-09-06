@@ -62,7 +62,22 @@ const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(({ isOpen, onClose }, r
                     {/* Navigation Links */}
                     <nav className="sidebar__nav">
                         <div className="nav-section">
-                            <h4>Navigation</h4>
+                            <h4>Your reading</h4>
+                            <NavLink viewTransition to="/articles" onClick={onClose} className="nav-link">
+                                <FontAwesomeIcon icon={faInbox} />
+                                <span>Library</span>
+                            </NavLink>
+                            <NavLink viewTransition to="/bookmarks" onClick={onClose} className="nav-link">
+                                <FontAwesomeIcon icon={faBookmark} />
+                                <span>Favorites</span>
+                            </NavLink>
+                            <NavLink viewTransition to="/collections" onClick={onClose} className="nav-link">
+                                <FontAwesomeIcon icon={faFolderOpen} />
+                                <span>Collections</span>
+                            </NavLink>
+                        </div>
+                        <div className="nav-section">
+                            <h4>Explore</h4>
                             <NavLink viewTransition to="/discover" onClick={onClose} className="nav-link">
                                 <FontAwesomeIcon icon={faCompass} />
                                 <span>Discover</span>
@@ -70,18 +85,6 @@ const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(({ isOpen, onClose }, r
                             <NavLink viewTransition to="/feeds" onClick={onClose} className="nav-link">
                                 <FontAwesomeIcon icon={faRss} />
                                 <span>Feeds</span>
-                            </NavLink>
-                            <NavLink viewTransition to="/articles" onClick={onClose} className="nav-link">
-                                <FontAwesomeIcon icon={faInbox} />
-                                <span>My Articles</span>
-                            </NavLink>
-                            <NavLink viewTransition to="/bookmarks" onClick={onClose} className="nav-link">
-                                <FontAwesomeIcon icon={faBookmark} />
-                                <span>Bookmarks</span>
-                            </NavLink>
-                            <NavLink viewTransition to="/collections" onClick={onClose} className="nav-link">
-                                <FontAwesomeIcon icon={faFolderOpen} />
-                                <span>Collections</span>
                             </NavLink>
                             <NavLink viewTransition to="/research" onClick={onClose} className="nav-link">
                                 <FontAwesomeIcon icon={faAtom} />

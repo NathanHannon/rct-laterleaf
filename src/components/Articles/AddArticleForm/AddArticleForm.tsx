@@ -69,35 +69,40 @@ const AddArticleForm: React.FC<AddArticleFormProps> = ({ onArticleAdded }) => {
 
     const handleImportArticle = (e: React.FormEvent) => {
         e.preventDefault();
-        if (!newLink || isImporting) return;
-        importMutation.mutate(newLink);
+        if (!newLink.trim() || isImporting) return;
+        importMutation.mutate(newLink.trim());
     };
 
     return (
         <div className="add-article-wrapper">
+            <label className="save-article-label" htmlFor="save-article-url">Save an article</label>
             <form className="add-article-form" onSubmit={handleImportArticle}>
                 <div className="input-wrapper">
                     <input
-                        type="text"
-                        placeholder="Have an article you want to save? Paste the link here..."
+                        id="save-article-url"
+                        type="url"
+                        required
+                        autoComplete="url"
+                        aria-describedby="save-article-help"
+                        placeholder="Paste an article link…"
                         value={newLink}
                         onChange={(e) => setNewLink(e.target.value)}
                         disabled={isImporting}
                     />
-                    <button type="submit" className="save-link-button" disabled={!newLink || isImporting}>
+                    <button type="submit" className="save-link-button" disabled={!newLink.trim() || isImporting}>
                         {isImporting ? (
                             <FontAwesomeIcon icon={faSpinner} spin />
                         ) : (
                             <FontAwesomeIcon icon={faPlus} />
                         )}
-                        <span>Save</span>
+                        <span>{isImporting ? 'Saving…' : 'Save'}</span>
                     </button>
                 </div>
             </form>
-            <div className="extension-promo">
+            <div className="extension-promo" id="save-article-help">
                 <FontAwesomeIcon icon={faPuzzlePiece} />
                 <span>
-                    Pro Tip: Use the <strong>LaterLeaf Browser Extension</strong> to save paywalled articles directly.
+                    You can also save as you browse with the <strong>LaterLeaf browser extension.</strong>
                 </span>
             </div>
         </div>

@@ -166,3 +166,12 @@
         }
     }
 }
+// Native modal behavior supplies focus containment and restores the trigger on close.
+dialog.confirmation-dialog-overlay {
+    width: 100%; max-width: none; height: 100dvh; max-height: none; margin: 0; border: 0; color: inherit;
+    &:not([open]) { display: none; }
+    &::backdrop { background: transparent; }
+    .confirmation-dialog { max-height: calc(100dvh - 2rem); overflow-y: auto; }
+    button:disabled { opacity: .55; cursor: wait; }
+    button:focus-visible { outline: 2px solid var(--text-color); outline-offset: 3px; }
+}

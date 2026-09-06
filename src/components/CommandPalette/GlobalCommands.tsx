@@ -23,9 +23,9 @@ export default function GlobalCommands() {
 
     useEffect(() => {
         const globalCommands: CommandItem[] = [
-            { id: 'nav-inbox', label: 'Go to Article List', icon: faInbox, action: () => navigate('/'), section: 'Navigation' },
+            { id: 'nav-inbox', label: 'Go to Library', icon: faInbox, action: () => navigate('/'), section: 'Navigation' },
             { id: 'nav-collections', label: 'Go to Collections', icon: faFolderOpen, action: () => navigate('/collections'), section: 'Navigation' },
-            { id: 'nav-favorites', label: 'Go to Favorites', icon: faBookmark, action: () => navigate('/favorites'), section: 'Navigation' },
+            { id: 'nav-favorites', label: 'Go to Favorites', icon: faBookmark, action: () => navigate('/bookmarks'), section: 'Navigation' },
             { id: 'nav-archive', label: 'Go to Archive', icon: faArchive, action: () => navigate('/archive'), section: 'Navigation' },
             { id: 'nav-discover', label: 'Go to Discover', icon: faCompass, action: () => navigate('/discover'), section: 'Navigation' },
             { id: 'nav-feeds', label: 'Go to RSS Feeds', icon: faRss, action: () => navigate('/feeds'), section: 'Navigation' },

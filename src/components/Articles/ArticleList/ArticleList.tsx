@@ -1,312 +1,118 @@
 import { useState, useEffect } from 'react';
-import { useAuth } from "@clerk/react";
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Link } from 'react-router-dom';
+import { useAuth } from '@clerk/react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useSearch } from '../../../hooks/searchHook';
-import { useDebounce } from '../../../hooks/useDebounce'; // Import the new hook
+import { useDebounce } from '../../../hooks/useDebounce';
+import { useArticleActions } from '../../../hooks/useArticleActions';
 import type { Article } from '../../../interfaces/article';
 import ArticleCard from '../ArticleCard/ArticleCard';
 import SortDropdown from '../SortDropdown/SortDropdown';
 import ConfirmationDialog from '../../Common/ConfirmationDialog/ConfirmationDialog';
 import LoadingSpinner from '../../Common/LoadingSpinner/LoadingSpinner';
 import type { SortOption } from '../../../interfaces/sort';
-import './ArticleList.scss';
 import AddArticleForm from '../AddArticleForm/AddArticleForm';
 import { sortArticles } from '../../../utils/sortUtils';
-import { motion } from 'motion/react';
-import { useUserStatus } from '../../../hooks/useUserStatus';
 import { useToastContext } from '../../../context/toastContextUtils';
 import { TIP_STORAGE_KEYS, getKeyboardShortcutLabel, hasSeenTip, markTipSeen, notificationTips } from '../../../constants/notificationTips';
+import './ArticleList.scss';
 
 const ArticleList = () => {
-    // const [articles, setArticles] = useState<Article[]>([]);
-    const { getToken, isLoaded, isSignedIn } = useAuth();
-    const { searchTerm, searchMode } = useSearch();
-    const { isPro } = useUserStatus(); // Use the context for pro status
-    // const [isSearching, setIsSearching] = useState(false);
+    const { getToken, isLoaded, isSignedIn, userId } = useAuth();
+    const { searchTerm, setSearchTerm, searchMode } = useSearch();
     const queryClient = useQueryClient();
+    const debouncedSearchTerm = useDebounce(searchTerm, 400).trim();
+    const isSearch = searchTerm.trim().length > 0;
+    const isShortSearch = searchTerm.trim().length === 1;
+    const isSearchSettling = searchTerm.trim() !== debouncedSearchTerm;
+    const actionMutation = useArticleActions();
+    const [deletingId, setDeletingId] = useState<string | null>(null);
 
-    // Debounce the search term to prevent API calls on every keystroke
-    const debouncedSearchTerm = useDebounce(searchTerm, 400); // 400ms delay
-
-    const { data: articles = [], isLoading } = useQuery({
-        queryKey: ['articles', debouncedSearchTerm, searchMode],
-        enabled: isLoaded && isSignedIn,
-        queryFn: async () => {
+    const { data: articles = [], isLoading, isFetching, isError, refetch } = useQuery({
+        queryKey: ['articles', 'library', userId, debouncedSearchTerm, searchMode],
+        enabled: isLoaded && !!isSignedIn,
+        queryFn: async ({ signal }) => {
+            if (debouncedSearchTerm.length === 1) return [];
             const token = await getToken();
-            const trimmedSearch = debouncedSearchTerm.trim();
-            let url = '/api/articles';
-
-            // Use search endpoint if term is present (>2 chars for search)
-            if (trimmedSearch.length >= 2) {
-                url = `/api/search?q=${encodeURIComponent(trimmedSearch)}&mode=${searchMode}`;
-            } else if (trimmedSearch.length === 1) {
-                // Return empty if 1 char (mimicking original logic)
-                return [];
-            }
-
-            const response = await fetch(url, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-
-            if (!response.ok) {
-                const errorText = await response.text();
-                throw new Error(`Fetch failed: ${errorText}`);
-            }
-
+            const searching = debouncedSearchTerm.length >= 2;
+            const url = searching
+                ? `/api/search?q=${encodeURIComponent(debouncedSearchTerm)}&mode=${searchMode}`
+                : '/api/articles';
+            const response = await fetch(url, { signal, headers: { Authorization: `Bearer ${token}` } });
+            if (!response.ok) throw new Error('Unable to load your library.');
             const data = await response.json();
-
-            // Handle search result format wrapper
-            if (trimmedSearch.length >= 2) {
-                return (data?.results && Array.isArray(data.results)) ? data.results : [];
-            }
-
-            return Array.isArray(data) ? data : [];
-        }
+            const results = searching ? data?.results : data;
+            if (!Array.isArray(results)) throw new Error('Unexpected library response.');
+            return results as Article[];
+        },
     });
-
-    // Consolidated data fetching effect - REMOVED in favor of useQuery
-    /* const fetchArticles = useCallback(async () => {
-        // ... (removed)
-    }, [getToken, isLoaded, isSignedIn]); */
-
-    // Original useEffect for search/fetch - REMOVED in favor of useQuery
-    /* useEffect(() => {
-       // ... (removed)
-    }, [debouncedSearchTerm, searchMode, isLoaded, isSignedIn, getToken, fetchArticles]); */
 
     const [sortBy, setSortBy] = useState<SortOption>(() => {
-        // Load saved sort preference from localStorage, default to 'newest-first'
         const saved = localStorage.getItem('articleSortPreference');
-        return (saved as SortOption) || 'newest-first';
+        const valid: SortOption[] = ['newest-first', 'oldest-first', 'alphabetical', 'alphabetical-reverse', 'bookmarks-first'];
+        return valid.includes(saved as SortOption) ? saved as SortOption : 'newest-first';
     });
     const [isSortDropdownOpen, setIsSortDropdownOpen] = useState(false);
-    const [deleteConfirm, setDeleteConfirm] = useState<{ show: boolean; articleId: string | null }>({
-        show: false,
-        articleId: null
-    });
-
-    // Log pro status for debugging
-    console.log('📋 ArticleList: Pro access status:', isPro, '| User loaded:', isLoaded);
-
-    // One-time command palette hint (show on 3rd visit)
     const { showInfo } = useToastContext();
-    useEffect(() => {
-        if (!isLoaded || !isSignedIn) return;
-        const visitKey = 'laterleaf_visit_count';
-        if (hasSeenTip(TIP_STORAGE_KEYS.commandPalette)) return;
 
+    useEffect(() => {
+        if (!isLoaded || !isSignedIn || hasSeenTip(TIP_STORAGE_KEYS.commandPalette)) return;
+        const visitKey = 'laterleaf_visit_count';
         const visits = parseInt(localStorage.getItem(visitKey) || '0', 10) + 1;
         localStorage.setItem(visitKey, String(visits));
-
         if (visits >= 3) {
-            const shortcut = getKeyboardShortcutLabel();
-            showInfo(notificationTips.commandPalette.title, notificationTips.commandPalette.message(shortcut), 8000);
+            showInfo(notificationTips.commandPalette.title, notificationTips.commandPalette.message(getKeyboardShortcutLabel()), 8000);
             markTipSeen(TIP_STORAGE_KEYS.commandPalette);
         }
     }, [isLoaded, isSignedIn, showInfo]);
 
-    // Close sort dropdown when clicking outside
     useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            if (isSortDropdownOpen) {
-                const target = event.target as Element;
-                if (!target.closest('.sort-dropdown')) {
-                    setIsSortDropdownOpen(false);
-                }
-            }
+        if (!isSortDropdownOpen) return;
+        const handleOutside = (event: MouseEvent) => {
+            if (!(event.target as Element).closest('.sort-dropdown')) setIsSortDropdownOpen(false);
         };
-
-        document.addEventListener('mousedown', handleClickOutside);
+        const handleEscape = (event: KeyboardEvent) => {
+            if (event.key === 'Escape') setIsSortDropdownOpen(false);
+        };
+        document.addEventListener('mousedown', handleOutside);
+        document.addEventListener('keydown', handleEscape);
         return () => {
-            document.removeEventListener('mousedown', handleClickOutside);
+            document.removeEventListener('mousedown', handleOutside);
+            document.removeEventListener('keydown', handleEscape);
         };
     }, [isSortDropdownOpen]);
 
-    const handleAction = async (articleId: string, endpoint: string, method: 'POST' | 'DELETE' = 'POST') => {
-        try {
-            const token = await getToken();
-            const url = endpoint ? `/api/articles/${articleId}/${endpoint}` : `/api/articles/${articleId}`;
-            const response = await fetch(url, {
-                method,
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            if (!response.ok) throw new Error(`Action failed: ${endpoint}`);
-            return true;
-        } catch (error) {
-            console.error(`Failed to ${endpoint || 'delete'}:`, error);
-            return false;
-        }
+    const confirmDelete = () => {
+        if (!deletingId || actionMutation.isPending) return;
+        actionMutation.mutate({ articleId: deletingId, action: 'delete' }, { onSuccess: () => setDeletingId(null) });
     };
 
-    // Use Mutation for Delete
-    const deleteMutation = useMutation({
-        mutationFn: async (articleId: string) => {
-            return handleAction(articleId, '', 'DELETE');
-        },
-        onSuccess: (_, articleId) => {
-            // Option 1: Invalidate and Refetch (Safest)
-            // queryClient.invalidateQueries({ queryKey: ['articles'] });
+    if (!isLoaded) return <LoadingSpinner size="large" label="Loading your library..." />;
+    if (!isSignedIn) return <p>Please sign in to see your library.</p>;
 
-            // Option 2: Optimistic Update (Faster)
-            queryClient.setQueryData(['articles', debouncedSearchTerm, searchMode], (old: Article[] | undefined) =>
-                old ? old.filter(a => a.id !== articleId) : []
-            );
-        }
-    });
-
-    const confirmDelete = async () => {
-        if (!deleteConfirm.articleId) return;
-
-        await deleteMutation.mutateAsync(deleteConfirm.articleId);
-
-        setDeleteConfirm({ show: false, articleId: null });
-    };
-
-    // Use Mutation for Archive
-    const archiveMutation = useMutation({
-        mutationFn: async (articleId: string) => {
-            return handleAction(articleId, 'archive');
-        },
-        onSuccess: (_, articleId) => {
-            queryClient.setQueryData(['articles', debouncedSearchTerm, searchMode], (old: Article[] | undefined) =>
-                old ? old.map((a: Article) => a.id === articleId ? { ...a, isArchived: !a.isArchived } : a) : []
-            );
-        }
-    });
-
-    const handleArchive = async (articleId: string) => {
-        await archiveMutation.mutateAsync(articleId);
-    };
-
-    const handleDelete = (articleId: string) => {
-        setDeleteConfirm({ show: true, articleId });
-    };
-
-    // Use Mutation for Bookmark
-    const bookmarkMutation = useMutation({
-        mutationFn: async (articleId: string) => {
-            return handleAction(articleId, 'bookmark');
-        },
-        onSuccess: (_, articleId) => {
-            queryClient.setQueryData(['articles', debouncedSearchTerm, searchMode], (old: Article[] | undefined) =>
-                old ? old.map((a: Article) => a.id === articleId ? { ...a, isBookmarked: !a.isBookmarked } : a) : []
-            );
-        }
-    });
-
-    const handleToggleBookmark = async (articleId: string) => {
-        await bookmarkMutation.mutateAsync(articleId);
-    };
-
-    if (!isLoaded || isLoading) {
-        return <LoadingSpinner size="large" label="Loading your library..." />;
-    }
-
-    if (!isSignedIn) {
-        return <div>Please sign in to see your articles.</div>;
-    }
-
-    const sortedArticles = sortArticles(articles, sortBy);
-
-    const handleSortChange = (newSortBy: SortOption) => {
-        setSortBy(newSortBy);
-        // Save sort preference to localStorage
-        localStorage.setItem('articleSortPreference', newSortBy);
-    };
-
-    const toggleSortDropdown = () => {
-        setIsSortDropdownOpen(!isSortDropdownOpen);
-    };
-
-    const handleArticleAdded = () => {
-        queryClient.invalidateQueries({ queryKey: ['articles'] });
-    };
+    const sortedArticles = sortArticles(articles.filter(article => article.id && !article.isArchived), sortBy);
+    const busy = isLoading || isSearchSettling;
+    const canShowEmpty = !busy && !isError && sortedArticles.length === 0;
 
     return (
         <div className="article-list-container">
-            <AddArticleForm onArticleAdded={handleArticleAdded} />
-
-            <motion.header
-                className="list-header-premium"
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, ease: [0.23, 1, 0.32, 1] }}
-            >
+            <header className="list-header-premium">
                 <div className="header-top">
-                    <div className="header-left">
-                        <h1 className="list-title">My List</h1>
-                        <div className="header-meta">
-                            {isLoading ? (
-                                <LoadingSpinner size="small" layout="horizontal" label="Syncing..." />
-                            ) : (
-                                <span className="article-count">{sortedArticles.length} curated reads</span>
-                            )}
-                        </div>
-                    </div>
-                    <div className="header-right">
-                        <SortDropdown
-                            sortBy={sortBy}
-                            onSortChange={handleSortChange}
-                            isOpen={isSortDropdownOpen}
-                            onToggle={toggleSortDropdown}
-                        />
-                    </div>
+                    <div className="header-left"><p className="library-eyebrow">A little space for a good read</p><h1 className="list-title">Your library</h1></div>
+                    {!busy && sortedArticles.length > 0 && <SortDropdown sortBy={sortBy} onSortChange={(value) => { setSortBy(value); localStorage.setItem('articleSortPreference', value); }} isOpen={isSortDropdownOpen} onToggle={() => setIsSortDropdownOpen(!isSortDropdownOpen)} />}
                 </div>
-                <p className="list-subtitle">Your personal library of knowledge, saved for later.</p>
-            </motion.header>
-
-            <motion.div
-                className="article-grid"
-                initial="hidden"
-                animate="visible"
-                variants={{
-                    hidden: { opacity: 0 },
-                    visible: {
-                        opacity: 1,
-                        transition: {
-                            staggerChildren: 0.08,
-                            delayChildren: 0.1
-                        }
-                    }
-                }}
-            >
-                {sortedArticles.filter(article => article.id).map((article) => (
-                    <motion.div
-                        key={article.id}
-                        variants={{
-                            hidden: { opacity: 0, y: 30, scale: 0.95, filter: 'blur(4px)' },
-                            visible: {
-                                opacity: 1,
-                                y: 0,
-                                scale: 1,
-                                filter: 'blur(0px)',
-                                transition: {
-                                    duration: 0.6,
-                                    ease: [0.23, 1, 0.32, 1]
-                                }
-                            }
-                        }}
-                    >
-                        <ArticleCard
-                            article={article}
-                            onDelete={handleDelete}
-                            onArchive={handleArchive}
-                            onToggleBookmark={handleToggleBookmark}
-                        />
-                    </motion.div>
-                ))}
-            </motion.div>
-
-            <ConfirmationDialog
-                isOpen={deleteConfirm.show}
-                title="Delete Article"
-                message="Are you sure you want to delete this article? This action cannot be undone."
-                confirmText="Delete"
-                cancelText="Cancel"
-                variant="danger"
-                onConfirm={confirmDelete}
-                onCancel={() => setDeleteConfirm({ show: false, articleId: null })}
-            />
+                <p className="list-subtitle">Everything you saved, ready when you are.</p>
+            </header>
+            <AddArticleForm onArticleAdded={() => { void queryClient.invalidateQueries({ queryKey: ['articles'] }); }} />
+            {isError && <section className="library-state library-state--error" role="alert"><h2>{isSearch ? 'Search is taking a moment.' : 'We couldn’t load your library.'}</h2><p>Please check your connection and try again.</p><button onClick={() => { void refetch(); }} disabled={isFetching}>{isFetching ? 'Trying again…' : 'Try again'}</button></section>}
+            {busy && <LoadingSpinner size="large" label={isSearch ? 'Searching your library...' : 'Loading your library...'} />}
+            {!busy && isShortSearch && <section className="library-state" role="status"><h2>Keep typing to search.</h2><p>Enter at least two characters to find an article.</p><button onClick={() => setSearchTerm('')}>Back to your library</button></section>}
+            {canShowEmpty && !isShortSearch && (isSearch
+                ? <section className="library-state" role="status"><p className="library-eyebrow">No matches this time</p><h2>No articles found for “{debouncedSearchTerm}”.</h2><p>Try a title, an author, or a different word from the article.</p><button onClick={() => setSearchTerm('')}>Clear search</button></section>
+                : <section className="library-state library-state--welcome"><span className="library-leaf" aria-hidden="true">❧</span><p className="library-eyebrow">Your reading starts here</p><h2>Start with something that caught your eye.</h2><p>Paste an article link above. Then open it for a quiet read, or start with the key points.</p><button onClick={() => document.getElementById('save-article-url')?.focus()}>Save your first article <span aria-hidden="true">↑</span></button><ol className="library-first-steps"><li><strong>01 / Save</strong><span>Give a good article a home.</span></li><li><strong>02 / Read</strong><span>Make a moment for the full story.</span></li><li><strong>03 / Return</strong><span>Favorite it or add it to a collection.</span></li></ol><Link to="/import">Already have a reading list? Import your articles</Link></section>
+            )}
+            {!busy && !isShortSearch && sortedArticles.length > 0 && <><p className="library-results" role="status">{sortedArticles.length} {isSearch ? (sortedArticles.length === 1 ? 'result' : 'results') : (sortedArticles.length === 1 ? 'article' : 'articles')}{isFetching ? ' · Updating…' : ''}</p><div className="article-grid">{sortedArticles.map(article => <ArticleCard key={article.id} article={article} onDelete={setDeletingId} onArchive={(articleId) => actionMutation.mutate({ articleId, action: 'archive' })} onToggleBookmark={(articleId) => actionMutation.mutate({ articleId, action: 'bookmark' })} isActionPending={actionMutation.isPending} />)}</div></>}
+            <ConfirmationDialog isOpen={deletingId !== null} title="Delete article?" message="This removes the article from your library. This action cannot be undone." confirmText={actionMutation.isPending ? 'Deleting…' : 'Delete article'} variant="danger" isPending={actionMutation.isPending} onConfirm={confirmDelete} onCancel={() => setDeletingId(null)} />
         </div>
     );
 };

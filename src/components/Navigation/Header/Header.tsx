@@ -128,6 +128,7 @@ const Header: React.FC = () => {
                                 <input
                                     type="text"
                                     placeholder="Search your library..."
+                                    aria-label="Search your library"
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
                                 />

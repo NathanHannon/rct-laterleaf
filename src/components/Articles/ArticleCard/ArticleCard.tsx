@@ -16,6 +16,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
     onArchive,
     onToggleBookmark,
     onAddToLibrary,
+    isActionPending = false,
 }) => {
     // Destructure both standard and metadata fields
     const {
@@ -24,26 +25,18 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
         siteName, siteIcon, ogImage, ogDescription, themeColor
     } = article;
     const [isBookmarkAnimating, setIsBookmarkAnimating] = useState(false);
-    const [showSaveEffect, setShowSaveEffect] = useState(false);
     const [showDropdown, setShowDropdown] = useState(false);
     const [showCollectionSelector, setShowCollectionSelector] = useState(false);
-    // Optimistic UI state for bookmark
-    const [optimisticBookmark, setOptimisticBookmark] = useState<boolean | null>(null);
-
-    // Generate a consistent gradient for placeholders
     const placeholderGradient = getGradientForString(title ?? id ?? '');
+    const currentBookmarkState = isBookmarked;
 
-    // Use optimistic state if available, otherwise fall back to prop
-    const currentBookmarkState = optimisticBookmark !== null ? optimisticBookmark : isBookmarked;
-
-    console.log(`ArticleCard ${id}: isBookmarked=${isBookmarked}, optimistic=${optimisticBookmark}, current=${currentBookmarkState}`);
-
-    // Reset optimistic state when the actual prop changes (backend response received)
+    // Only celebrate a favorite once its confirmed state arrives from the library.
     useEffect(() => {
-        if (optimisticBookmark !== null && optimisticBookmark === isBookmarked) {
-            setOptimisticBookmark(null);
-        }
-    }, [isBookmarked, optimisticBookmark]);
+        if (!isBookmarked) return;
+        setIsBookmarkAnimating(true);
+        const timer = setTimeout(() => setIsBookmarkAnimating(false), 600);
+        return () => clearTimeout(timer);
+    }, [isBookmarked]);
 
     const handleActionClick = (e: React.MouseEvent) => {
         e.stopPropagation();
@@ -51,19 +44,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
     };
 
     const handleBookmarkClick = () => {
-        if (!id) return;
-
-        // Optimistic UI update
-        const newBookmarkState = !currentBookmarkState;
-        setOptimisticBookmark(newBookmarkState);
-
-        setIsBookmarkAnimating(true);
-        if (newBookmarkState) {
-            setShowSaveEffect(true);
-            setTimeout(() => setShowSaveEffect(false), 1200);
-        }
-
-        setTimeout(() => setIsBookmarkAnimating(false), 600);
+        if (!id || isActionPending) return;
         onToggleBookmark(id);
     };
 
@@ -125,21 +106,6 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
                             }}
                         >
                             <FontAwesomeIcon icon={faBookmarkSolid} />
-                        </motion.div>
-                    )}
-                </AnimatePresence>
-
-                {/* Save to Library Effect */}
-                <AnimatePresence>
-                    {showSaveEffect && (
-                        <motion.div
-                            className="save-effect"
-                            initial={{ opacity: 0, scale: 0.8, y: 20 }}
-                            animate={{ opacity: 1, scale: 1, y: 0 }}
-                            exit={{ opacity: 0, scale: 0.8, y: -20 }}
-                            transition={{ duration: 0.6, ease: "easeOut" }}
-                        >
-                            <span>📚 Saved to Library</span>
                         </motion.div>
                     )}
                 </AnimatePresence>
@@ -273,6 +239,9 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
                         <>
                             <motion.button
                                 onClick={handleBookmarkClick}
+                                disabled={isActionPending}
+                                aria-pressed={currentBookmarkState}
+                                aria-label={currentBookmarkState ? "Remove from favorites" : "Add to favorites"}
                                 className={`button-favorite ${currentBookmarkState ? 'favorited' : ''}`}
                                 whileTap={{ scale: 0.95 }}
                                 animate={isBookmarkAnimating ? {
@@ -288,6 +257,8 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
                                 <button
                                     onClick={() => setShowDropdown(!showDropdown)}
                                     className="dropdown-toggle"
+                                    disabled={isActionPending}
+                                    aria-label="Article actions"
                                 >
                                     <FontAwesomeIcon icon={faEllipsisV} />
                                 </button>
@@ -314,6 +285,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
                                             </button>
                                             <button
                                                 onClick={() => handleDropdownAction(() => id && onArchive(id))}
+                                                disabled={isActionPending}
                                                 className="dropdown-item archive-item"
                                             >
                                                 <FontAwesomeIcon icon={faArchive} />
@@ -321,6 +293,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
                                             </button>
                                             <button
                                                 onClick={() => handleDropdownAction(() => id && onDelete(id))}
+                                                disabled={isActionPending}
                                                 className="dropdown-item delete-item"
                                             >
                                                 <FontAwesomeIcon icon={faTrash} />

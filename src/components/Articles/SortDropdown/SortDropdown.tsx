@@ -39,9 +39,9 @@ const sortOptions = [
     },
     {
         value: 'bookmarks-first' as SortOption,
-        label: 'Bookmarks First',
+        label: 'Favorites First',
         icon: faBookmark,
-        description: 'Show bookmarked articles first'
+        description: 'Show favorite articles first'
     }
 ];
 

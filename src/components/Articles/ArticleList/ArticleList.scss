@@ -141,3 +141,20 @@
         }
     }
 }
+.article-list-container {
+    .list-header-premium { padding: 0 0 1.75rem; margin-bottom: 1.75rem; &::before { content: none; } .list-title { font-weight: 400; } .list-subtitle { font-size: 1rem; margin-top: .7rem; } }
+    .library-eyebrow { margin: 0 0 .7rem; color: var(--text-color-secondary); font-size: .67rem; text-transform: uppercase; letter-spacing: .12em; }
+    .library-results { font-size: .8rem; color: var(--text-color-secondary); margin: 1.5rem 0; }
+    .library-state { padding: 2.5rem 1.5rem; text-align: center; border: 1px solid var(--card-border); border-radius: 6px; margin-block: 1.5rem; background: var(--card-bg);
+        h2 { font: 400 clamp(1.8rem, 4vw, 2.6rem)/1.15 'Instrument Serif', serif; margin: .75rem auto 1rem; max-width: 34rem; overflow-wrap: anywhere; }
+        > p:not(.library-eyebrow) { max-width: 32rem; margin: 0 auto 1.5rem; color: var(--text-color-secondary); font-size: .95rem; line-height: 1.8; }
+        button { background: var(--text-color); color: var(--card-bg); border: 1px solid var(--text-color); padding: .8rem 1.2rem; min-height: 44px; border-radius: 5px; cursor: pointer; font-size: .9rem; }
+        button:focus-visible, a:focus-visible { outline: 2px solid var(--text-color); outline-offset: 4px; }
+        button:disabled { opacity: .6; cursor: wait; }
+        > a { display: inline-block; margin-top: 1.5rem; text-decoration: underline; text-underline-offset: 4px; font-size: .8rem; line-height: 1.7; }
+    }
+    .library-leaf { font: 3rem 'Instrument Serif', serif; display: block; margin-bottom: .8rem; }
+    .library-first-steps { display: grid; grid-template-columns: repeat(3, 1fr); list-style: none; padding: 1.5rem 0 0; margin: 2rem 0 0; border-top: 1px solid var(--card-border); gap: 1.5rem; text-align: left; strong { display: block; font-size: .72rem; font-weight: 600; margin-bottom: .5rem; } span { font-size: .8rem; color: var(--text-color-secondary); line-height: 1.6; } }
+    .library-state--error { border-inline-start: 3px solid var(--text-color); }
+    @media (max-width: 600px) { padding: 1rem 0; .list-header-premium .list-title { font-size: 2.8rem; } .library-first-steps { grid-template-columns: 1fr; gap: 1rem; } .library-state { padding: 2rem 1rem; } .article-grid { grid-template-columns: minmax(0, 1fr); } }
+}

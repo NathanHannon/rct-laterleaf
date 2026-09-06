@@ -3,8 +3,6 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from "@clerk/react";
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'motion/react';
-import ReactMarkdown from 'react-markdown';
-import type { Article } from '../../../interfaces/article';
 import CollectionSelector from '../../Collections/CollectionSelector/CollectionSelector';
 import ConfirmationDialog from '../../Common/ConfirmationDialog/ConfirmationDialog';
 import LoadingSpinner from '../../Common/LoadingSpinner/LoadingSpinner';
@@ -23,7 +21,8 @@ import { useUserStatus } from '../../../hooks/useUserStatus';
 import { useUserCredits } from '../../../hooks/useUserCredits';
 import { useReadingPreferences } from '../../../hooks/useReadingPreferences';
 import { LANGUAGES } from '../../../constants/languages';
-import { saveOfflineArticle, removeOfflineArticle, isArticleOffline, getOfflineArticle } from '../../../services/offlineStorageService';
+import { useReaderArticle } from '../../../hooks/useReaderArticle';
+import ArticleSummaryPanel from './ArticleSummaryPanel';
 import { useLanguageDetection } from '../../../hooks/useLanguageDetection';
 import { useCommandContext } from '../../../context/commandContext';
 import type { CommandItem } from '../../../context/commandContext';
@@ -71,66 +70,17 @@ const ArticleReader = () => {
         staleTime: 5 * 60 * 1000,
     });
 
-    // Replaced manual fetch with TanStack Query
-    const { data: article, isLoading: loading, error: queryError } = useQuery({
-        queryKey: ['article', articleId],
-        queryFn: async () => {
-            if (!articleId) return null;
-
-            // Optional offline-first or offline-fallback behavior
-            const savedOffline = await isArticleOffline(articleId);
-
-            if (!navigator.onLine) {
-                if (savedOffline) {
-                    const offlineData = await getOfflineArticle(articleId);
-                    if (offlineData) return offlineData;
-                }
-                throw new Error('You are offline and this article is not saved for offline reading.');
-            }
-
-            const token = await getToken();
-            const response = await fetch(`/api/articles/${articleId}`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            if (!response.ok) throw new Error('Failed to fetch article');
-            const data = await response.json();
-
-            // Intercept and update IDB if they already chose to save it offline
-            if (savedOffline) {
-                await saveOfflineArticle(data);
-            }
-
-            // Sync summary status with local metadata if needed
-            if (data.summaryStatus === 'pending') {
-                setSummaryMetadata(prev => ({ ...prev, status: 'pending' }));
-                setShowSummary(true);
-            }
-            return data as Article;
-        },
-        enabled: !!articleId,
-        refetchInterval: (query) => {
-            // Poll if summary is pending
-            return query.state.data?.summaryStatus === 'pending' ? 1000 : false;
-        }
-    });
-
+    const { data: article, isLoading: loading, error: queryError, setArticle,
+        isAvailableOffline, isSavingOffline, handleToggleOffline } = useReaderArticle(articleId);
     const [localError, setLocalError] = useState<string | null>(null);
-    const error = localError || (queryError ? (queryError as Error).message : null);
+    const error = localError || queryError?.message;
     const setError = setLocalError;
-
-    // Helper to maintain compatibility with existing handlers that use setArticle
-    // This updates the TanStack Query cache directly
-    const setArticle = (updaterOrValue: Article | null | undefined | ((prev: Article | null | undefined) => Article | null | undefined)) => {
-        queryClient.setQueryData(['article', articleId], (old: Article | null | undefined) => {
-            const newVal = typeof updaterOrValue === 'function'
-                ? (updaterOrValue as (prev: Article | null | undefined) => Article | null | undefined)(old)
-                : updaterOrValue;
-            return newVal === undefined ? old : newVal;
-        });
-    };
 
     const [isGeneratingSummary, setIsGeneratingSummary] = useState(false);
     const [showSummary, setShowSummary] = useState(false);
+    useEffect(() => {
+        if (article?.summaryStatus === 'pending') setShowSummary(true);
+    }, [article?.summaryStatus]);
     const [isBookmarkAnimating, setIsBookmarkAnimating] = useState(false);
     const [isLikeAnimating, setIsLikeAnimating] = useState(false);
     const [showPodcastPlayer, setShowPodcastPlayer] = useState(false);
@@ -142,45 +92,11 @@ const ArticleReader = () => {
     const [showDeleteSummaryConfirm, setShowDeleteSummaryConfirm] = useState(false);
     const [useProSummary, setUseProSummary] = useState(false);
     const [showTranslateDropdown, setShowTranslateDropdown] = useState(false);
-    const [showSummaryLangDropdown, setShowSummaryLangDropdown] = useState(false);
     const [isTranslating, setIsTranslating] = useState(false);
     const [currentLanguage, setCurrentLanguage] = useState<string>('original');
     const [summaryProvider, setSummaryProvider] = useState<SummaryProvider>('default');
 
-    // Offline status
-    const [isAvailableOffline, setIsAvailableOffline] = useState(false);
-    const [isSavingOffline, setIsSavingOffline] = useState(false);
-
-    // On-device language detection (Chrome only, graceful no-op elsewhere)
     const detectedLanguage = useLanguageDetection(article?.content);
-
-    useEffect(() => {
-        if (articleId) {
-            isArticleOffline(articleId).then(setIsAvailableOffline);
-        }
-    }, [articleId]);
-
-    const handleToggleOffline = async () => {
-        if (!article || !articleId) return;
-        setIsSavingOffline(true);
-        try {
-            if (isAvailableOffline) {
-                await removeOfflineArticle(articleId);
-                setIsAvailableOffline(false);
-            } else {
-                await saveOfflineArticle(article);
-                setIsAvailableOffline(true);
-            }
-        } catch (err) {
-            console.error('Failed to toggle offline setting', err);
-        } finally {
-            setIsSavingOffline(false);
-        }
-    };
-
-    const getLanguageName = (code: string) => {
-        return LANGUAGES.find(l => l.code === code)?.name || 'English';
-    };
 
     const showSummaryCreditWarning = (softCapWarning?: SummarySoftCapWarning | null) => {
         if (!softCapWarning?.enabled) return;
@@ -316,7 +232,7 @@ const ArticleReader = () => {
             // --- Article Actions ---
             {
                 id: 'article-bookmark',
-                label: article.isBookmarked ? 'Remove Bookmark' : 'Bookmark Article',
+                label: article.isBookmarked ? 'Remove from Favorites' : 'Add to Favorites',
                 icon: article.isBookmarked ? faBookmarkSolid : faBookmarkRegular,
                 section: 'Article Actions',
                 action: () => handleFavorite()
@@ -535,7 +451,6 @@ const ArticleReader = () => {
         const targetLangCode = languageCode || article.summaryLanguage || detectedLanguage || 'en';
 
         setIsGeneratingSummary(true);
-        if (languageCode) setShowSummaryLangDropdown(false);
 
         try {
             const token = await getToken();
@@ -610,7 +525,7 @@ const ArticleReader = () => {
             }
 
             // Update local state
-            setArticle(prev => prev ? { ...prev, summary: undefined } : null);
+            setArticle(prev => prev ? { ...prev, summary: undefined, summaryStatus: 'idle' } : null);
             setShowSummary(false);
             setSummaryMetadata({});
         } catch (err) {
@@ -703,7 +618,7 @@ const ArticleReader = () => {
                         rotateZ: [0, 5, -5, 0]
                     } : {}}
                     transition={{ duration: 0.3 }}
-                    title={article.isBookmarked ? 'Remove bookmark' : 'Bookmark'}
+                    title={article.isBookmarked ? 'Remove from favorites' : 'Add to favorites'}
                 >
                     <FontAwesomeIcon icon={article.isBookmarked ? faBookmarkSolid : faBookmarkRegular} />
                 </motion.button>
@@ -927,110 +842,16 @@ const ArticleReader = () => {
             </div>
 
 
-            {/* AI Summary Panel */}
-            <AnimatePresence>
-                {showSummary && (article.summary || article.summaryStatus === 'pending') && (
-                    <motion.div
-                        className="ai-summary-panel"
-                        initial={{ opacity: 0, height: 0, marginBottom: 0 }}
-                        animate={{ opacity: 1, height: 'auto', marginBottom: '2rem' }}
-                        exit={{ opacity: 0, height: 0, marginBottom: 0 }}
-                        transition={{ duration: 0.3, ease: "easeOut" }}
-                    >
-                        <div className="summary-header">
-                            <div className="summary-title">
-                                <h3>✨ AI Summary</h3>
-                                <div className="summary-subtitle">
-                                    <small>Generated by AI • Not editorial judgment</small>
-                                    {/* Status indicators */}
-                                    {article.summaryStatus === 'pending' && (
-                                        <span className="status-badge pending">
-                                            ⏳ Processing in background
-                                        </span>
-                                    )}
-                                    {summaryMetadata.fallbackUsed && article.summaryStatus === 'completed' && (
-                                        <span className="status-badge fallback" title="Primary AI model was busy, used backup model">
-                                            🔄 Backup model used
-                                        </span>
-                                    )}
-                                    {summaryMetadata.model && !summaryMetadata.fallbackUsed && (
-                                        <span className="status-badge success" title={`Generated using ${summaryMetadata.model}`}>
-                                            ✅ {summaryMetadata.model?.includes('3-flash') || summaryMetadata.model?.includes('2.5-pro') ? 'Pro model' : 'Standard model'}
-                                        </span>
-                                    )}
-                                </div>
-                            </div>
-                            <div className="summary-actions">
-                                {/* Summary Language Selector */}
-                                <div className="summary-language-selector">
-                                    <button
-                                        onClick={() => setShowSummaryLangDropdown(!showSummaryLangDropdown)}
-                                        className="summary-language-btn"
-                                        title="Change summary language"
-                                    >
-                                        <FontAwesomeIcon icon={faLanguage} />
-                                        <span>{getLanguageName(article.summaryLanguage || detectedLanguage || 'en')}</span>
-                                    </button>
-                                    {showSummaryLangDropdown && (
-                                        <div className="summary-lang-dropdown">
-                                            {LANGUAGES.map(lang => (
-                                                <button
-                                                    key={lang.code}
-                                                    onClick={() => handleRefreshSummary(undefined, lang.code)}
-                                                    className={article.summaryLanguage === lang.code ? 'active' : ''}
-                                                >
-                                                    <span className="flag">{lang.flag}</span>
-                                                    <span className="name">{lang.name}</span>
-                                                    {article.summaryLanguage === lang.code && <FontAwesomeIcon icon={faCheck} />}
-                                                </button>
-                                            ))}
-                                        </div>
-                                    )}
-                                </div>
-
-                                <button
-                                    onClick={() => handleRefreshSummary()}
-                                    className="refresh-summary-button"
-                                    disabled={isGeneratingSummary}
-                                    title="Regenerate summary"
-                                >
-                                    <FontAwesomeIcon
-                                        icon={faRotateRight}
-                                        className={isGeneratingSummary ? 'spinning' : ''}
-                                    />
-                                </button>
-                                <button
-                                    onClick={handleDeleteSummary}
-                                    className="delete-summary-button"
-                                    title="Delete summary"
-                                >
-                                    <FontAwesomeIcon icon={faTrash} />
-                                </button>
-                                <button
-                                    className="close-panel-button"
-                                    onClick={() => setShowSummary(false)}
-                                    title="Close Summary"
-                                >
-                                    ✕
-                                </button>
-                            </div>
-                        </div>
-                        <div className="summary-content">
-                            {/* Show pending message if status is pending */}
-                            {article.summaryStatus === 'pending' ? (
-                                <div className="pending-summary">
-                                    <div className="pending-animation">
-                                        <div className="spinner"></div>
-                                    </div>
-                                    <p>Generating your summary... This may take a few minutes.</p>
-                                </div>
-                            ) : (
-                                <ReactMarkdown>{article.summary}</ReactMarkdown>
-                            )}
-                        </div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
+            <ArticleSummaryPanel
+                article={article}
+                isOpen={showSummary}
+                isGeneratingSummary={isGeneratingSummary}
+                detectedLanguage={detectedLanguage}
+                summaryMetadata={summaryMetadata}
+                onRefresh={(language) => { void handleRefreshSummary(undefined, language); }}
+                onDelete={handleDeleteSummary}
+                onClose={() => setShowSummary(false)}
+            />
 
             {/* AI Podcast Player */}
             <AnimatePresence>

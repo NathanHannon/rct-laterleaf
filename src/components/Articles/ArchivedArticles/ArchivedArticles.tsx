@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from "@clerk/react";
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { motion } from 'motion/react';
 import ArticleCard from '../ArticleCard/ArticleCard';
 import ConfirmationDialog from '../../Common/ConfirmationDialog/ConfirmationDialog';
@@ -8,16 +8,19 @@ import './ArchivedArticles.scss';
 import type { Article } from '../../../interfaces/article';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSpinner } from '@fortawesome/free-solid-svg-icons';
+import { useArticleActions } from '../../../hooks/useArticleActions';
+import '../ArticleList/ArticleList.scss';
+import { Link } from 'react-router-dom';
 
 const ArchivedArticles: React.FC = () => {
     const { getToken, isLoaded, isSignedIn } = useAuth();
-    const queryClient = useQueryClient();
+    const actionMutation = useArticleActions();
     const [deleteConfirm, setDeleteConfirm] = useState<{ show: boolean; articleId: string | null }>({
         show: false,
         articleId: null
     });
 
-    const { data: articles = [] } = useQuery({
+    const { data: articles = [], isLoading, isError, isFetching, refetch } = useQuery({
         queryKey: ['articles', 'archived'],
         queryFn: async () => {
             const token = await getToken();
@@ -31,62 +34,17 @@ const ArchivedArticles: React.FC = () => {
         enabled: isLoaded && !!isSignedIn,
     });
 
-    const actionMutation = useMutation({
-        mutationFn: async ({ articleId, endpoint, method = 'POST' }: { articleId: string; endpoint: string; method?: 'POST' | 'DELETE' }) => {
-            const token = await getToken();
-            const url = endpoint ? `/api/articles/${articleId}/${endpoint}` : `/api/articles/${articleId}`;
-            const response = await fetch(url, { method, headers: { 'Authorization': `Bearer ${token}` } });
-            if (!response.ok) throw new Error(`Action failed: ${endpoint}`);
-        },
-    });
-
-    const handleDelete = (articleId: string) => {
-        setDeleteConfirm({ show: true, articleId });
+    const handleDelete = (articleId: string) => setDeleteConfirm({ show: true, articleId });
+    const confirmDelete = () => {
+        if (!deleteConfirm.articleId || actionMutation.isPending) return;
+        actionMutation.mutate({ articleId: deleteConfirm.articleId, action: 'delete' }, {
+            onSuccess: () => setDeleteConfirm({ show: false, articleId: null }),
+        });
     };
+    const handleArchive = (articleId: string) => actionMutation.mutate({ articleId, action: 'archive' });
+    const handleToggleBookmark = (articleId: string) => actionMutation.mutate({ articleId, action: 'bookmark' });
 
-    const confirmDelete = async () => {
-        if (!deleteConfirm.articleId) return;
-        actionMutation.mutate(
-            { articleId: deleteConfirm.articleId, endpoint: '', method: 'DELETE' },
-            {
-                onSuccess: () => {
-                    queryClient.setQueryData(['articles', 'archived'], (old: Article[] | undefined) =>
-                        old ? old.filter(a => a.id !== deleteConfirm.articleId) : []
-                    );
-                },
-            }
-        );
-        setDeleteConfirm({ show: false, articleId: null });
-    };
-
-    const handleArchive = (articleId: string) => {
-        actionMutation.mutate(
-            { articleId, endpoint: 'archive' },
-            {
-                onSuccess: () => {
-                    // Un-archiving removes from archive page
-                    queryClient.setQueryData(['articles', 'archived'], (old: Article[] | undefined) =>
-                        old ? old.filter(a => a.id !== articleId) : []
-                    );
-                },
-            }
-        );
-    };
-
-    const handleToggleBookmark = (articleId: string) => {
-        actionMutation.mutate(
-            { articleId, endpoint: 'bookmark' },
-            {
-                onSuccess: () => {
-                    queryClient.setQueryData(['articles', 'archived'], (old: Article[] | undefined) =>
-                        old ? old.map(a => a.id === articleId ? { ...a, isBookmarked: !a.isBookmarked } : a) : []
-                    );
-                },
-            }
-        );
-    };
-
-    if (!isLoaded) {
+    if (!isLoaded || isLoading) {
         return <div className="loading-container"><FontAwesomeIcon icon={faSpinner} spin size="3x" /></div>;
     }
 
@@ -106,6 +64,10 @@ const ArchivedArticles: React.FC = () => {
                 <h1 className="header-title">Archived Articles</h1>
                 <div className="header-mesh"></div>
             </motion.header>
+
+            <p className="library-results">Finished reads can live here. Restore an article whenever you want to return to it.</p>
+            {isError && <section className="library-state" role="alert"><h2>We couldn’t load these articles.</h2><p>Please check your connection and try again.</p><button disabled={isFetching} onClick={() => { void refetch(); }}>{isFetching ? 'Trying again…' : 'Try again'}</button></section>}
+            {!isError && articles.length === 0 && <section className="library-state"><h2>Room for your finished reads.</h2><p>Finished reads can live here. Restore an article whenever you want to return to it.</p><Link to="/articles">Back to your library</Link></section>}
 
             <motion.div
                 key={articles.length > 0 ? 'loaded' : 'empty'}
@@ -145,6 +107,7 @@ const ArchivedArticles: React.FC = () => {
                             onDelete={handleDelete}
                             onArchive={handleArchive}
                             onToggleBookmark={handleToggleBookmark}
+                            isActionPending={actionMutation.isPending}
                         />
                     </motion.div>
                 ))}
@@ -154,7 +117,8 @@ const ArchivedArticles: React.FC = () => {
                 isOpen={deleteConfirm.show}
                 title="Delete Article"
                 message="Are you sure you want to delete this article? This action cannot be undone."
-                confirmText="Delete"
+                confirmText={actionMutation.isPending ? "Deleting…" : "Delete"}
+                isPending={actionMutation.isPending}
                 cancelText="Cancel"
                 variant="danger"
                 onConfirm={confirmDelete}

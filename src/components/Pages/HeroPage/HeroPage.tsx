@@ -1,176 +1,71 @@
-import React from 'react';
-import { SignUpButton } from "@clerk/react";
-import { motion, type Variants } from 'motion/react';
+import { useState } from 'react';
+import { SignUpButton } from '@clerk/react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faSave, faBolt, faSearch, faCheckCircle, faHeadphones, faPuzzlePiece, faLayerGroup } from '@fortawesome/free-solid-svg-icons';
+import { faArrowRight, faBookmark, faCheck, faSearch } from '@fortawesome/free-solid-svg-icons';
 import './HeroPage.scss';
 
-const HeroPage: React.FC = () => {
-    const freePlanFeatures = [
-        "Save unlimited articles",
-        "15 standard summaries / month",
-        "3 Pro summaries / month",
-        "Basic keyword search"
-    ];
+const steps = [
+    { label: 'Save', title: 'Keep the good ones.', description: 'Paste an article link or save it from your browser. Give your next good read a home.' },
+    { label: 'Read', title: 'Find a moment for it.', description: 'Settle into a clean reading view. Use a summary to decide what deserves a closer look.' },
+    { label: 'Find again', title: 'Come back to the idea.', description: 'Find a saved article by its words, or search by an idea with Pro semantic search.' },
+];
 
-    const proPlanFeatures = [
-        "Everything in Free, plus:",
-        "Unlimited Pro summaries",
-        "Full-text semantic search",
-        "Personalized AI Summaries",
-        "Audio Overviews (Podcasts)",
-        "Chat with your articles",
-        "AI Research Assistant",
-        "Offline mode (Coming Soon)"
-    ];
-
-    const containerVariants: Variants = {
-        hidden: { opacity: 0 },
-        visible: {
-            opacity: 1,
-            transition: {
-                staggerChildren: 0.1,
-                delayChildren: 0.1
-            }
-        }
-    };
-
-    const itemVariants: Variants = {
-        hidden: { opacity: 0, y: 30, filter: 'blur(10px)', scale: 0.95 },
-        visible: {
-            opacity: 1,
-            y: 0,
-            filter: 'blur(0px)',
-            scale: 1,
-            transition: {
-                duration: 0.8,
-                ease: [0.23, 1, 0.32, 1]
-            }
-        }
-    };
-
+export default function HeroPage() {
+    const [step, setStep] = useState(0);
     return (
         <div className="hero-page">
-            {/* --- Main Hero Section --- */}
-            <section className="hero-main">
-                <motion.div
-                    className="hero-content"
-                    initial="hidden"
-                    animate="visible"
-                    variants={containerVariants}
-                >
-                    <motion.h1 className="hero-title" variants={itemVariants}>
-                        Read Smarter, <br />Not Harder.
-                    </motion.h1>
-                    <motion.p className="hero-subtitle" variants={itemVariants}>
-                        LaterLeaf is your intelligent second brain. Save articles from many popular news sites and blogs, let AI summarize the key points, and find exactly what you need with search.
-                    </motion.p>
-                    <motion.div className="hero-cta" variants={itemVariants}>
-                        <SignUpButton mode="modal">
-                            <button className="cta-button">Get Started for Free</button>
-                        </SignUpButton>
-                        <p className="cta-subtext">No credit card required.</p>
-                    </motion.div>
-                </motion.div>
+            <section className="reading-hero" aria-labelledby="hero-title">
+                <div className="reading-hero__copy">
+                    <p className="hero-eyebrow"><span aria-hidden="true">✳</span> A home for your next good read</p>
+                    <h1 id="hero-title">Make time for what <em>caught your eye.</em></h1>
+                    <p className="hero-intro">Save the articles you want to come back to. Read without the clutter, get the key points, and find that idea when you need it.</p>
+                    <SignUpButton mode="modal"><button className="reading-cta">Start your library <FontAwesomeIcon icon={faArrowRight} /></button></SignUpButton>
+                    <p className="hero-footnote">Free to start. No credit card required.</p>
+                    <a className="hero-tour-link" href="#how-it-works">Take a look inside <span aria-hidden="true">↘</span></a>
+                </div>
+                <div className="reading-preview" aria-label="Illustrative article preview">
+                    <div className="preview-topline"><span>LATERLEAF / YOUR LIBRARY</span><FontAwesomeIcon icon={faBookmark} /></div>
+                    <div className="preview-art" aria-hidden="true">
+                        <svg viewBox="0 0 400 200" fill="none">
+                            <circle cx="288" cy="60" r="35" fill="currentColor" opacity=".13" />
+                            <path d="M104 207C137 160 178 110 260 24M160 137C114 132 100 87 111 54C151 64 173 93 160 137ZM186 107C197 68 231 67 265 75C247 110 218 127 186 107ZM216 74C191 51 198 19 211 3C238 22 236 47 216 74Z" stroke="currentColor" strokeWidth="2" />
+                            <path d="M64 181H337" stroke="currentColor" strokeOpacity=".25" />
+                        </svg>
+                        <span>SPACE TO THINK</span>
+                    </div>
+                    <div className="preview-article">
+                        <p className="preview-kicker">Sample article · 4 min read</p>
+                        <h2>The quiet pleasure of paying attention</h2>
+                        <p>A walk without headphones. A page without interruptions. Sometimes the smallest pauses give an idea room to grow.</p>
+                        <div className="preview-saved"><FontAwesomeIcon icon={faCheck} /> Saved for a slower moment</div>
+                    </div>
+                    <div className="preview-margin-note">Good things are worth coming back to.</div>
+                </div>
             </section>
-
-            {/* --- Key Benefits Section --- */}
-            <motion.section
-                className="key-benefits"
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true, margin: "-100px" }}
-                variants={containerVariants}
-            >
-                <motion.div className="benefit-card" variants={itemVariants}>
-                    <FontAwesomeIcon icon={faSave} className="benefit-icon" />
-                    <h3>Save Articles That Matter</h3>
-                    <p>Save content from many popular sites with a simple URL paste. Build your personal library of the articles you actually want to read.</p>
-                </motion.div>
-                <motion.div className="benefit-card" variants={itemVariants}>
-                    <FontAwesomeIcon icon={faBolt} className="benefit-icon" />
-                    <h3>AI Summaries</h3>
-                    <p>Get key insights from supported articles in seconds. Our AI focuses on the main points so you can decide what's worth reading fully.</p>
-                </motion.div>
-                <motion.div className="benefit-card" variants={itemVariants}>
-                    <FontAwesomeIcon icon={faSearch} className="benefit-icon" />
-                    <h3>Find Anything, Instantly</h3>
-                    <p>Go beyond simple keywords. Pro users can search by concepts and ideas with semantic search.</p>
-                </motion.div>
-                <motion.div className="benefit-card" variants={itemVariants}>
-                    <FontAwesomeIcon icon={faHeadphones} className="benefit-icon" />
-                    <h3>Listen on the Go</h3>
-                    <p>Turn articles into engaging audio podcasts. Perfect for commuting or multitasking.</p>
-                </motion.div>
-                <motion.div className="benefit-card" variants={itemVariants}>
-                    <FontAwesomeIcon icon={faPuzzlePiece} className="benefit-icon" />
-                    <h3>Save in One Click</h3>
-                    <p>Use our browser extension to save articles instantly as you browse the web. No need to copy-paste URLs.</p>
-                </motion.div>
-                <motion.div className="benefit-card" variants={itemVariants}>
-                    <FontAwesomeIcon icon={faLayerGroup} className="benefit-icon" />
-                    <h3>Stay Organized</h3>
-                    <p>Keep your reading list tidy with custom collections and tags. Group related articles together for easy access.</p>
-                </motion.div>
-            </motion.section >
-
-            {/* --- Features at a Glance Section --- */}
-            <section className="features-glance">
-                <motion.h2
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 0.6, ease: [0.23, 1, 0.32, 1] }}
-                >
-                    Features at a Glance
-                </motion.h2>
-                <motion.div
-                    className="features-container"
-                    initial="hidden"
-                    whileInView="visible"
-                    viewport={{ once: true }}
-                    variants={containerVariants}
-                >
-                    <motion.div className="feature-list free" variants={itemVariants}>
-                        <h3>Free</h3>
-                        <ul>
-                            {freePlanFeatures.map((feature, index) => (
-                                <li key={index}>
-                                    <FontAwesomeIcon icon={faCheckCircle} />
-                                    <span>{feature}</span>
-                                </li>
-                            ))}
-                        </ul>
-                    </motion.div>
-                    <motion.div className="feature-list pro" variants={itemVariants}>
-                        <h3>Pro</h3>
-                        <ul>
-                            {proPlanFeatures.map((feature, index) => (
-                                <li key={index}>
-                                    <FontAwesomeIcon icon={faCheckCircle} />
-                                    <span dangerouslySetInnerHTML={{ __html: feature.replace('(Coming Soon)', '<em>(Coming Soon)</em>') }} />
-                                </li>
-                            ))}
-                        </ul>
-                    </motion.div>
-                </motion.div>
-            </section >
-
-            {/* --- Final CTA Section --- */}
-            <motion.section
-                className="final-cta"
-                initial={{ opacity: 0, scale: 0.95 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.8, ease: [0.23, 1, 0.32, 1] }}
-            >
-                <h2>Ready to Supercharge Your Reading?</h2>
-                <SignUpButton mode="modal">
-                    <button className="cta-button">Sign Up for Free</button>
-                </SignUpButton>
-            </motion.section >
-        </div >
+            <section className="reading-journey" id="how-it-works" aria-labelledby="journey-title">
+                <div className="journey-heading"><p className="hero-eyebrow">From an open tab to a lasting idea</p><h2 id="journey-title">A place to save. A reason to return.</h2></div>
+                <div className="journey-layout">
+                    <div className="journey-steps" aria-label="Explore the reading journey">
+                        {steps.map((item, index) => (
+                            <button key={item.label} type="button" className={`journey-step ${step === index ? 'is-selected' : ''}`} aria-pressed={step === index} aria-controls="journey-example" onClick={() => setStep(index)}>
+                                <span className="step-number">0{index + 1}</span><span><strong>{item.label}</strong><span>{item.description}</span></span><FontAwesomeIcon icon={faArrowRight} aria-hidden="true" />
+                            </button>
+                        ))}
+                    </div>
+                    <div className="journey-example" id="journey-example" aria-live="polite" aria-atomic="true">
+                        <p className="preview-kicker">Illustrative walkthrough / 0{step + 1}</p><h3>{steps[step].title}</h3>
+                        {step === 0 && <><div className="example-url">example.com/a-little-more-attention <FontAwesomeIcon icon={faCheck} /></div><div className="example-result"><FontAwesomeIcon icon={faBookmark} /><div><strong>The quiet pleasure of paying attention</strong><span>In your library, ready when you are.</span></div></div></>}
+                        {step === 1 && <div className="example-summary"><span className="example-label">The key idea · sample summary</span><p>Small, deliberate pauses help us notice more. Make room for an uninterrupted walk or a few pages of reading.</p><span className="example-note">Start with the key points. Stay for the full story.</span></div>}
+                        {step === 2 && <><div className="example-url"><FontAwesomeIcon icon={faSearch} /><span>making room for quiet moments</span></div><p className="example-label">An example of Pro semantic search</p><div className="example-result"><FontAwesomeIcon icon={faBookmark} /><div><strong>The quiet pleasure of paying attention</strong><span>The article behind the idea you remembered.</span></div></div></>}
+                    </div>
+                </div>
+            </section>
+            <section className="reading-details" aria-label="Ways to make your library your own">
+                <div><span className="detail-number">01 / YOUR PACE</span><h3>Read it your way.</h3><p>Choose your reading font and theme. Make a little space for a longer read.</p></div>
+                <div><span className="detail-number">02 / YOUR COLLECTION</span><h3>Keep a thread of thought.</h3><p>Group related reads in collections and mark favorites you want to revisit.</p></div>
+                <div><span className="detail-number">03 / A LITTLE HELP</span><h3>Go further with Pro.</h3><p>Explore semantic search, article conversations, and audio overviews when you want more.</p></div>
+            </section>
+            <section className="reading-invitation"><p className="hero-eyebrow">Your next good read is waiting</p><h2>Start with one article.</h2><SignUpButton mode="modal"><button className="reading-cta">Create your free library <FontAwesomeIcon icon={faArrowRight} /></button></SignUpButton><p>Save unlimited articles on the free plan.</p></section>
+        </div>
     );
-};
-
-export default HeroPage;
+}

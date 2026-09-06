@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -13,6 +13,7 @@ interface ConfirmationDialogProps {
     cancelText?: string;
     onConfirm: () => void;
     onCancel: () => void;
+    isPending?: boolean;
     variant?: 'danger' | 'warning' | 'info';
 }
 
@@ -24,18 +25,27 @@ const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
     cancelText = 'Cancel',
     onConfirm,
     onCancel,
+    isPending = false,
     variant = 'warning'
 }) => {
+    const dialogRef = useRef<HTMLDialogElement>(null);
+    useEffect(() => {
+        const dialog = dialogRef.current;
+        if (isOpen && !dialog?.open) dialog?.showModal();
+        if (!isOpen && dialog?.open) dialog.close();
+    }, [isOpen]);
+
     const content = (
+        <dialog
+            ref={dialogRef}
+            className="confirmation-dialog-overlay"
+            aria-label={title}
+            aria-busy={isPending}
+            onCancel={(event) => { event.preventDefault(); if (!isPending) onCancel(); }}
+            onClick={(event) => { if (event.target === event.currentTarget && !isPending) onCancel(); }}
+        >
         <AnimatePresence>
             {isOpen && (
-                <motion.div
-                    className="confirmation-dialog-overlay"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    onClick={onCancel}
-                >
                     <motion.div
                         className={`confirmation-dialog ${variant}`}
                         initial={{ opacity: 0, scale: 0.9, y: 20 }}
@@ -50,7 +60,8 @@ const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
                             <h3>{title}</h3>
                             <button
                                 className="close-button"
-                                onClick={onCancel}
+                                disabled={isPending}
+                                onClick={isPending ? undefined : onCancel}
                                 aria-label="Close"
                             >
                                 <FontAwesomeIcon icon={faTimes} />
@@ -64,21 +75,24 @@ const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
                         <div className="dialog-actions">
                             <button
                                 className="cancel-button"
-                                onClick={onCancel}
+                                autoFocus
+                                disabled={isPending}
+                                onClick={isPending ? undefined : onCancel}
                             >
                                 {cancelText}
                             </button>
                             <button
                                 className={`confirm-button ${variant}`}
+                                disabled={isPending}
                                 onClick={onConfirm}
                             >
                                 {confirmText}
                             </button>
                         </div>
                     </motion.div>
-                </motion.div>
             )}
         </AnimatePresence>
+        </dialog>
     );
 
     return createPortal(content, document.body);
