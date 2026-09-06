@@ -819,11 +819,11 @@ const ArticleReader = () => {
                         </div>
                     )}
                 </div>
-                {adminAccess?.canSelectAiProvider && (
+                {(userHasProAccess || adminAccess?.canSelectAiProvider) && (
                     <fieldset className="admin-summary-provider">
-                        <legend>Admin summary provider</legend>
+                        <legend>{adminAccess?.canSelectAiProvider ? 'Summary provider' : 'Pro summary provider'}</legend>
                         <div className="admin-summary-provider__options">
-                            {([['default', 'Default'], ['gemini', 'Gemini'], ['openai-compatible', 'OpenAI']] as const).map(([value, label]) => (
+                            {([['default', 'Automatic'], ['gemini', 'Gemini'], ['openai-compatible', 'OpenAI']] as const).map(([value, label]) => (
                                 <label key={value}>
                                     <input
                                         type="radio"
