@@ -1,0 +1,327 @@
+/* Shared page language for the authenticated workspace. */
+.discover-page,
+.export-page,
+.import-page,
+.feeds-page,
+.research-page,
+.settings-page,
+.article-list-container,
+.pricing-page-container,
+.billing-return-page {
+    max-width: 1280px;
+    margin: 0 auto;
+    color: var(--text-color);
+}
+
+.discover-page,
+.export-page,
+.import-page,
+.feeds-page,
+.research-page,
+.settings-page,
+.article-list-container { padding: 2rem 1.5rem 4rem; }
+
+.discover-header,
+.export-page .premium-header,
+.import-page .premium-header,
+.settings-page .premium-header,
+.feeds-header,
+.research-header {
+    position: relative;
+    padding: 2rem 0 1.75rem;
+    margin-bottom: 2.5rem;
+    border-bottom: 1px solid var(--card-border);
+    text-align: left;
+    overflow: visible;
+}
+
+/* Favorites and archive use the library grid, so they inherit the same
+   hierarchy without needing a second page implementation. */
+.article-list-container .premium-header {
+    padding: 2rem 0 1.75rem;
+    margin-bottom: 2.5rem;
+    overflow: visible;
+}
+.article-list-container .premium-header::before { display: none; }
+.article-list-container .header-eyebrow {
+    color: var(--text-color-secondary);
+    font-size: .68rem;
+    font-weight: 400;
+    letter-spacing: .12em;
+}
+.article-list-container .header-title {
+    color: var(--text-color);
+    font: 400 clamp(2.6rem, 5vw, 4rem)/1.08 'Instrument Serif', serif;
+}
+.article-list-container .article-grid { gap: 1.5rem; }
+
+.discover-header::after,
+.export-page .premium-header::after,
+.import-page .premium-header::after,
+.settings-page .premium-header::after,
+.feeds-header::after,
+.research-header::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    width: 60px;
+    height: 2px;
+    background: var(--primary-color);
+}
+
+.discover-header::before,
+.export-page .header-mesh,
+.import-page .header-mesh,
+.settings-page .header-mesh,
+.feeds-header::before { display: none; }
+
+.discover-header h1,
+.export-page .header-title,
+.import-page .header-title,
+.settings-page .header-title,
+.feeds-header__text h1,
+.research-header h1 {
+    margin: .75rem 0 0;
+    color: var(--text-color);
+    font: 400 clamp(2.6rem, 5vw, 4rem)/1.08 'Instrument Serif', serif;
+    letter-spacing: -.02em;
+}
+
+.discover-header p,
+.export-page .header-subtitle,
+.import-page .header-subtitle,
+.feeds-header__text p,
+.research-header p { color: var(--text-color-secondary); line-height: 1.7; }
+
+.discover-header .header-eyebrow,
+.export-page .header-eyebrow,
+.import-page .header-eyebrow,
+.settings-page .header-eyebrow,
+.research-header-icon {
+    color: var(--text-color-secondary);
+    font-size: .68rem;
+    font-weight: 400;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+}
+
+.discover-grid,
+.export-formats,
+.source-cards,
+.info-grid,
+.compatibility-grid,
+.settings-grid,
+.theme-selection-grid { gap: 1.5rem; }
+
+.discover-grid-header h2,
+.export-info h2,
+.compatibility-info h2,
+.settings-section h2,
+.suggestions-section h2 { color: var(--text-color); font: 400 1.8rem/1.2 'Instrument Serif', serif; }
+
+.export-card,
+.source-card,
+.export-info,
+.compatibility-info,
+.upload-section,
+.parsed-section,
+.importing-section,
+.discover-empty,
+.research-pro-gate,
+.research-results,
+.settings-section,
+.pricing-card,
+.billing-return-card {
+    border: 1px solid var(--card-border);
+    border-radius: 5px;
+    background: var(--card-bg);
+    box-shadow: none;
+}
+
+.export-card,
+.source-card,
+.settings-section,
+.pricing-card { transition: border-color .2s ease, background-color .2s ease; }
+.export-card:hover,
+.source-card:hover,
+.settings-section:hover,
+.pricing-card:hover { border-color: var(--primary-color); box-shadow: none; transform: none; }
+
+.export-button,
+.btn-primary,
+.load-more-button,
+.manage-feeds-button,
+.pro-gate-cta,
+.contact-button,
+.upgrade-button,
+.settings-page button.upgrade-button { border-radius: 4px; box-shadow: none; }
+
+.export-button:focus-visible,
+.btn-primary:focus-visible,
+.load-more-button:focus-visible,
+.manage-feeds-button:focus-visible,
+.pro-gate-cta:focus-visible,
+.upgrade-button:focus-visible,
+.settings-page button:focus-visible {
+    outline: 2px solid var(--text-color);
+    outline-offset: 4px;
+}
+
+.research-page { max-width: 1280px; }
+.research-header { text-align: left; }
+.research-pro-gate { max-width: none; padding: 2.5rem; }
+
+.pricing-page-container {
+    padding: 3rem 1.5rem 4rem;
+    .pricing-header { margin-bottom: 2.5rem; text-align: left; }
+    .pricing-header h1 { margin: 0; font: 400 clamp(2.6rem, 5vw, 4rem)/1.08 'Instrument Serif', serif; color: var(--text-color); }
+    .pricing-header p { color: var(--text-color-secondary); line-height: 1.7; }
+}
+
+.billing-return-page { padding: 3rem 1.5rem; }
+
+@media (max-width: 700px) {
+    .discover-page, .export-page, .import-page, .feeds-page, .research-page, .settings-page, .article-list-container, .pricing-page-container, .billing-return-page { padding-inline: .5rem; }
+    .discover-header, .export-page .premium-header, .import-page .premium-header, .settings-page .premium-header, .feeds-header, .research-header { padding-top: 1rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .discover-page *, .export-page *, .import-page *, .feeds-page *, .research-page *, .settings-page *, .pricing-page-container *, .billing-return-page * { animation: none !important; transition: none !important; }
+}
+
+/* Page-specific remnants of the earlier rounded, spacious treatment. These
+   keep the pages distinct while giving them the same editorial rhythm. */
+body .discover-page,
+body .feeds-page,
+body .export-page,
+body .settings-page,
+body .article-list-container {
+    max-width: 1280px;
+    padding-top: 2rem;
+}
+
+body .discover-header,
+body .feeds-header,
+body .export-page .premium-header,
+body .settings-page .premium-header {
+    padding: 2rem 0 1.75rem;
+    margin-bottom: 2.5rem;
+    overflow: visible;
+}
+
+body .discover-header h1,
+body .feeds-header__text h1,
+body .export-page .premium-header .header-title,
+body .settings-page .premium-header .header-title,
+body .research-header h1,
+body .article-list-container .list-title,
+body .static-page .static-page-heading h1 {
+    font-size: 56px !important;
+    line-height: 1.08;
+    margin: .75rem 0 0;
+}
+
+body .discover-header p,
+body .feeds-header__text p,
+body .export-page .premium-header .header-subtitle {
+    font-size: 1rem;
+    line-height: 1.7;
+    margin-top: .75rem;
+}
+
+body .discover-grid,
+body .feeds-grid,
+body .export-formats,
+body .settings-grid {
+    gap: 1.5rem;
+}
+
+body .export-formats { padding-inline: 0; }
+body .export-card,
+body .settings-section,
+body .source-card {
+    border-radius: 5px;
+    box-shadow: none;
+}
+
+body .export-card {
+    padding: 1.5rem;
+    transition: border-color .2s ease, background-color .2s ease;
+}
+body .export-card:hover,
+body .settings-section:hover,
+body .source-card:hover {
+    transform: none;
+    box-shadow: none;
+}
+
+body .feeds-filters { padding-bottom: 1.5rem; }
+body .feeds-grid { grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
+body .feed-filter-pill,
+body .manage-feeds-button,
+body .load-more-button { border-radius: 4px; }
+
+body .settings-page .settings-tabs {
+    margin-top: 2rem;
+    gap: 1.25rem;
+}
+body .settings-page .settings-section { padding: 1.5rem; }
+
+body .discover-header::before,
+body .feeds-header::before,
+body .export-page .premium-header::before,
+body .settings-page .premium-header::before,
+body .article-list-container .premium-header::before,
+body .article-list-container .list-header-premium::before,
+body .research-header::before { display: none; }
+
+body .discover-header,
+body .feeds-header,
+body .export-page .premium-header,
+body .settings-page .premium-header,
+body .article-list-container .premium-header,
+body .article-list-container .list-header-premium,
+body .research-header { border-bottom: 1px solid var(--card-border); }
+
+body .discover-header .header-eyebrow,
+body .export-page .premium-header .header-eyebrow,
+body .settings-page .premium-header .header-eyebrow,
+body .article-list-container .library-eyebrow,
+body .article-list-container .header-eyebrow,
+body .feeds-header .header-eyebrow {
+    color: var(--primary-color) !important;
+    font-size: .72rem !important;
+    font-weight: 600 !important;
+    letter-spacing: .11em !important;
+    line-height: 1.6 !important;
+    text-transform: uppercase;
+}
+
+body .discover-page .load-more-button,
+body .feeds-page .feed-filter-pill,
+body .feeds-page .manage-feeds-button,
+body .settings-page .settings-tabs .tab-btn,
+body .export-page .export-button { border-radius: 5px; }
+
+body .article-list-container .list-header,
+body .article-list-container .premium-header { margin-bottom: 2rem; }
+
+body .research-page {
+    max-width: 1280px;
+    padding: 2rem 1.5rem 4rem;
+}
+
+@media (max-width: 700px) {
+    body .discover-header,
+    body .feeds-header,
+    body .export-page .premium-header,
+    body .settings-page .premium-header { padding-top: 1rem; }
+    body .discover-header h1,
+    body .feeds-header__text h1,
+    body .export-page .premium-header .header-title,
+    body .settings-page .premium-header .header-title,
+    body .research-header h1,
+    body .article-list-container .list-title,
+    body .static-page .static-page-heading h1 { font-size: 44px !important; }
+}

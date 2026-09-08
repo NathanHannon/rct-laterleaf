@@ -1,32 +1,22 @@
 .feeds-page {
     width: 100%;
-    max-width: 1400px;
+    max-width: 1280px;
     margin: 0 auto;
-    padding: 2rem 1.5rem;
+    padding: 2rem 1.5rem 4rem;
 }
 
 .feeds-header {
     display: flex;
     align-items: flex-start;
     justify-content: space-between;
-    margin-bottom: 3rem;
-    padding: 6rem 0 3rem 0;
+    margin-bottom: 2.5rem;
+    padding: 2rem 0 1.75rem;
     border-bottom: 1px solid var(--card-border);
     position: relative;
-    overflow: hidden;
+    overflow: visible;
     gap: 2rem;
 
-    &::before {
-        content: '';
-        position: absolute;
-        top: -150px;
-        right: -150px;
-        width: 600px;
-        height: 600px;
-        background: radial-gradient(circle, var(--primary-color-faint, rgba(0, 123, 255, 0.08)) 0%, transparent 70%);
-        z-index: -1;
-        border-radius: 50%;
-    }
+    &::before { display: none; }
 
     &::after {
         content: '';
@@ -51,11 +41,11 @@
         }
 
         p {
-            font-size: 1.25rem;
+            font-size: 1rem;
             color: var(--text-color-secondary);
             max-width: 550px;
             margin: 0;
-            line-height: 1.5;
+            line-height: 1.7;
         }
     }
 }
@@ -70,7 +60,7 @@
     color: white;
     background-color: var(--primary-color);
     border: none;
-    border-radius: 10px;
+    border-radius: 5px;
     cursor: pointer;
     transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
     white-space: nowrap;
@@ -78,8 +68,8 @@
 
     &:hover {
         background-color: var(--primary-hover);
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        transform: none;
+        box-shadow: none;
     }
 
     &:active {
@@ -103,7 +93,7 @@
         background: var(--card-bg);
         border: 1px solid var(--card-border);
         color: var(--text-color-secondary);
-        border-radius: 20px;
+        border-radius: 4px;
         font-size: 0.9rem;
         font-weight: 500;
         cursor: pointer;
@@ -127,7 +117,7 @@
 .feeds-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-    gap: 2rem;
+    gap: 1.5rem;
     padding: 0;
 }
 

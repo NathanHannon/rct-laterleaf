@@ -190,8 +190,9 @@ const CollectionsList: React.FC = () => {
             >
                 <div className="header-top">
                     <div className="header-left">
-                        <h1 className="collections-title">Collections</h1>
-                        <span className="collections-count">{collections.length} Curated Archives</span>
+                        <p className="collections-eyebrow">Good ideas belong together</p>
+                        <h1 className="collections-title">Your collections</h1>
+                        <span className="collections-count">{collections.length} {collections.length === 1 ? 'collection' : 'collections'}</span>
                     </div>
                     <div className="header-right">
                         <button
@@ -203,7 +204,7 @@ const CollectionsList: React.FC = () => {
                         </button>
                     </div>
                 </div>
-                <p className="collections-subtitle">Organize your readings into meaningful thematic spaces.</p>
+                <p className="collections-subtitle">Keep a thread of thought. Gather the reads you want to return to.</p>
             </motion.header>
 
             {(loadingSuggestions || suggestedCollections.length > 0) && (

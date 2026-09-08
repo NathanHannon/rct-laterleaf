@@ -103,6 +103,7 @@ export default function BillingReturnPage() {
                 : 'We are refreshing your account status and waiting for the billing webhook to reach the database.';
 
     return (
+        <motion.div className="billing-return-page">
         <motion.div
             style={{
                 maxWidth: '720px',
@@ -148,6 +149,7 @@ export default function BillingReturnPage() {
                     </button>
                 </div>
             </div>
+        </motion.div>
         </motion.div>
     );
 }

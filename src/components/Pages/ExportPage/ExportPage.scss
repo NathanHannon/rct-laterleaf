@@ -1,34 +1,24 @@
 .export-page {
     padding: 2rem 0;
-    max-width: 1400px;
+    max-width: 1280px;
     margin: 0 auto;
     line-height: 1.6;
 
     .premium-header {
         text-align: left;
-        margin-bottom: 4rem;
+        margin-bottom: 2.5rem;
         position: relative;
-        padding: 6rem 2rem 3rem 2rem;
+        padding: 2rem 0 1.75rem;
         border-bottom: 1px solid var(--card-border);
-        overflow: hidden;
+        overflow: visible;
 
-        &::before {
-            content: '';
-            position: absolute;
-            top: -150px;
-            right: -150px;
-            width: 600px;
-            height: 600px;
-            background: radial-gradient(circle, var(--primary-color-faint, rgba(0, 123, 255, 0.08)) 0%, transparent 70%);
-            z-index: -1;
-            border-radius: 50%;
-        }
+        &::before { display: none; }
 
         &::after {
             content: '';
             position: absolute;
             bottom: -1px;
-            left: 2rem;
+            left: 0;
             width: 60px;
             height: 2px;
             background: var(--primary-color);
@@ -54,11 +44,11 @@
         }
 
         .header-subtitle {
-            font-size: 1.25rem;
+            font-size: 1rem;
             color: var(--text-color-secondary);
             max-width: 550px;
             margin: 1rem 0 0 0;
-            line-height: 1.5;
+            line-height: 1.7;
         }
 
         .header-mesh {
@@ -84,22 +74,22 @@
 .export-formats {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-    gap: 2rem;
-    margin-bottom: 4rem;
-    padding: 0 2rem;
+    gap: 1.5rem;
+    margin-bottom: 3rem;
+    padding: 0;
 }
 
 .export-card {
     background: var(--card-bg);
     border: 1px solid var(--card-border);
-    border-radius: 20px;
-    padding: 2rem;
-    transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+    border-radius: 5px;
+    padding: 1.5rem;
+    transition: border-color 0.2s ease, background-color 0.2s ease;
 
     &:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
-        border-color: var(--primary-color-muted, rgba(15, 118, 110, 0.2));
+        transform: none;
+        box-shadow: none;
+        border-color: var(--primary-color);
     }
 }
 
@@ -137,15 +127,16 @@
     font-size: 0.9rem;
     background: rgba(var(--primary-color-rgb), 0.05);
     padding: 1rem;
-    border-radius: 6px;
+    border-radius: 4px;
 }
 
 .export-button {
     width: 100%;
-    padding: 1rem 1.5rem;
+    min-height: 44px;
+    padding: 0.75rem 1.2rem;
     background: transparent;
-    border: 2px solid var(--primary-color);
-    border-radius: 8px;
+    border: 1px solid var(--primary-color);
+    border-radius: 5px;
     color: var(--primary-color);
     font-weight: 500;
     font-size: 1rem;
@@ -168,18 +159,18 @@
 }
 
 .export-info {
-    background: var(--card-background);
+    background: var(--card-bg);
     border: 1px solid var(--border-color);
-    border-radius: 12px;
-    padding: 2rem;
+    border-radius: 5px;
+    padding: 1.5rem;
     margin-bottom: 3rem;
 }
 
 .export-info h2 {
     color: var(--primary-color);
     margin: 0 0 2rem 0;
-    text-align: center;
-    font-size: 1.5rem;
+    text-align: left;
+    font: 400 1.8rem/1.2 'Instrument Serif', serif;
 }
 
 .info-grid {
@@ -205,18 +196,18 @@
 }
 
 .compatibility-info {
-    background: var(--card-background);
+    background: var(--card-bg);
     border: 1px solid var(--border-color);
-    border-radius: 12px;
-    padding: 2rem;
+    border-radius: 5px;
+    padding: 1.5rem;
     margin-bottom: 3rem;
 }
 
 .compatibility-info h2 {
     color: var(--primary-color);
     margin: 0 0 2rem 0;
-    text-align: center;
-    font-size: 1.5rem;
+    text-align: left;
+    font: 400 1.8rem/1.2 'Instrument Serif', serif;
 }
 
 .compatibility-grid {

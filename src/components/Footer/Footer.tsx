@@ -15,7 +15,7 @@ const Footer: React.FC = () => {
                 <a href="/faq">FAQ</a>
                 <a href="/privacy">Privacy Policy</a>
                 <a href="/terms">Terms of Service</a>
-                <a href="mailto:abuse@laterleaf.com?subject=Abuse Report">Report Abuse</a>
+                <a href="/report-abuse">Report Abuse</a>
             </div>
 
             <div className="footer-socials">

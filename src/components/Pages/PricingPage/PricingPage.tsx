@@ -6,6 +6,7 @@ export default function PricingScreen() {
 
     return (
         <motion.div
+            className="pricing-page-container"
             style={{ maxWidth: '800px', margin: '0 auto', padding: '0 1rem' }}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}

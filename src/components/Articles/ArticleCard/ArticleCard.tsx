@@ -71,11 +71,6 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
                     scale: isBookmarkAnimating ? [1, 1.02, 1] : 1,
                     rotateY: isBookmarkAnimating ? [0, 5, 0] : 0
                 }}
-                whileHover={{
-                    y: -8,
-                    transition: { duration: 0.3, ease: "easeOut" }
-                }}
-                whileTap={{ scale: 0.98 }}
                 transition={{
                     duration: 0.5,
                     ease: [0.23, 1, 0.32, 1]
@@ -186,7 +181,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
                             )}
                         </div>
                         <div className="card-content">
-                            <p className="card-title">{title}</p>
+                            <h2 className="card-title">{title}</h2>
                             <p className="card-description">{ogDescription || excerpt}</p>
 
                             <div className="card-footer">

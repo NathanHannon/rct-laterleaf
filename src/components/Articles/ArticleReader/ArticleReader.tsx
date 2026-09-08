@@ -866,6 +866,7 @@ const ArticleReader = () => {
                         <ArticlePodcastPlayer
                             articleId={articleId}
                             title={article.title || 'Article Audio'}
+                            savedAudioUrl={article.audioLocation}
                             className="article-podcast-player"
                             onClose={() => setShowPodcastPlayer(false)}
                             selectedLanguage={detectedLanguage ?? undefined}

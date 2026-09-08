@@ -1,37 +1,7 @@
-import React, { useState } from 'react';
-import { motion, AnimatePresence, type Variants } from 'motion/react';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faChevronDown } from '@fortawesome/free-solid-svg-icons';
-import './FAQPage.scss';
-import UpgradeButton from '../../../Common/Controls/UpgradeButton/UpgradeButton';
+import { Link } from 'react-router-dom';
+import StaticPage from '../StaticPage';
 
-const FAQPage: React.FC = () => {
-    const [openId, setOpenId] = useState<string | null>(null);
-
-    const toggleItem = (id: string) => {
-        setOpenId(openId === id ? null : id);
-    };
-
-    const containerVariants: Variants = {
-        hidden: { opacity: 0 },
-        visible: {
-            opacity: 1,
-            transition: {
-                staggerChildren: 0.05
-            }
-        }
-    };
-
-    const itemVariants: Variants = {
-        hidden: { opacity: 0, y: 15, filter: 'blur(4px)' },
-        visible: {
-            opacity: 1,
-            y: 0,
-            filter: 'blur(0px)',
-            transition: { duration: 0.4, ease: [0.23, 1, 0.32, 1] }
-        }
-    };
-
+const FAQPage = () => {
     const faqData = [
         {
             id: 'what-is-laterleaf',
@@ -144,103 +114,41 @@ const FAQPage: React.FC = () => {
         },
         {
             title: 'Account & Billing',
-            items: faqData.filter(item => ['billing-questions', 'feature-requests'].includes(item.id))
+            items: faqData.filter(item => ['how-to-upgrade', 'billing-questions', 'feature-requests'].includes(item.id))
         }
     ];
 
     return (
-        <div className="faq-page">
-            <div className="page-container">
-                <motion.header
-                    className="premium-header"
-                    initial={{ opacity: 0, y: -20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.8, ease: [0.23, 1, 0.32, 1] }}
-                >
-                    <div className="header-eyebrow">Support</div>
-                    <h1 className="header-title">Frequently Asked Questions</h1>
-                    <div className="header-mesh"></div>
-                </motion.header>
-
-                <motion.section
-                    className="intro"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.2 }}
-                >
-                    <p>
-                        Find answers to common questions about LaterLeaf. If you can't find what you're looking for,
-                        feel free to <a href="/contact">contact our support team</a>.
-                    </p>
-                </motion.section>
-
-                <motion.div
-                    className="faq-content"
-                    variants={containerVariants}
-                    initial="hidden"
-                    animate="visible"
-                >
-                    {categories.map((category, categoryIndex) => (
-                        <motion.div key={categoryIndex} className="faq-category" variants={itemVariants}>
-                            <h2>{category.title}</h2>
-                            <div className="faq-items">
-                                {category.items.map((item) => (
-                                    <div
-                                        key={item.id}
-                                        className={`faq-item ${openId === item.id ? 'open' : ''}`}
-                                    >
-                                        <button
-                                            className="faq-question"
-                                            onClick={() => toggleItem(item.id)}
-                                            aria-expanded={openId === item.id ? 'true' : 'false'}
-                                        >
-                                            <span>{item.question}</span>
-                                            <motion.span
-                                                animate={{ rotate: openId === item.id ? 180 : 0 }}
-                                                transition={{ duration: 0.3, ease: [0.23, 1, 0.32, 1] }}
-                                            >
-                                                <FontAwesomeIcon
-                                                    icon={faChevronDown}
-                                                    className={`chevron-icon ${openId === item.id ? 'up' : ''}`}
-                                                />
-                                            </motion.span>
-                                        </button>
-                                        <AnimatePresence>
-                                            {openId === item.id && (
-                                                <motion.div
-                                                    className="faq-answer"
-                                                    initial={{ height: 0, opacity: 0 }}
-                                                    animate={{ height: 'auto', opacity: 1 }}
-                                                    exit={{ height: 0, opacity: 0 }}
-                                                    transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
-                                                >
-                                                    <p>{item.answer}</p>
-                                                </motion.div>
-                                            )}
-                                        </AnimatePresence>
-                                    </div>
-                                ))}
-                            </div>
-                        </motion.div>
-                    ))}
-                </motion.div>
-
-                <div className="contact-section">
-                    <h2>Ready to Go Pro?</h2>
-                    <p>Unlock unlimited AI summaries, article chat, and advanced features.</p>
-                    <UpgradeButton />
-                </div>
-
-                <div className="contact-section">
-                    <h2>Still have questions?</h2>
-                    <p>
-                        If you couldn't find the answer you were looking for, we're here to help!
-                        Reach out to our support team and we'll get back to you as soon as possible.
-                    </p>
-                    <a href="/contact" className="contact-button">Contact Support</a>
-                </div>
+        <StaticPage className="faq-page" title="A few good answers." eyebrow="Frequently asked questions">
+            <section className="intro">
+                <p>Find answers to common questions about LaterLeaf. If you can’t find what you’re looking for, <Link to="/contact">get in touch</Link>.</p>
+            </section>
+            <div className="faq-content">
+                {categories.map(category => (
+                    <div className="faq-category" key={category.title}>
+                        <h2>{category.title}</h2>
+                        <div className="faq-items">
+                            {category.items.map(item => (
+                                <details className="faq-item" key={item.id} id={item.id}>
+                                    <summary>{item.question}</summary>
+                                    <div className="faq-answer"><p>{item.answer}</p></div>
+                                </details>
+                            ))}
+                        </div>
+                    </div>
+                ))}
             </div>
-        </div>
+            <div className="contact-section">
+                <h2>Ready to Go Pro?</h2>
+                <p>Unlock unlimited AI summaries, article chat, and advanced features.</p>
+                <Link to="/pricing" className="static-page-action">Explore Pro</Link>
+            </div>
+            <div className="contact-section">
+                <h2>Still have questions?</h2>
+                <p>If you couldn’t find the answer you were looking for, we’re here to help. Reach out to our support team and we’ll get back to you as soon as possible.</p>
+                <Link to="/contact" className="static-page-action">Contact support</Link>
+            </div>
+        </StaticPage>
     );
 };
 

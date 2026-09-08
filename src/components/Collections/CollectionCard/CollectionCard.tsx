@@ -91,14 +91,20 @@ const CollectionCard: React.FC<CollectionCardProps> = ({
                         }
                     }
                 }}
-                whileHover={{
-                    y: -8,
-                    transition: { duration: 0.4, ease: [0.23, 1, 0.32, 1] }
-                }}
                 transition={{ duration: 0.5, ease: [0.23, 1, 0.32, 1] }}
                 onClick={handleCardClick}
+                tabIndex={0}
+                role="link"
+                aria-label={`Open collection: ${collection.name}`}
+                onKeyDown={(event) => {
+                    if (event.target === event.currentTarget && event.key === 'Enter') {
+                        event.preventDefault();
+                        handleCardClick();
+                    }
+                }}
                 style={{ cursor: 'pointer' }}
             >
+                <p className="collection-kicker">A thread of thought</p>
                 <div className="collection-header">
                     <div className="collection-info">
                         <div className="collection-title-container">
@@ -122,7 +128,7 @@ const CollectionCard: React.FC<CollectionCardProps> = ({
                             className="article-count"
                             layoutId={`collection-count-${collection.id}`}
                         >
-                            {collection.articleCount || 0} articles
+                            {collection.articleCount || 0} {collection.articleCount === 1 ? 'article' : 'articles'}
                         </motion.span>
                     </div>
                     <div className="collection-actions" onClick={handleDropdownClick}>
@@ -132,6 +138,8 @@ const CollectionCard: React.FC<CollectionCardProps> = ({
                                 onToggleDropdown();
                             }}
                             className="dropdown-trigger"
+                            aria-label={`Options for ${collection.name}`}
+                            aria-expanded={isDropdownOpen}
                         >
                             <FontAwesomeIcon icon={faEllipsisV} />
                         </button>

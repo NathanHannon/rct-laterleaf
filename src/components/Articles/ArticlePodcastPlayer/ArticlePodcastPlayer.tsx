@@ -10,6 +10,8 @@ import { useToastContext } from '../../../context/toastContextUtils';
 import ConfirmationDialog from '../../Common/ConfirmationDialog/ConfirmationDialog';
 import WaveformAnimation from '../../Common/WaveformAnimation/WaveformAnimation';
 import { LANGUAGES } from '../../../constants/languages';
+import { resolvePodcastAudioUrl, type PodcastStatus } from '../../../services/podcastStatus';
+import type { Article } from '../../../interfaces/article';
 import './ArticlePodcastPlayer.scss';
 
 interface VoicePair {
@@ -25,6 +27,7 @@ interface ArticlePodcastPlayerProps {
     className?: string;
     onClose?: () => void;
     selectedLanguage?: string;
+    savedAudioUrl?: string;
 }
 
 const ArticlePodcastPlayer: React.FC<ArticlePodcastPlayerProps> = ({
@@ -32,7 +35,8 @@ const ArticlePodcastPlayer: React.FC<ArticlePodcastPlayerProps> = ({
     title,
     className,
     onClose,
-    selectedLanguage
+    selectedLanguage,
+    savedAudioUrl,
 }) => {
     const { getToken } = useAuth();
     const navigate = useNavigate();
@@ -50,7 +54,7 @@ const ArticlePodcastPlayer: React.FC<ArticlePodcastPlayerProps> = ({
     // Podcast settings - Simplified for fixed backend voices
     const [showSettings, setShowSettings] = useState(false);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-    const [showTranscript, setShowTranscript] = useState(true);
+    const [showTranscript, setShowTranscript] = useState(false);
     const [podcastDuration, setPodcastDuration] = useState<'short' | 'medium' | 'long'>('medium');
     const [selectedVoicePair, setSelectedVoicePair] = useState<string>('zephyr-charon');
     const [speed, setSpeed] = useState(1.0);
@@ -64,17 +68,19 @@ const ArticlePodcastPlayer: React.FC<ArticlePodcastPlayerProps> = ({
         data: podcastStatus,
         isLoading: isQueryLoading,
         error: queryError
-    } = useQuery({
+    } = useQuery<PodcastStatus | null>({
         queryKey: ['podcast', articleId],
-        queryFn: async () => {
+        queryFn: async ({ signal }) => {
             console.log(`🎙️ Checking podcast status for article ${articleId}`);
             const token = await getToken();
             const response = await fetch(`/api/articles/${articleId}/podcast-status`, {
+                signal,
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             if (!response.ok) throw new Error('Failed to fetch status');
             return response.json();
         },
+        staleTime: 60_000,
         // Poll every 5s ONLY if status is 'pending'
         refetchInterval: (query) => {
             const status = query.state.data;
@@ -84,15 +90,15 @@ const ArticlePodcastPlayer: React.FC<ArticlePodcastPlayerProps> = ({
     });
 
     // Derived State from Query
-    const audioUrl = podcastStatus?.audioUrl || null;
+    const audioUrl = resolvePodcastAudioUrl(podcastStatus, savedAudioUrl);
     const transcriptScript = podcastStatus?.podcastScript?.script || null;
     const isGenerating = podcastStatus?.status === 'pending';
 
-    const isThisTrackPlaying = currentTrack?.id === articleId && isPlaying;
-    const isThisTrackLoaded = currentTrack?.id === articleId;
+    const isThisTrackLoaded = currentTrack?.id === articleId && currentTrack.url === audioUrl;
+    const isThisTrackPlaying = isThisTrackLoaded && isPlaying;
 
     const subtitleSegments = useMemo(() => {
-        if (!transcriptScript) return [];
+        if (!showTranscript || !transcriptScript) return [];
 
         const lines = transcriptScript
             .split(/\n+/)
@@ -120,7 +126,7 @@ const ArticlePodcastPlayer: React.FC<ArticlePodcastPlayerProps> = ({
                 endTime,
             };
         });
-    }, [transcriptScript, duration, prefetchedDuration, isThisTrackLoaded]);
+    }, [showTranscript, transcriptScript, duration, prefetchedDuration, isThisTrackLoaded]);
 
     const activeSubtitle = useMemo(() => {
         if (!subtitleSegments.length) return null;
@@ -129,7 +135,7 @@ const ArticlePodcastPlayer: React.FC<ArticlePodcastPlayerProps> = ({
         const matchingSegment = subtitleSegments.find((segment: { startTime: number; endTime: number; text: string }) => current >= segment.startTime && current < segment.endTime);
         return matchingSegment || subtitleSegments[0];
     }, [subtitleSegments, currentTime, isThisTrackLoaded]);
-    const isLoading = isQueryLoading || isGenerating;
+    const isLoading = (!audioUrl && isQueryLoading) || isGenerating;
     const error = localError || (queryError ? (queryError as Error).message : null);
 
     const handleDownload = async () => {
@@ -180,17 +186,17 @@ const ArticlePodcastPlayer: React.FC<ArticlePodcastPlayerProps> = ({
 
     // Prefetch audio duration so it shows before the user presses play
     useEffect(() => {
-        if (!audioUrl) return;
+        if (!audioUrl || isThisTrackLoaded) return;
         const tempAudio = new Audio();
         tempAudio.preload = 'metadata';
-        tempAudio.src = audioUrl;
         const onMetadata = () => setPrefetchedDuration(tempAudio.duration || 0);
         tempAudio.addEventListener('loadedmetadata', onMetadata);
+        tempAudio.src = audioUrl;
         return () => {
             tempAudio.removeEventListener('loadedmetadata', onMetadata);
             tempAudio.src = '';
         };
-    }, [audioUrl]);
+    }, [audioUrl, isThisTrackLoaded]);
 
 
     // Check supported languages
@@ -321,9 +327,11 @@ const ArticlePodcastPlayer: React.FC<ArticlePodcastPlayerProps> = ({
             const text = await response.text();
             return text ? JSON.parse(text) : {};
         },
-        onSuccess: () => {
+        onSuccess: async () => {
             console.log(`✅ Podcast deleted successfully`);
+            await queryClient.cancelQueries({ queryKey: ['podcast', articleId] });
             queryClient.setQueryData(['podcast', articleId], null);
+            queryClient.setQueryData<Article>(['article', articleId], previous => previous ? { ...previous, audioLocation: undefined } : previous);
             queryClient.invalidateQueries({ queryKey: ['podcast', articleId] });
 
             // Reset global player if this was the track
@@ -664,13 +672,14 @@ const ArticlePodcastPlayer: React.FC<ArticlePodcastPlayerProps> = ({
                     <button
                         type="button"
                         className="transcript-toggle"
+                        aria-expanded={showTranscript}
                         onClick={() => setShowTranscript((value) => !value)}
                     >
                         {showTranscript ? 'Hide captions' : 'Show captions'}
                     </button>
                     {showTranscript && (
                         <div className="transcript-content">
-                            <p className="caption-label">Live captions</p>
+                            <p className="caption-label">Captions · approximate timing</p>
                             <p className="caption-text">{activeSubtitle?.text || 'Captions will appear here while playback progresses.'}</p>
                         </div>
                     )}

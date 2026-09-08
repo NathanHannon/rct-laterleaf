@@ -158,3 +158,10 @@
     .library-state--error { border-inline-start: 3px solid var(--text-color); }
     @media (max-width: 600px) { padding: 1rem 0; .list-header-premium .list-title { font-size: 2.8rem; } .library-first-steps { grid-template-columns: 1fr; gap: 1rem; } .library-state { padding: 2rem 1rem; } .article-grid { grid-template-columns: minmax(0, 1fr); } }
 }
+
+.article-list-container {
+    max-width: 1280px;
+    .list-header-premium::before { display: none; }
+    .article-grid { grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); gap: 2rem; align-items: stretch; }
+    .library-results { padding-block: .75rem; border-bottom: 1px solid var(--card-border); letter-spacing: .03em; }
+}
