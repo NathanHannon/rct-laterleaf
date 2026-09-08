@@ -607,3 +607,18 @@
     .article-card-wrapper { transform: none !important; transition: none; }
     .article-card-wrapper * { transition: none !important; animation: none !important; }
 }
+
+// Botanical bookplates keep a little personality when a story has no image.
+.article-card-wrapper :is(.card-image-placeholder, .preview-placeholder) {
+    position: relative;
+    isolation: isolate;
+    &::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: var(--card-bg);
+        opacity: .3;
+        z-index: -1;
+    }
+    :is(.placeholder-icon, .preview-icon) { color: #17483c; opacity: 1; transform: rotate(-8deg); }
+}

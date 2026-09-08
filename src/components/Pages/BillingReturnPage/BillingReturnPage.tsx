@@ -95,60 +95,43 @@ export default function BillingReturnPage() {
                 : 'Finalizing your subscription';
 
     const body = syncState === 'success'
-        ? 'Your account has been refreshed from the database. You can use Pro features now.'
+        ? 'Your account is up to date. Head back to your reading, or review your plan in Settings.'
         : syncState === 'timeout'
-            ? 'The webhook has not updated your account yet. This usually resolves shortly after checkout.'
+            ? 'Your subscription is still updating. Give it a moment, then check your plan in Settings.'
             : syncState === 'error'
-                ? 'We could not confirm your billing state from the server. You can retry or return to settings.'
-                : 'We are refreshing your account status and waiting for the billing webhook to reach the database.';
+                ? 'We couldn’t refresh your subscription details. You can check your plan in Settings.'
+                : 'We’re updating your subscription details. This should only take a moment.';
 
     return (
         <motion.div className="billing-return-page">
         <motion.div
-            style={{
-                maxWidth: '720px',
-                margin: '0 auto',
-                padding: '2rem 1rem',
-                display: 'grid',
-                gap: '1rem',
-            }}
+            className="billing-return-inner"
             initial={{ opacity: 0, y: 18 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, ease: [0.23, 1, 0.32, 1] }}
         >
-            <div
-                style={{
-                    background: 'var(--card-bg)',
-                    border: '1px solid var(--border-color)',
-                    borderRadius: '20px',
-                    padding: '2rem',
-                    boxShadow: '0 20px 60px rgba(0, 0, 0, 0.08)',
-                }}
-            >
-                <p style={{ margin: 0, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', fontSize: '0.8rem' }}>
-                    Billing
-                </p>
-                <h1 style={{ margin: '0.75rem 0 0.5rem', fontSize: 'clamp(2rem, 5vw, 3rem)' }}>{heading}</h1>
-                <p style={{ margin: 0, color: 'var(--text-secondary)' }}>{body}</p>
+            <section className="billing-status-card" aria-live="polite">
+                <p className="page-eyebrow">Your account</p>
+                <h1>{heading}</h1>
+                <p className="billing-status-copy">{body}</p>
 
-                <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginTop: '1.5rem' }}>
+                <div className="billing-status-actions">
                     <button
                         type="button"
-                        className="upgrade-button"
+                        className="billing-action"
                         onClick={() => navigate('/settings')}
                     >
                         Go to Settings
                     </button>
                     <button
                         type="button"
-                        className="upgrade-button"
+                        className="billing-action billing-action-secondary"
                         onClick={() => navigate('/articles')}
-                        style={{ background: 'var(--secondary-color)' }}
                     >
-                        Open Articles
+                        Back to reading
                     </button>
                 </div>
-            </div>
+            </section>
         </motion.div>
         </motion.div>
     );

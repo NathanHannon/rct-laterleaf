@@ -53,11 +53,11 @@
 }
 
 // Ensure proper contrast in both themes
-[data-theme='light'] .card-title {
+[data-appearance='light'] .card-title {
     color: #0f766e; // Dark teal for light mode
 }
 
-[data-theme='dark'] .card-title {
+[data-appearance='dark'] .card-title {
     color: #ffffff !important; // Force white text in dark mode
 }
 
@@ -156,11 +156,11 @@
 }
 
 // Ensure proper contrast for secondary text in both themes
-[data-theme='light'] .collection-description {
+[data-appearance='light'] .collection-description {
     color: #4b5563; // Neutral gray for light mode
 }
 
-[data-theme='dark'] .collection-description {
+[data-appearance='dark'] .collection-description {
     color: #9ca3af !important; // Force light gray text in dark mode
 }
 

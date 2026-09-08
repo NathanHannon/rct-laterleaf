@@ -5,17 +5,17 @@
     background-color: var(--card-bg);
     // Paper sheet effect
     border-radius: 8px;
-    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.08), 0 4px 12px rgba(0, 0, 0, 0.04);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06);
     max-width: 800px;
     margin: 2rem auto;
     position: relative;
 
     // Use black text for optimal reading in light mode, white in dark mode
-    [data-theme='light'] & {
+    [data-appearance='light'] & {
         color: #1f2937; // Dark gray/black for light mode reading
     }
 
-    [data-theme='dark'] & {
+    [data-appearance='dark'] & {
         color: #ffffff; // White text for dark mode reading
     }
 
@@ -47,7 +47,7 @@
 
         legend {
             margin-bottom: 0.45rem;
-            color: var(--secondary-color);
+            color: var(--text-color-secondary);
             font-size: 0.75rem;
             font-weight: 600;
         }
@@ -78,7 +78,7 @@
                 padding-inline: 0.65rem;
                 place-items: center;
                 border-radius: 6px;
-                color: var(--secondary-color);
+                color: var(--text-color-secondary);
                 font-size: 0.78rem;
                 font-weight: 600;
                 transition: background-color 0.15s ease, color 0.15s ease;
@@ -103,7 +103,7 @@
 
     .article-author,
     .article-date {
-        color: var(--secondary-color);
+        color: var(--text-color-secondary);
         font-size: 0.9rem;
     }
 
@@ -231,12 +231,12 @@
             blockquote {
                 margin: 1rem 0;
                 padding: 1rem 1.5rem 1rem 2rem;
-                border-left: 3px solid var(--secondary-color);
+                border-left: 3px solid var(--text-color-secondary);
                 background: rgba(var(--secondary-color-rgb), 0.05);
 
                 &::before {
                     font-size: 2.5rem;
-                    color: var(--secondary-color);
+                    color: var(--text-color-secondary);
                 }
             }
         }
@@ -262,7 +262,7 @@
                 height: 4px;
                 background: linear-gradient(90deg,
                         var(--primary-color),
-                        var(--secondary-color),
+                        var(--text-color-secondary),
                         var(--primary-color));
                 border-radius: 12px 12px 0 0;
             }
@@ -465,7 +465,7 @@
 }
 
 // Theme-specific enhancements for maximum visibility
-[data-theme='light'] .reading-progress-bar {
+[data-appearance='light'] .reading-progress-bar {
     .reading-progress-fill {
         box-shadow:
             0 0 12px rgba(var(--primary-color-rgb), 0.6),
@@ -473,7 +473,7 @@
     }
 }
 
-[data-theme='dark'] .reading-progress-bar {
+[data-appearance='dark'] .reading-progress-bar {
     .reading-progress-fill {
         box-shadow:
             0 0 16px rgba(var(--primary-color-rgb), 1),
@@ -574,6 +574,7 @@
 
     .button-favorite {
         background-color: var(--primary-color);
+        color: var(--button-text);
 
         &:hover:not(:disabled) {
             background-color: var(--primary-hover);
@@ -613,7 +614,7 @@
     }
 
     .button-summarize {
-        background-color: #9c27b0;
+        background-color: #79518c;
 
         &:hover:not(:disabled) {
             background-color: #7b1fa2;
@@ -638,7 +639,7 @@
     }
 
     .button-podcast {
-        background-color: #ff5722;
+        background-color: #b6532c;
 
         &:hover:not(:disabled) {
             background-color: #f4511e;
@@ -651,7 +652,7 @@
     }
 
     .button-audio {
-        background-color: #5c6bc0; // Indigo 400 — distinct from teal translate
+        background-color: #52669a; // Indigo 400 — distinct from teal translate
 
         &:hover:not(:disabled) {
             background-color: #3f51b5; // Indigo 500
@@ -672,7 +673,7 @@
     }
 
     .button-chat {
-        background-color: #7c4dff;
+        background-color: #7656a0;
 
         &:hover:not(:disabled) {
             background-color: #651fff;
@@ -738,7 +739,7 @@
                 right: 0;
             }
 
-            [data-theme='dark'] & {
+            [data-appearance='dark'] & {
                 border-color: #444;
                 box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
             }
@@ -760,7 +761,7 @@
                     background-color: rgba(0, 0, 0, 0.05);
                 }
 
-                [data-theme='dark'] &:hover {
+                [data-appearance='dark'] &:hover {
                     background-color: rgba(255, 255, 255, 0.1);
                 }
 
@@ -769,7 +770,7 @@
                     background-color: rgba(0, 137, 123, 0.1);
                     font-weight: 600;
 
-                    [data-theme='dark'] & {
+                    [data-appearance='dark'] & {
                         color: #4db6ac;
                         background-color: rgba(77, 182, 172, 0.15);
                     }
@@ -816,7 +817,7 @@
                 font-size: 0.7rem;
                 font-weight: 600;
                 background: rgba(156, 39, 176, 0.15);
-                color: #9c27b0;
+                color: #79518c;
                 padding: 1px 5px;
                 border-radius: 8px;
                 min-width: 16px;
@@ -827,7 +828,7 @@
                     color: #f44336;
                 }
 
-                [data-theme='dark'] & {
+                [data-appearance='dark'] & {
                     background: rgba(206, 147, 216, 0.2);
                     color: #ce93d8;
 
@@ -1047,7 +1048,7 @@
     // position: relative; // Removed absolute positioning for close button
 }
 
-[data-theme='dark'] .ai-summary-panel {
+[data-appearance='dark'] .ai-summary-panel {
     // Stained Glass: Higher opacity for rich color, but still translucent
     background: rgba(139, 92, 246, 0.35) !important;
     border-color: rgba(139, 92, 246, 0.5);
@@ -1105,7 +1106,7 @@
             cursor: pointer;
             transition: all 0.2s ease;
 
-            [data-theme='dark'] & {
+            [data-appearance='dark'] & {
                 background: rgba(0, 121, 107, 0.2);
                 color: #2db6a3; // Brighter teal for dark mode text
                 border-color: #2db6a3;
@@ -1116,7 +1117,7 @@
                 color: white;
                 border-color: #00796B;
 
-                [data-theme='dark'] & {
+                [data-appearance='dark'] & {
                     background: #2db6a3;
                     border-color: #2db6a3;
                     color: #1a1a1a; // Dark text on bright background
@@ -1141,7 +1142,7 @@
             // Solid, opaque background to prevent transparency issues
             background: var(--card-bg);
 
-            [data-theme='dark'] & {
+            [data-appearance='dark'] & {
                 background: #1e1e1e; // Explicit dark grey for dark mode
                 border: 1px solid #333;
             }
@@ -1219,7 +1220,7 @@
         border: 1px solid var(--primary-color);
         color: var(--primary-color);
 
-        [data-theme='dark'] & {
+        [data-appearance='dark'] & {
             background: rgba(var(--primary-color-rgb), 0.2);
             color: #ffffff; // White icon on purple glass
             border-color: var(--primary-color);
@@ -1240,7 +1241,7 @@
         border: 1px solid #ef4444;
         color: #ef4444;
 
-        [data-theme='dark'] & {
+        [data-appearance='dark'] & {
             background: rgba(239, 68, 68, 0.25);
             color: #ff6b6b;
             border-color: #ff6b6b;
@@ -1259,7 +1260,7 @@
         color: var(--text-color-secondary);
         font-size: 1.1rem;
 
-        [data-theme='dark'] & {
+        [data-appearance='dark'] & {
             background: rgba(255, 255, 255, 0.1);
             color: rgba(255, 255, 255, 0.8);
         }
@@ -1268,7 +1269,7 @@
             background: rgba(0, 0, 0, 0.1);
             color: var(--text-color);
 
-            [data-theme='dark'] & {
+            [data-appearance='dark'] & {
                 background: rgba(255, 255, 255, 0.2);
                 color: #ffffff;
             }
@@ -1330,7 +1331,7 @@
     padding: 2rem;
     color: #6c757d;
 
-    [data-theme='dark'] & {
+    [data-appearance='dark'] & {
         color: #ffffff;
     }
 
@@ -1384,13 +1385,13 @@
 }
 
 // Theme-specific code styling
-[data-theme='light'] {
+[data-appearance='light'] {
     --code-bg: #f8f8f8;
     --code-text: #333;
     --inline-code-bg: rgba(var(--primary-color-rgb), 0.1);
 }
 
-[data-theme='dark'] {
+[data-appearance='dark'] {
     --code-bg: #1e1e1e;
     --code-text: #d4d4d4;
     --inline-code-bg: rgba(var(--primary-color-rgb), 0.2);
@@ -1466,14 +1467,14 @@
 // Podcast Player Panel Styles
 .podcast-player-panel {
     background: linear-gradient(135deg, #fff5f0 0%, #ffecdf 100%);
-    border: 2px solid #ff5722;
+    border: 2px solid #b6532c;
     border-radius: 12px;
     padding: 1.5rem;
     overflow: hidden;
 
-    [data-theme='dark'] & {
+    [data-appearance='dark'] & {
         background: linear-gradient(135deg, #2d1f1a 0%, #1f1612 100%);
-        border-color: #ff5722;
+        border-color: #b6532c;
     }
 
     .embedded-player {
@@ -1491,8 +1492,8 @@
 
         .script-toggle-button {
             background: transparent;
-            border: 2px solid #ff5722;
-            color: #ff5722;
+            border: 2px solid #b6532c;
+            color: #b6532c;
             border-radius: 6px;
             padding: 0.5rem 1rem;
             cursor: pointer;
@@ -1504,7 +1505,7 @@
             gap: 0.5rem;
 
             &:hover {
-                background: #ff5722;
+                background: #b6532c;
                 color: white;
             }
         }
@@ -1526,7 +1527,7 @@
                 color: var(--text-color);
             }
 
-            [data-theme='dark'] & {
+            [data-appearance='dark'] & {
                 background: rgba(255, 87, 34, 0.1);
                 border-color: rgba(255, 87, 34, 0.3);
             }
@@ -1543,7 +1544,7 @@
 .article-reader {
     transition: background-color 0.3s ease, color 0.3s ease;
 
-    [data-theme='light'] &.theme-sepia {
+    [data-appearance='light'] &.theme-sepia {
         background-color: #f4ecd8;
         color: #5b4636;
 
@@ -1583,7 +1584,7 @@
         }
     }
 
-    [data-theme='dark'] &.theme-black {
+    [data-appearance='dark'] &.theme-black {
         background-color: #000000;
         color: #e0e0e0;
         box-shadow: none;

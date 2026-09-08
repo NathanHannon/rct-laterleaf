@@ -5,7 +5,7 @@ import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import ReactMarkdown from 'react-markdown';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPaperPlane, faAtom, faArrowRight, faCopy, faDownload, faFileLines, faCheck, faArrowUpRightFromSquare, faLock } from '@fortawesome/free-solid-svg-icons';
+import { faPaperPlane, faArrowRight, faCopy, faDownload, faFileLines, faCheck, faArrowUpRightFromSquare, faLock } from '@fortawesome/free-solid-svg-icons';
 import { useUserStatus } from '../../../hooks/useUserStatus';
 import './ResearchPage.scss';
 
@@ -130,9 +130,7 @@ const ResearchPage = () => {
         return (
             <div className="research-page">
                 <div className="research-header">
-                    <div className="research-header-icon">
-                        <FontAwesomeIcon icon={faAtom} />
-                    </div>
+                    <p className="research-eyebrow">Connect the dots</p>
                     <h1>Research</h1>
                 </div>
             </div>
@@ -143,9 +141,7 @@ const ResearchPage = () => {
         return (
             <div className="research-page">
                 <div className="research-header">
-                    <div className="research-header-icon">
-                        <FontAwesomeIcon icon={faAtom} />
-                    </div>
+                    <p className="research-eyebrow">Connect the dots</p>
                     <h1>Research</h1>
                     <p>Your private research assistant that synthesizes your saved articles into cohesive briefs.</p>
                 </div>
@@ -162,9 +158,7 @@ const ResearchPage = () => {
     return (
         <div className="research-page">
             <div className="research-header">
-                <div className="research-header-icon">
-                    <FontAwesomeIcon icon={faAtom} />
-                </div>
+                <p className="research-eyebrow">Connect the dots</p>
                 <h1>Research</h1>
                 <p>Ask a question and get a synthesized report from your saved articles.</p>
             </div>

@@ -3,7 +3,7 @@ import './ArticleCard.scss';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBookmark as faBookmarkSolid, faArchive, faTrash, faEllipsisV, faFolderPlus, faNewspaper, faPlus, faExternalLinkAlt, faShieldAlt, faStarHalfStroke, faPodcast } from '@fortawesome/free-solid-svg-icons';
+import { faBookmark as faBookmarkSolid, faArchive, faTrash, faEllipsisV, faFolderPlus, faSeedling, faPlus, faExternalLinkAlt, faShieldAlt, faStarHalfStroke, faPodcast } from '@fortawesome/free-solid-svg-icons';
 import { faBookmark as faBookmarkRegular } from '@fortawesome/free-regular-svg-icons';
 import CollectionSelector from '../../Collections/CollectionSelector/CollectionSelector';
 import { getGradientForString } from '../../../utils/colorUtils';
@@ -121,7 +121,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
                                                 : `linear-gradient(135deg, ${getDomainColor(url)} 0%, ${getDomainColor(url + 'gradient')} 100%)`
                                         }}
                                     >
-                                        <FontAwesomeIcon icon={faNewspaper} className="preview-icon" />
+                                        <FontAwesomeIcon icon={faSeedling} className="preview-icon" />
                                     </div>
                                 )}
                                 <div className="preview-overlay external-link-overlay">
@@ -175,7 +175,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
                                     }}
                                 >
                                     <span className="placeholder-icon">
-                                        <FontAwesomeIcon icon={faNewspaper} />
+                                        <FontAwesomeIcon icon={faSeedling} />
                                     </span>
                                 </div>
                             )}

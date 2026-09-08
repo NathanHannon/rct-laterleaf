@@ -57,7 +57,7 @@
     padding: 0.75rem 1.5rem;
     font-size: 0.95rem;
     font-weight: 600;
-    color: white;
+    color: var(--button-text);
     background-color: var(--primary-color);
     border: none;
     border-radius: 5px;
@@ -108,7 +108,7 @@
 
         &.active {
             background: var(--primary-color);
-            color: white;
+            color: var(--button-text);
             border-color: var(--primary-color);
         }
     }

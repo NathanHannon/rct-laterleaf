@@ -18,9 +18,9 @@
     // UI elements
     --card-border: #e5e7eb; // Light border for cards
     --button-bg: #22c55e; // Primary Green for buttons
-    --button-text: #ffffff; // White text on buttons
-    --link-color: #22c55e; // Primary Green for links
-    --accent-color: #facc15; // Accent Yellow for highlights/warnings
+    --button-text: #052e16; // Deep green ink on bright green buttons
+    --link-color: #15803d; // Readable green for links on light surfaces
+    --accent-color: #15803d; // Leaf green secondary accent
     --related-articles-color: #06b6d4; // Cyan for related articles feature
     --related-articles-color-rgb: 6, 182, 212; // RGB version for opacity usage
     --related-articles-hover: #0891b2; // Darker cyan for hover states
@@ -46,9 +46,9 @@
     // UI elements
     --card-border: #374151; // Darker border for cards
     --button-bg: #22c55e; // Keep primary green for buttons
-    --button-text: #ffffff;
+    --button-text: #052e16;
     --link-color: #22c55e;
-    --accent-color: #facc15; // Keep accent yellow
+    --accent-color: #86efac; // Light leaf green on dark surfaces
     --related-articles-color: #22d3ee; // Lighter cyan for dark mode
     --related-articles-color-rgb: 34, 211, 238; // RGB version for opacity usage
     --related-articles-hover: #06b6d4; // Medium cyan for hover states
@@ -320,4 +320,3 @@
         --text-color-secondary: #f4a0aa; // Soft pink-red
     }
 }
-

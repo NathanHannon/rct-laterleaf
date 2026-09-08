@@ -7,11 +7,15 @@ export default function PricingScreen() {
     return (
         <motion.div
             className="pricing-page-container"
-            style={{ maxWidth: '800px', margin: '0 auto', padding: '0 1rem' }}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, ease: [0.23, 1, 0.32, 1] }}
         >
+            <header className="plan-page-header">
+                <p className="page-eyebrow">A little more room</p>
+                <h1>Make room for good reads.</h1>
+                <p>Choose the plan that fits the way you save, read, and explore.</p>
+            </header>
             <PricingTable newSubscriptionRedirectUrl={billingReturnUrl} />
         </motion.div>
     )

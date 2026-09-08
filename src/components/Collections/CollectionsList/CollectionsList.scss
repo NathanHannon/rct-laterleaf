@@ -53,7 +53,7 @@
 
         .collections-count {
             font-size: 0.9rem;
-            color: var(--text-color-secondary);
+            color: var(--accent-color);
             text-transform: uppercase;
             letter-spacing: 0.05em;
             font-weight: 600;
@@ -141,15 +141,15 @@
     }
 
     .collection-description {
-        color: #666;
+        color: var(--text-color-secondary);
         margin: 0 0 1rem 0;
         font-size: 0.9rem;
         line-height: 1.4;
     }
 
     .article-count {
-        background: #f8f9fa;
-        color: #666;
+        background: var(--background-color);
+        color: var(--text-color-secondary);
         padding: 0.25rem 0.5rem;
         border-radius: 4px;
         font-size: 0.8rem;
@@ -163,14 +163,14 @@
     .dropdown-trigger {
         background: none;
         border: none;
-        color: #666;
+        color: var(--text-color-secondary);
         cursor: pointer;
         padding: 0.5rem;
         border-radius: 4px;
         transition: background-color 0.2s;
 
         &:hover {
-            background: #f8f9fa;
+            background: var(--background-color);
             color: #333;
         }
     }
@@ -200,7 +200,7 @@
             transition: background-color 0.2s;
 
             &:hover {
-                background: #f8f9fa;
+                background: var(--background-color);
             }
 
             &.delete-action {
@@ -313,7 +313,7 @@
     justify-content: center;
     align-items: center;
     min-height: 400px;
-    color: #666;
+    color: var(--text-color-secondary);
 }
 
 .suggestions-section {
@@ -321,7 +321,7 @@
 
     h2 {
         font-size: 1.25rem;
-        color: #666;
+        color: var(--text-color-secondary);
         margin-bottom: 1rem;
         font-weight: 500;
     }
@@ -395,9 +395,9 @@
     display: flex;
     align-items: center;
     gap: 0.75rem;
-    color: #666;
+    color: var(--text-color-secondary);
     padding: 1rem;
-    background: #f8f9fa;
+    background: var(--background-color);
     border-radius: 8px;
     font-size: 0.95rem;
 
@@ -509,41 +509,204 @@
         align-self: flex-end;
     }
 }
+
 // Collections read as personal anthologies, using the active theme throughout.
 .collections-container-premium {
     max-width: 1280px;
+
     .collections-header-premium {
         padding: 2rem 0;
         margin-bottom: 2.5rem;
-        &::before { display: none; }
-        .collections-title { font-weight: 400; font-size: clamp(2.8rem, 5vw, 4rem); }
-        .collections-eyebrow { margin: 0 0 1rem; font-size: .68rem; letter-spacing: .12em; text-transform: uppercase; color: var(--text-color-secondary); }
-        .collections-count { text-transform: none; font-weight: 400; letter-spacing: 0; margin-top: 1rem; }
-        .collections-subtitle { font-size: 1rem; line-height: 1.75; }
-        .create-collection-btn { background: var(--button-bg); color: var(--button-text); border-radius: 5px; box-shadow: none; min-height: 44px; &:hover { background: var(--primary-hover); box-shadow: none; transform: none; } }
+
+        &::before {
+            display: none;
+        }
+
+        .collections-title {
+            font-weight: 400;
+            font-size: clamp(2.8rem, 5vw, 4rem);
+        }
+
+        .collections-eyebrow {
+            margin: 0 0 .7rem;
+            color: var(--accent-color);
+            font-size: .67rem;
+            text-transform: uppercase;
+            letter-spacing: .12em;
+        }
+
+        .collections-count {
+            text-transform: none;
+            font-weight: 400;
+            letter-spacing: 0;
+            margin-top: 1rem;
+        }
+
+        .collections-subtitle {
+            font-size: 1rem;
+            line-height: 1.75;
+        }
+
+        .create-collection-btn {
+            background: var(--button-bg);
+            color: var(--button-text);
+            border-radius: 5px;
+            box-shadow: none;
+            min-height: 44px;
+
+            &:hover {
+                background: var(--primary-hover);
+                box-shadow: none;
+                transform: none;
+            }
+        }
     }
-    .collections-grid { grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); gap: 1.75rem; }
+
+    .collections-grid {
+        grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
+        gap: 1.75rem;
+    }
+
     .animated-collection-card {
-        height: 100%; box-sizing: border-box; min-width: 0; min-height: 180px; padding: 1.25rem;
-        border-radius: 5px; border-top: 3px solid var(--primary-color); box-shadow: none; overflow: visible;
-        &:hover { box-shadow: none; border-color: var(--primary-color); }
-        .collection-kicker { margin: 0 0 .75rem; font-size: .65rem; letter-spacing: .12em; text-transform: uppercase; color: var(--text-color-secondary); }
-        .collection-header { flex: 1; gap: .75rem; }
-        .collection-info { display: flex; flex-direction: column; align-self: stretch; }
-        .collection-title-container { align-items: flex-start; }
-        .card-title { font: 400 1.65rem/1.15 'Instrument Serif', serif; color: var(--text-color); white-space: normal; overflow-wrap: anywhere; margin: 0; }
-        .collection-emoji { font-size: 1.35rem; padding-top: .25rem; }
-        .collection-description { color: var(--text-color-secondary); line-height: 1.7; margin: .5rem 0 .75rem; }
-        .article-count { display: block; margin-top: auto; padding: .75rem 0 0; border-top: 1px solid var(--card-border); background: none; color: var(--text-color-secondary); border-radius: 0; }
-        .dropdown-trigger { color: var(--text-color-secondary); min-width: 44px; min-height: 44px; &:hover { background: var(--background-color); color: var(--text-color); } }
-        .dropdown-menu { background: var(--card-bg); border-color: var(--card-border); button { color: var(--text-color); &:hover { background: var(--background-color); } &.delete-action { color: var(--error-color, #dc3545); } } }
+        height: 100%;
+        box-sizing: border-box;
+        min-width: 0;
+        min-height: 180px;
+        padding: 1.25rem;
+        border-radius: 5px;
+        border-top: 3px solid var(--primary-color);
+        box-shadow: none;
+        overflow: visible;
+
+        &:hover {
+            box-shadow: none;
+            border-color: var(--primary-color);
+        }
+
+        .collection-kicker {
+            margin: 0 0 .75rem;
+            font-size: .65rem;
+            letter-spacing: .12em;
+            text-transform: uppercase;
+            color: var(--text-color-secondary);
+        }
+
+        .collection-header {
+            flex: 1;
+            gap: .75rem;
+        }
+
+        .collection-info {
+            display: flex;
+            flex-direction: column;
+            align-self: stretch;
+        }
+
+        .collection-title-container {
+            align-items: flex-start;
+        }
+
+        .card-title {
+            font: 400 1.65rem/1.15 'Instrument Serif', serif;
+            color: var(--text-color);
+            white-space: normal;
+            overflow-wrap: anywhere;
+            margin: 0;
+        }
+
+        .collection-emoji {
+            font-size: 1.35rem;
+            padding-top: .25rem;
+        }
+
+        .collection-description {
+            color: var(--text-color-secondary);
+            line-height: 1.7;
+            margin: .5rem 0 .75rem;
+        }
+
+        .article-count {
+            display: block;
+            margin-top: auto;
+            padding: .75rem 0 0;
+            border-top: 1px solid var(--card-border);
+            background: none;
+            color: var(--text-color-secondary);
+            border-radius: 0;
+        }
+
+        .dropdown-trigger {
+            color: var(--text-color-secondary);
+            min-width: 44px;
+            min-height: 44px;
+
+            &:hover {
+                background: var(--background-color);
+                color: var(--text-color);
+            }
+        }
+
+        .dropdown-menu {
+            background: var(--card-bg);
+            border-color: var(--card-border);
+
+            button {
+                color: var(--text-color);
+
+                &:hover {
+                    background: var(--background-color);
+                }
+
+                &.delete-action {
+                    color: var(--error-color, #dc3545);
+                }
+            }
+        }
     }
-    .suggestion-card { background: var(--card-bg); border-color: var(--card-border); box-shadow: none; border-radius: 5px;
-        .suggestion-content h3 { color: var(--text-color); font: 400 1.5rem/1.2 'Instrument Serif', serif; }
-        .suggestion-content p { color: var(--text-color-secondary); }
-        .suggestion-action { background: var(--background-color); color: var(--text-color); }
+
+    .suggestion-card {
+        background: var(--card-bg);
+        border-color: var(--card-border);
+        box-shadow: none;
+        border-radius: 5px;
+
+        .suggestion-content h3 {
+            color: var(--text-color);
+            font: 400 1.5rem/1.2 'Instrument Serif', serif;
+        }
+
+        .suggestion-content p {
+            color: var(--text-color-secondary);
+        }
+
+        .suggestion-action {
+            background: var(--background-color);
+            color: var(--text-color);
+        }
     }
-    button:focus-visible, [role='link']:focus-visible { outline: 2px solid var(--text-color); outline-offset: 4px; }
-    @media (max-width: 600px) { padding: 1rem 0; .collections-header-premium { padding-top: 1rem; } }
-    @media (prefers-reduced-motion: reduce) { .collections-grid, .collections-grid * { transform: none !important; filter: none !important; transition: none !important; animation: none !important; } }
+
+    button:focus-visible,
+    [role='link']:focus-visible {
+        outline: 2px solid var(--text-color);
+        outline-offset: 4px;
+    }
+
+    @media (max-width: 600px) {
+        padding: 1rem 0;
+
+        .collections-header-premium {
+            padding-top: 1rem;
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+
+        .collections-grid,
+        .collections-grid * {
+            transform: none !important;
+            filter: none !important;
+            transition: none !important;
+            animation: none !important;
+        }
+    }
 }
