@@ -819,7 +819,7 @@ const ArticleReader = () => {
                         </div>
                     )}
                 </div>
-                {(userHasProAccess || adminAccess?.canSelectAiProvider) && (
+                {adminAccess?.canSelectAiProvider && (
                     <fieldset className="admin-summary-provider">
                         <legend>{adminAccess?.canSelectAiProvider ? 'Summary provider' : 'Pro summary provider'}</legend>
                         <div className="admin-summary-provider__options">
