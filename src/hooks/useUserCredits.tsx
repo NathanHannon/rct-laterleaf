@@ -1,3 +1,4 @@
+import { apiUrl } from '../constants/api';
 import { useAuth } from "@clerk/react";
 import { useQuery } from '@tanstack/react-query';
 
@@ -30,7 +31,7 @@ export const useUserCredits = () => {
     enabled: isLoaded && isSignedIn,
     queryFn: async () => {
       const token = await getToken();
-      const response = await fetch('/api/users/me', {
+      const response = await fetch(apiUrl('/users/me'), {
         headers: {
           Authorization: `Bearer ${token}`,
         },

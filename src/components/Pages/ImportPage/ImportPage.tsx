@@ -1,3 +1,4 @@
+import { apiUrl } from '../../../constants/api';
 import { useState, useRef } from 'react';
 import { useAuth } from '@clerk/react';
 import { motion, AnimatePresence } from 'motion/react';
@@ -64,7 +65,7 @@ const ImportPage = () => {
             const format = detectFormat(file.name, content);
 
             const token = await getToken();
-            const res = await fetch('/api/import/parse', {
+            const res = await fetch(apiUrl('/import/parse'), {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -105,7 +106,7 @@ const ImportPage = () => {
         for (let i = 0; i < bookmarks.length; i++) {
             const bookmark = bookmarks[i];
             try {
-                const res = await fetch('/api/articles/import', {
+                const res = await fetch(apiUrl('/articles/import'), {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',

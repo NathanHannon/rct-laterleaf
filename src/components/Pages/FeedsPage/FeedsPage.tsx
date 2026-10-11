@@ -1,3 +1,4 @@
+import { apiUrl } from '../../../constants/api';
 import React, { useState } from 'react';
 import { useAuth } from "@clerk/react";
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -49,7 +50,7 @@ const FeedsPage: React.FC = () => {
         queryKey: ['feeds'],
         queryFn: async () => {
             const token = await getToken();
-            const response = await fetch('/api/users/me/feeds', {
+            const response = await fetch(apiUrl('/users/me/feeds'), {
                 headers: { 'Authorization': `Bearer ${token}` },
             });
             if (!response.ok) throw new Error('Failed to fetch feeds');
@@ -68,7 +69,7 @@ const FeedsPage: React.FC = () => {
         queryKey: ['feed-articles'],
         queryFn: async () => {
             const token = await getToken();
-            const response = await fetch('/api/users/me/feed-articles', {
+            const response = await fetch(apiUrl('/users/me/feed-articles'), {
                 headers: { 'Authorization': `Bearer ${token}` },
             });
             if (!response.ok) throw new Error('Failed to fetch feed articles');
@@ -79,7 +80,7 @@ const FeedsPage: React.FC = () => {
     const addFeedMutation = useMutation({
         mutationFn: async (url: string) => {
             const token = await getToken();
-            const response = await fetch('/api/users/me/feeds', {
+            const response = await fetch(apiUrl('/users/me/feeds'), {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -119,7 +120,7 @@ const FeedsPage: React.FC = () => {
     const removeFeedMutation = useMutation({
         mutationFn: async (feedId: string) => {
             const token = await getToken();
-            const response = await fetch(`/api/users/me/feeds/${feedId}`, {
+            const response = await fetch(apiUrl(`/users/me/feeds/${feedId}`), {
                 method: 'DELETE',
                 headers: { 'Authorization': `Bearer ${token}` },
             });
@@ -141,7 +142,7 @@ const FeedsPage: React.FC = () => {
     const addToLibraryMutation = useMutation({
         mutationFn: async (article: FeedArticle) => {
             const token = await getToken();
-            const response = await fetch('/api/articles/import', {
+            const response = await fetch(apiUrl('/articles/import'), {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

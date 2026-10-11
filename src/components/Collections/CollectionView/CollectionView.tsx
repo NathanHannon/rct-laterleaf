@@ -1,3 +1,4 @@
+import { apiUrl } from '../../../constants/api';
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from "@clerk/react";
@@ -30,7 +31,7 @@ const CollectionView: React.FC = () => {
         queryKey: ['collection', collectionId],
         queryFn: async () => {
             const token = await getToken();
-            const response = await fetch(`/api/collections/${collectionId}`, {
+            const response = await fetch(apiUrl(`/collections/${collectionId}`), {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             if (!response.ok) throw new Error('Failed to fetch collection');
@@ -43,13 +44,13 @@ const CollectionView: React.FC = () => {
         queryKey: ['collection-articles', collectionId],
         queryFn: async () => {
             const token = await getToken();
-            const articlesResponse = await fetch(`/api/collections/${collectionId}/articles`, {
+            const articlesResponse = await fetch(apiUrl(`/collections/${collectionId}/articles`), {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             if (!articlesResponse.ok) throw new Error('Failed to fetch collection articles');
             const articlesData = await articlesResponse.json();
 
-            const statusResponse = await fetch('/api/articles?filter=' + encodeURIComponent(JSON.stringify({
+            const statusResponse = await fetch(apiUrl('/articles?filter=') + encodeURIComponent(JSON.stringify({
                 where: { id: { inq: articlesData.map((a: Article) => a.id) } }
             })), {
                 headers: { 'Authorization': `Bearer ${token}` }
@@ -77,7 +78,7 @@ const CollectionView: React.FC = () => {
         queryKey: ['articles', 'all'],
         queryFn: async () => {
             const token = await getToken();
-            const response = await fetch('/api/articles', {
+            const response = await fetch(apiUrl('/articles'), {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             if (!response.ok) throw new Error('Failed to fetch user articles');
@@ -91,7 +92,7 @@ const CollectionView: React.FC = () => {
     const addArticleMutation = useMutation({
         mutationFn: async (articleId: string) => {
             const token = await getToken();
-            const response = await fetch(`/api/collections/${collectionId}/link-article`, {
+            const response = await fetch(apiUrl(`/collections/${collectionId}/link-article`), {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify({ articleId })
@@ -106,7 +107,7 @@ const CollectionView: React.FC = () => {
     const removeArticleMutation = useMutation({
         mutationFn: async (articleId: string) => {
             const token = await getToken();
-            const response = await fetch(`/api/collections/${collectionId}/unlink-article/${articleId}`, {
+            const response = await fetch(apiUrl(`/collections/${collectionId}/unlink-article/${articleId}`), {
                 method: 'DELETE',
                 headers: { 'Authorization': `Bearer ${token}` }
             });
@@ -126,7 +127,7 @@ const CollectionView: React.FC = () => {
     const articleActionMutation = useMutation({
         mutationFn: async ({ articleId, endpoint, method = 'POST' }: { articleId: string; endpoint: string; method?: 'POST' | 'DELETE' }) => {
             const token = await getToken();
-            const url = endpoint ? `/api/articles/${articleId}/${endpoint}` : `/api/articles/${articleId}`;
+            const url = endpoint ? apiUrl(`/articles/${articleId}/${endpoint}`) : apiUrl(`/articles/${articleId}`);
             const response = await fetch(url, { method, headers: { 'Authorization': `Bearer ${token}` } });
             if (!response.ok) throw new Error(`Action failed: ${endpoint}`);
         },

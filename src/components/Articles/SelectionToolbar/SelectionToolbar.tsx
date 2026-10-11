@@ -1,3 +1,4 @@
+import { apiUrl } from '../../../constants/api';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '@clerk/react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -33,7 +34,7 @@ export default function SelectionToolbar({ articleId, contentRef }: SelectionToo
         const loadHighlights = async () => {
             try {
                 const token = await getToken();
-                const res = await fetch(`/api/articles/${articleId}/highlights`, {
+                const res = await fetch(apiUrl(`/articles/${articleId}/highlights`), {
                     headers: { 'Authorization': `Bearer ${token}` },
                 });
                 if (res.ok) {
@@ -153,7 +154,7 @@ export default function SelectionToolbar({ articleId, contentRef }: SelectionToo
         if (!selectedText) return;
         try {
             const token = await getToken();
-            const res = await fetch(`/api/articles/${articleId}/highlights`, {
+            const res = await fetch(apiUrl(`/articles/${articleId}/highlights`), {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -177,7 +178,7 @@ export default function SelectionToolbar({ articleId, contentRef }: SelectionToo
         if (!editingHighlight) return;
         try {
             const token = await getToken();
-            await fetch(`/api/articles/${articleId}/highlights/${editingHighlight.id}`, {
+            await fetch(apiUrl(`/articles/${articleId}/highlights/${editingHighlight.id}`), {
                 method: 'DELETE',
                 headers: { 'Authorization': `Bearer ${token}` },
             });
@@ -193,7 +194,7 @@ export default function SelectionToolbar({ articleId, contentRef }: SelectionToo
         if (!editingHighlight) return;
         try {
             const token = await getToken();
-            await fetch(`/api/articles/${articleId}/highlights/${editingHighlight.id}`, {
+            await fetch(apiUrl(`/articles/${articleId}/highlights/${editingHighlight.id}`), {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',

@@ -1,3 +1,4 @@
+import { apiUrl } from '../../constants/api';
 import React, { useRef } from 'react';
 import { useAuth } from "@clerk/react";
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -16,7 +17,7 @@ const RecommendationList: React.FC = () => {
         queryKey: ['recommendations'],
         queryFn: async () => {
             const token = await getToken();
-            const response = await fetch(`/api/recommendations`, {
+            const response = await fetch(apiUrl(`/recommendations`), {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             if (!response.ok) throw new Error(`Failed to fetch recommendations: ${response.statusText}`);
@@ -31,7 +32,7 @@ const RecommendationList: React.FC = () => {
     const addToLibraryMutation = useMutation({
         mutationFn: async (articleId: string) => {
             const token = await getToken();
-            const response = await fetch(`/api/articles/${articleId}/save`, {
+            const response = await fetch(apiUrl(`/articles/${articleId}/save`), {
                 method: 'POST',
                 headers: { 'Authorization': `Bearer ${token}` }
             });

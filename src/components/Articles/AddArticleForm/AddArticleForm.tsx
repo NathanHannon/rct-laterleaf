@@ -1,3 +1,4 @@
+import { apiUrl } from '../../../constants/api';
 import React, { useState } from 'react';
 import { useAuth } from "@clerk/react";
 import { useMutation } from '@tanstack/react-query';
@@ -21,7 +22,7 @@ const AddArticleForm: React.FC<AddArticleFormProps> = ({ onArticleAdded }) => {
     const importMutation = useMutation({
         mutationFn: async (url: string) => {
             const token = await getToken();
-            const response = await fetch('/api/articles/import', {
+            const response = await fetch(apiUrl('/articles/import'), {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

@@ -1,3 +1,5 @@
+import { apiUrl } from '../constants/api';
+
 export type ArticleAction = 'delete' | 'archive' | 'bookmark';
 
 const failureMessages: Record<ArticleAction, string> = {
@@ -9,7 +11,7 @@ const failureMessages: Record<ArticleAction, string> = {
 export async function performArticleAction(articleId: string, action: ArticleAction, token: string | null): Promise<void> {
     if (!token) throw new Error('Please sign in again to update your library.');
     const suffix = action === 'delete' ? '' : `/${action}`;
-    const response = await fetch(`/api/articles/${encodeURIComponent(articleId)}${suffix}`, {
+    const response = await fetch(apiUrl(`/articles/${encodeURIComponent(articleId)}${suffix}`), {
         method: action === 'delete' ? 'DELETE' : 'POST',
         headers: { Authorization: `Bearer ${token}` },
     });

@@ -1,3 +1,4 @@
+import { apiUrl } from '../../../constants/api';
 import React from 'react';
 import { useAuth } from "@clerk/react";
 import { useMutation } from '@tanstack/react-query';
@@ -15,7 +16,7 @@ const ExportPage: React.FC = () => {
     const exportMutation = useMutation({
         mutationFn: async (format: 'csv' | 'html' | 'json') => {
             const token = await getToken();
-            const response = await fetch(`/api/export/${format}`, {
+            const response = await fetch(apiUrl(`/export/${format}`), {
                 method: 'GET',
                 headers: { 'Authorization': `Bearer ${token}` },
             });

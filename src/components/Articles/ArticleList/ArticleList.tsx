@@ -1,3 +1,4 @@
+import { apiUrl } from '../../../constants/api';
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@clerk/react';
@@ -36,8 +37,8 @@ const ArticleList = () => {
             const token = await getToken();
             const searching = debouncedSearchTerm.length >= 2;
             const url = searching
-                ? `/api/search?q=${encodeURIComponent(debouncedSearchTerm)}&mode=${searchMode}`
-                : '/api/articles';
+                ? apiUrl(`/search?q=${encodeURIComponent(debouncedSearchTerm)}&mode=${searchMode}`)
+                : apiUrl('/articles');
             const response = await fetch(url, { signal, headers: { Authorization: `Bearer ${token}` } });
             if (!response.ok) throw new Error('Unable to load your library.');
             const data = await response.json();

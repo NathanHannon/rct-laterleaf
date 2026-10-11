@@ -1,3 +1,4 @@
+import { apiUrl } from '../constants/api';
 import { useEffect, useState } from 'react';
 import { useAuth } from '@clerk/react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -25,7 +26,7 @@ export function useReaderArticle(articleId: string | undefined) {
                 throw new Error('You are offline and this article is not saved for offline reading.');
             }
             const token = await getToken();
-            const response = await fetch(`/api/articles/${articleId}`, { signal, headers: { Authorization: `Bearer ${token}` } });
+            const response = await fetch(apiUrl(`/articles/${articleId}`), { signal, headers: { Authorization: `Bearer ${token}` } });
             if (!response.ok) throw new Error('Failed to fetch article');
             const data = await response.json() as Article;
             // Storage limits should not prevent the online article from opening.

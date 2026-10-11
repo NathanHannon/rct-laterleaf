@@ -1,3 +1,4 @@
+import { apiUrl } from '../../../constants/api';
 import React from 'react';
 import { useAuth } from "@clerk/react";
 import { useQuery, useMutation } from '@tanstack/react-query';
@@ -34,7 +35,7 @@ const CollectionSelector: React.FC<CollectionSelectorProps> = ({
         queryKey: ['collection-suggestions-for-article', articleId],
         queryFn: async () => {
             const token = await getToken();
-            const response = await fetch('/api/collections/suggest-for-article', {
+            const response = await fetch(apiUrl('/collections/suggest-for-article'), {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -53,10 +54,10 @@ const CollectionSelector: React.FC<CollectionSelectorProps> = ({
         queryFn: async () => {
             const token = await getToken();
             const [collectionsResponse, articleCollectionsResponse] = await Promise.all([
-                fetch('/api/collections', {
+                fetch(apiUrl('/collections'), {
                     headers: { 'Authorization': `Bearer ${token}` }
                 }),
-                fetch(`/api/articles/${articleId}/collections`, {
+                fetch(apiUrl(`/articles/${articleId}/collections`), {
                     headers: { 'Authorization': `Bearer ${token}` }
                 })
             ]);
@@ -82,7 +83,7 @@ const CollectionSelector: React.FC<CollectionSelectorProps> = ({
     const addToCollectionMutation = useMutation({
         mutationFn: async (collectionId: string) => {
             const token = await getToken();
-            const response = await fetch(`/api/collections/${collectionId}/link-article`, {
+            const response = await fetch(apiUrl(`/collections/${collectionId}/link-article`), {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

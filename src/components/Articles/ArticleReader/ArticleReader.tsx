@@ -1,3 +1,4 @@
+import { apiUrl } from '../../../constants/api';
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from "@clerk/react";
@@ -60,7 +61,7 @@ const ArticleReader = () => {
         queryKey: ['admin', 'access'],
         queryFn: async () => {
             const token = await getToken();
-            const response = await fetch('/api/admin/check-access', {
+            const response = await fetch(apiUrl('/admin/check-access'), {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             if (!response.ok) throw new Error('Failed to check admin access');
@@ -120,7 +121,7 @@ const ArticleReader = () => {
         setIsTranslating(true);
         try {
             const token = await getToken();
-            const response = await fetch(`/api/articles/${articleId}/translate`, {
+            const response = await fetch(apiUrl(`/articles/${articleId}/translate`), {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -358,7 +359,7 @@ const ArticleReader = () => {
 
         try {
             const token = await getToken();
-            const response = await fetch(`/api/articles/${articleId}/bookmark`, {
+            const response = await fetch(apiUrl(`/articles/${articleId}/bookmark`), {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`
@@ -382,7 +383,7 @@ const ArticleReader = () => {
 
         try {
             const token = await getToken();
-            const response = await fetch(`/api/articles/${articleId}/like`, {
+            const response = await fetch(apiUrl(`/articles/${articleId}/like`), {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`
@@ -414,7 +415,7 @@ const ArticleReader = () => {
             if (detectedLanguage) params.append('language', detectedLanguage);
             if (adminAccess?.canSelectAiProvider && summaryProvider !== 'default') params.append('provider', summaryProvider);
             const qs = params.toString();
-            const url = `/api/articles/${articleId}/summarize${qs ? `?${qs}` : ''}`;
+            const url = apiUrl(`/articles/${articleId}/summarize${qs ? `?${qs}` : ''}`);
             const response = await fetch(url, {
                 method: 'POST',
                 headers: {
@@ -464,7 +465,7 @@ const ArticleReader = () => {
             // Send the ISO code (e.g., 'es') directly to the backend
             if (targetLangCode) params.append('language', targetLangCode);
 
-            const url = `/api/articles/${articleId}/summarize?${params.toString()}`;
+            const url = apiUrl(`/articles/${articleId}/summarize?${params.toString()}`);
             const response = await fetch(url, {
                 method: 'POST',
                 headers: {
@@ -513,7 +514,7 @@ const ArticleReader = () => {
 
         try {
             const token = await getToken();
-            const response = await fetch(`/api/articles/${articleId}/summary`, {
+            const response = await fetch(apiUrl(`/articles/${articleId}/summary`), {
                 method: 'DELETE',
                 headers: {
                     'Authorization': `Bearer ${token}`
@@ -537,7 +538,7 @@ const ArticleReader = () => {
         if (!articleId || !article) return;
         try {
             const token = await getToken();
-            const response = await fetch(`/api/articles/${articleId}/archive`, {
+            const response = await fetch(apiUrl(`/articles/${articleId}/archive`), {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`
@@ -563,7 +564,7 @@ const ArticleReader = () => {
         setShowDeleteConfirm(false);
         try {
             const token = await getToken();
-            const response = await fetch(`/api/articles/${articleId}`, {
+            const response = await fetch(apiUrl(`/articles/${articleId}`), {
                 method: 'DELETE',
                 headers: {
                     'Authorization': `Bearer ${token}`

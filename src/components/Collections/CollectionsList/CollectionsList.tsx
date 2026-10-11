@@ -1,3 +1,4 @@
+import { apiUrl } from '../../../constants/api';
 import React, { useState } from 'react';
 import { useAuth } from "@clerk/react";
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -41,7 +42,7 @@ const CollectionsList: React.FC = () => {
         queryKey: ['collections'],
         queryFn: async () => {
             const token = await getToken();
-            const response = await fetch('/api/collections', {
+            const response = await fetch(apiUrl('/collections'), {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             if (!response.ok) throw new Error('Failed to fetch collections');
@@ -50,7 +51,7 @@ const CollectionsList: React.FC = () => {
             const collectionsWithArticles = await Promise.all(
                 data.map(async (collection: Collection) => {
                     try {
-                        const articlesResponse = await fetch(`/api/collections/${collection.id}/articles`, {
+                        const articlesResponse = await fetch(apiUrl(`/collections/${collection.id}/articles`), {
                             headers: { 'Authorization': `Bearer ${token}` }
                         });
                         const articles = articlesResponse.ok ? await articlesResponse.json() : [];
@@ -70,7 +71,7 @@ const CollectionsList: React.FC = () => {
         queryKey: ['collection-suggestions'],
         queryFn: async () => {
             const token = await getToken();
-            const response = await fetch('/api/collections/suggest-new', {
+            const response = await fetch(apiUrl('/collections/suggest-new'), {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             if (!response.ok) return [];
@@ -82,7 +83,7 @@ const CollectionsList: React.FC = () => {
     const createMutation = useMutation({
         mutationFn: async (data: Partial<{ name: string; description: string; emoji: string }>) => {
             const token = await getToken();
-            const response = await fetch('/api/collections', {
+            const response = await fetch(apiUrl('/collections'), {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify(data)
@@ -99,7 +100,7 @@ const CollectionsList: React.FC = () => {
         mutationFn: async (data: Partial<Collection>) => {
             if (!editingCollection) return;
             const token = await getToken();
-            const response = await fetch(`/api/collections/${editingCollection.id}`, {
+            const response = await fetch(apiUrl(`/collections/${editingCollection.id}`), {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify({ name: data.name, description: data.description, emoji: data.emoji })
@@ -115,7 +116,7 @@ const CollectionsList: React.FC = () => {
     const deleteMutation = useMutation({
         mutationFn: async (collectionId: string) => {
             const token = await getToken();
-            const response = await fetch(`/api/collections/${collectionId}`, {
+            const response = await fetch(apiUrl(`/collections/${collectionId}`), {
                 method: 'DELETE',
                 headers: { 'Authorization': `Bearer ${token}` }
             });

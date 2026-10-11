@@ -1,3 +1,4 @@
+import { apiUrl } from '../../../constants/api';
 import React, { useState } from 'react';
 import { useAuth } from "@clerk/react";
 import './BulkImporter.scss';
@@ -26,7 +27,7 @@ const BulkImporter: React.FC = () => {
             const logPrefix = `[${index + 1}/${urlList.length}]`;
             try {
                 // Corrected endpoint to trigger full import pipeline
-                const response = await fetch('/api/articles/import', {
+                const response = await fetch(apiUrl('/articles/import'), {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',

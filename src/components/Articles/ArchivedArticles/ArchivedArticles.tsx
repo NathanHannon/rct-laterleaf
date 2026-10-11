@@ -1,3 +1,4 @@
+import { apiUrl } from '../../../constants/api';
 import React, { useState } from 'react';
 import { useAuth } from "@clerk/react";
 import { useQuery } from '@tanstack/react-query';
@@ -25,7 +26,7 @@ const ArchivedArticles: React.FC = () => {
         queryFn: async () => {
             const token = await getToken();
             const filter = encodeURIComponent(JSON.stringify({ where: { isArchived: true } }));
-            const response = await fetch(`/api/articles?filter=${filter}`, {
+            const response = await fetch(apiUrl(`/articles?filter=${filter}`), {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             if (!response.ok) throw new Error('Failed to fetch archived articles');

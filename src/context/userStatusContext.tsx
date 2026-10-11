@@ -1,3 +1,4 @@
+import { apiUrl } from '../constants/api';
 import { createContext, type ReactNode } from 'react';
 import { useAuth } from "@clerk/react";
 import { useQuery } from '@tanstack/react-query';
@@ -18,7 +19,7 @@ export const fetchUserStatus = async (getToken: GetTokenFn) => {
         throw new Error('Missing auth token');
     }
 
-    const response = await fetch('/api/users/me', {
+    const response = await fetch(apiUrl('/users/me'), {
         headers: { Authorization: `Bearer ${token}` },
     });
 

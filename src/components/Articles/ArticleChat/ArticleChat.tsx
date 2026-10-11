@@ -1,3 +1,4 @@
+import { apiUrl } from '../../../constants/api';
 import { useState } from 'react';
 import { useAuth } from "@clerk/react";
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -69,7 +70,7 @@ const ArticleChat = ({ articleId, isOpen, onClose, userHasProAccess, articleTitl
         queryKey: ['chat-history', articleId],
         queryFn: async () => {
             const token = await getToken();
-            const response = await fetch(`/api/articles/${articleId}/chat`, {
+            const response = await fetch(apiUrl(`/articles/${articleId}/chat`), {
                 headers: { 'Authorization': `Bearer ${token}` },
             });
             if (!response.ok) return [];
@@ -82,7 +83,7 @@ const ArticleChat = ({ articleId, isOpen, onClose, userHasProAccess, articleTitl
     const clearMutation = useMutation({
         mutationFn: async () => {
             const token = await getToken();
-            await fetch(`/api/articles/${articleId}/chat/clear`, {
+            await fetch(apiUrl(`/articles/${articleId}/chat/clear`), {
                 method: 'POST',
                 headers: { 'Authorization': `Bearer ${token}` },
             });
@@ -96,7 +97,7 @@ const ArticleChat = ({ articleId, isOpen, onClose, userHasProAccess, articleTitl
     const sendMutation = useMutation({
         mutationFn: async (message: string) => {
             const token = await getToken();
-            const response = await fetch(`/api/articles/${articleId}/chat`, {
+            const response = await fetch(apiUrl(`/articles/${articleId}/chat`), {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

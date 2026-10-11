@@ -1,3 +1,4 @@
+import { apiUrl } from '../../../constants/api';
 import { useState, useRef } from 'react';
 import { useAuth } from "@clerk/react";
 import { useMutation } from '@tanstack/react-query';
@@ -33,7 +34,7 @@ const ResearchPage = () => {
     const researchMutation = useMutation({
         mutationFn: async (q: string) => {
             const token = await getToken();
-            const response = await fetch('/api/articles/research', {
+            const response = await fetch(apiUrl('/articles/research'), {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

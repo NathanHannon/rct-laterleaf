@@ -1,3 +1,4 @@
+import { apiUrl } from '../../constants/api';
 import React, { useState } from 'react';
 import { useAuth } from "@clerk/react";
 import { useQuery } from '@tanstack/react-query';
@@ -32,7 +33,7 @@ const Wrapped = ({ year = new Date().getFullYear(), onClose }: WrappedProps) => 
         queryKey: ['wrapped', year],
         queryFn: async () => {
             const token = await getToken();
-            const res = await fetch(`/api/stats/wrapped/${year}`, {
+            const res = await fetch(apiUrl(`/stats/wrapped/${year}`), {
                 headers: { Authorization: `Bearer ${token}` },
             });
             if (!res.ok) throw new Error('Failed to load wrapped stats');

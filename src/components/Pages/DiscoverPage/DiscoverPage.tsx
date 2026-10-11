@@ -1,3 +1,4 @@
+import { apiUrl } from '../../../constants/api';
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { useAuth } from "@clerk/react";
 import { useQuery, useMutation } from '@tanstack/react-query';
@@ -22,7 +23,7 @@ const DiscoverPage: React.FC = () => {
     const { data: discoveredArticles = [], isLoading: isLoadingDiscovered } = useQuery({
         queryKey: ['curated-articles'],
         queryFn: async () => {
-            const response = await fetch('/api/curated-articles?limit=12');
+            const response = await fetch(apiUrl('/curated-articles?limit=12'));
             if (!response.ok) throw new Error('Failed to fetch discovered articles');
             return response.json() as Promise<Article[]>;
         },
@@ -47,7 +48,7 @@ const DiscoverPage: React.FC = () => {
             const token = await getToken();
             const previouslyRecommendedIds = isInitialFetch ? [] : recommendations.map(a => a.id);
 
-            const response = await fetch(`/api/recommendations`, {
+            const response = await fetch(apiUrl(`/recommendations`), {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -81,7 +82,7 @@ const DiscoverPage: React.FC = () => {
     const addToLibraryMutation = useMutation({
         mutationFn: async (article: Article) => {
             const token = await getToken();
-            const response = await fetch('/api/articles/import', {
+            const response = await fetch(apiUrl('/articles/import'), {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify({ url: article.url })
@@ -120,7 +121,7 @@ const DiscoverPage: React.FC = () => {
             dismissTimers.current.delete(articleId);
             try {
                 const token = await getToken();
-                await fetch('/api/recommendations/dismiss', {
+                await fetch(apiUrl('/recommendations/dismiss'), {
                     method: 'POST',
                     headers: {
                         'Authorization': `Bearer ${token}`,

@@ -1,3 +1,4 @@
+import { apiUrl } from '../constants/api';
 import { useState, useMemo, useEffect } from 'react';
 import { useAuth } from '@clerk/react';
 import type { ThemeProviderProps, AppearancePreference, ThemeType } from '../interfaces/props/theme-props';
@@ -72,7 +73,7 @@ export const ThemeProvider = ({ children }: ThemeProviderProps) => {
         if (isSignedIn) {
             try {
                 const token = await getToken();
-                await fetch('/api/users/me/preferences', {
+                await fetch(apiUrl('/users/me/preferences'), {
                     method: 'PATCH',
                     headers: {
                         'Content-Type': 'application/json',

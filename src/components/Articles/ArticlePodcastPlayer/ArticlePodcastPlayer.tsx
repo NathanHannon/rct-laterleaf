@@ -1,3 +1,4 @@
+import { apiUrl } from '../../../constants/api';
 import React, { useState, useEffect, useMemo } from 'react';
 import { useAuth } from "@clerk/react";
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -73,7 +74,7 @@ const ArticlePodcastPlayer: React.FC<ArticlePodcastPlayerProps> = ({
         queryFn: async ({ signal }) => {
             console.log(`🎙️ Checking podcast status for article ${articleId}`);
             const token = await getToken();
-            const response = await fetch(`/api/articles/${articleId}/podcast-status`, {
+            const response = await fetch(apiUrl(`/articles/${articleId}/podcast-status`), {
                 signal,
                 headers: { 'Authorization': `Bearer ${token}` }
             });
@@ -149,7 +150,7 @@ const ArticlePodcastPlayer: React.FC<ArticlePodcastPlayerProps> = ({
             const extension = (urlExt && ['mp3', 'wav', 'm4a', 'aac', 'ogg'].includes(urlExt)) ? urlExt : 'mp3';
 
             // Use the Backend Proxy Endpoint
-            const response = await fetch(`/api/articles/${articleId}/podcast-download`, {
+            const response = await fetch(apiUrl(`/articles/${articleId}/podcast-download`), {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
@@ -282,7 +283,7 @@ const ArticlePodcastPlayer: React.FC<ArticlePodcastPlayerProps> = ({
             if (params.language) queryParams.append('language', params.language);
             if (params.force) queryParams.append('force', 'true');
 
-            const url = `/api/articles/${articleId}/podcast-audio?${queryParams.toString()}`;
+            const url = apiUrl(`/articles/${articleId}/podcast-audio?${queryParams.toString()}`);
             console.log(`🌐 generating podcast via: ${url}`);
 
             const response = await fetch(url, {
@@ -316,7 +317,7 @@ const ArticlePodcastPlayer: React.FC<ArticlePodcastPlayerProps> = ({
     const deleteMutation = useMutation({
         mutationFn: async () => {
             const token = await getToken();
-            const response = await fetch(`/api/articles/${articleId}/podcast-audio`, {
+            const response = await fetch(apiUrl(`/articles/${articleId}/podcast-audio`), {
                 method: 'DELETE',
                 headers: { 'Authorization': `Bearer ${token}` }
             });

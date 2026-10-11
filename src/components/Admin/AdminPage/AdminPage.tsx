@@ -1,3 +1,4 @@
+import { apiUrl } from '../../../constants/api';
 import React, { useState } from 'react';
 import { useAuth } from "@clerk/react";
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -27,7 +28,7 @@ const AdminPage: React.FC = () => {
 
     const fetchWithAuth = async (endpoint: string, options: RequestInit = {}) => {
         const token = await getToken();
-        return fetch(`/api${endpoint}`, {
+        return fetch(apiUrl(`${endpoint}`), {
             ...options,
             headers: {
                 'Authorization': `Bearer ${token}`,

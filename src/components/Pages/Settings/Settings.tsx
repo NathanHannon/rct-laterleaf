@@ -1,3 +1,4 @@
+import { apiUrl } from '../../../constants/api';
 import { useState, useEffect } from 'react';
 import { useAuth, useClerk } from "@clerk/react";
 import { useNavigate } from 'react-router-dom';
@@ -50,7 +51,7 @@ const Settings = () => {
 
             try {
                 const token = await getToken();
-                const response = await fetch('/api/rss/podcast/feed-url', {
+                const response = await fetch(apiUrl('/rss/podcast/feed-url'), {
                     headers: { Authorization: `Bearer ${token}` },
                 });
 
@@ -487,6 +488,7 @@ const Settings = () => {
                         <OfflineModelSettings />
                     </div>
                 )}
+
             </motion.div>
         </div>
     );

@@ -1,3 +1,4 @@
+import { apiUrl } from '../../../constants/api';
 import React, { useState } from 'react';
 import { useAuth } from "@clerk/react";
 import { useQuery } from '@tanstack/react-query';
@@ -29,7 +30,7 @@ const RelatedArticles: React.FC<RelatedArticlesProps> = ({ articleId }) => {
         queryKey: ['related-articles', articleId],
         queryFn: async () => {
             const token = await getToken();
-            const response = await fetch(`/api/articles/${articleId}/related?limit=3`, {
+            const response = await fetch(apiUrl(`/articles/${articleId}/related?limit=3`), {
                 headers: { 'Authorization': `Bearer ${token}` },
             });
             if (!response.ok) throw new Error('Failed to fetch related articles');

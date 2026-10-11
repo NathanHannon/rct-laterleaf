@@ -1,3 +1,4 @@
+import { apiUrl } from '../../constants/api';
 import React, { useState, type FormEvent } from 'react';
 import { useAuth } from "@clerk/react";
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -27,7 +28,7 @@ const TagsManager: React.FC<TagsManagerProps> = ({ userArticleId, articleTitle, 
         queryKey: ['tags', userArticleId],
         queryFn: async () => {
             const token = await getToken();
-            const response = await fetch(`/api/user-articles/${userArticleId}/tags`, {
+            const response = await fetch(apiUrl(`/user-articles/${userArticleId}/tags`), {
                 headers: { 'Authorization': `Bearer ${token}` },
             });
             if (!response.ok) throw new Error('Failed to fetch tags.');
@@ -47,7 +48,7 @@ const TagsManager: React.FC<TagsManagerProps> = ({ userArticleId, articleTitle, 
                 return [];
             }
             const token = await getToken();
-            const response = await fetch(`/api/tags/suggest/${userArticleId}`, {
+            const response = await fetch(apiUrl(`/tags/suggest/${userArticleId}`), {
                 headers: { 'Authorization': `Bearer ${token}` },
             });
             if (!response.ok) return [];
@@ -64,7 +65,7 @@ const TagsManager: React.FC<TagsManagerProps> = ({ userArticleId, articleTitle, 
         mutationFn: async (tagName: string) => {
             if (!navigator.onLine) throw new Error('Cannot add tags while offline. Please connect to the internet.');
             const token = await getToken();
-            const response = await fetch(`/api/tags/add-to-article`, {
+            const response = await fetch(apiUrl(`/tags/add-to-article`), {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -87,7 +88,7 @@ const TagsManager: React.FC<TagsManagerProps> = ({ userArticleId, articleTitle, 
             if (!navigator.onLine) throw new Error('Cannot remove tags while offline. Please connect to the internet.');
             const token = await getToken();
             const where = JSON.stringify({ id: tagId });
-            const response = await fetch(`/api/user-articles/${userArticleId}/tags?where=${encodeURIComponent(where)}`, {
+            const response = await fetch(apiUrl(`/user-articles/${userArticleId}/tags?where=${encodeURIComponent(where)}`), {
                 method: 'DELETE',
                 headers: { 'Authorization': `Bearer ${token}` },
             });

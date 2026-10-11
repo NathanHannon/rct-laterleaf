@@ -1,3 +1,4 @@
+import { apiUrl } from '../../../constants/api';
 import React, { useState, useEffect } from 'react';
 import { useAuth } from "@clerk/react";
 import { useQuery, useMutation } from '@tanstack/react-query';
@@ -52,7 +53,7 @@ const ArticleAudioPlayer: React.FC<ArticleAudioPlayerProps> = ({
         queryKey: ['tts-voices'],
         queryFn: async () => {
             const token = await getToken();
-            const response = await fetch('/api/ai/tts-voices', {
+            const response = await fetch(apiUrl('/ai/tts-voices'), {
                 headers: { 'Authorization': `Bearer ${token}` },
             });
             if (!response.ok) return [];
@@ -105,7 +106,7 @@ const ArticleAudioPlayer: React.FC<ArticleAudioPlayerProps> = ({
             if (selectedVoice) params.append('voice', selectedVoice);
             if (speed !== 1.0) params.append('speed', speed.toString());
             const queryString = params.toString();
-            const url = `/api/articles/${articleId}/audio${queryString ? `?${queryString}` : ''}`;
+            const url = apiUrl(`/articles/${articleId}/audio${queryString ? `?${queryString}` : ''}`);
 
             const response = await fetch(url, {
                 method: 'GET',

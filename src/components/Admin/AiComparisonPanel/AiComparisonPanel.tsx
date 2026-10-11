@@ -1,3 +1,4 @@
+import { apiUrl } from '../../../constants/api';
 import { useState } from 'react';
 import { useAuth } from '@clerk/react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -43,7 +44,7 @@ const AiComparisonPanel = () => {
 
         try {
             const token = await getToken();
-            const response = await fetch('/api/ai/compare', {
+            const response = await fetch(apiUrl('/ai/compare'), {
                 method: 'POST',
                 headers: {
                     Authorization: `Bearer ${token}`,
@@ -88,7 +89,7 @@ const AiComparisonPanel = () => {
                 </div>
             </div>
 
-            <form className="ai-comparison__form" onSubmit={handleSubmit} action="/api/ai/compare" method="post">
+            <form className="ai-comparison__form" onSubmit={handleSubmit} action={apiUrl("/ai/compare")} method="post">
                 <div className="ai-comparison__controls">
                     <fieldset className="ai-segmented-control">
                         <legend>Provider</legend>
