@@ -8,69 +8,51 @@
     align-items: center;
     gap: 0.5rem;
     padding: 0.75rem 1rem;
-    background: white;
-    border: 1px solid #e0e0e0;
-    border-radius: 8px;
+    background: var(--card-bg, white);
+    border: 1px solid var(--card-border, #e0e0e0);
+    border-radius: 10px;
     cursor: pointer;
     font-size: 0.9rem;
-    color: #555;
-    transition: all 0.2s ease;
-    min-width: 180px;
+    color: var(--text-color, #555);
+    transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+    min-width: 200px;
     justify-content: space-between;
 
-    &:hover {
-        border-color: #007bff;
-        box-shadow: 0 2px 4px rgba(0, 123, 255, 0.1);
+    &:hover,
+    &.active {
+        border-color: var(--primary-color, #007bff);
+        color: var(--primary-color, #007bff);
     }
 
-    &:focus {
-        outline: none;
-        border-color: #007bff;
-        box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+    .trigger-icon-group {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
     }
 
     .sort-label {
         font-weight: 500;
-        flex: 1;
-        text-align: left;
+        white-space: nowrap;
     }
 
     .dropdown-arrow {
-        transition: transform 0.2s ease;
-        font-size: 0.8rem;
-        color: #999;
-
-        &.open {
-            transform: rotate(180deg);
-        }
+        font-size: 0.75rem;
+        opacity: 0.6;
     }
 }
 
 .sort-dropdown-menu {
     position: absolute;
-    top: 100%;
-    left: 0;
+    top: calc(100% + 8px);
     right: 0;
-    background: white;
-    border: 1px solid #e0e0e0;
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    min-width: 240px;
+    background: var(--card-bg, white);
+    border: 1px solid var(--card-border, #e0e0e0);
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
     z-index: 1000;
-    margin-top: 4px;
     overflow: hidden;
-    animation: dropdownAppear 0.2s ease;
-}
-
-@keyframes dropdownAppear {
-    from {
-        opacity: 0;
-        transform: translateY(-8px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+    padding: 6px;
 }
 
 .sort-option {
@@ -78,68 +60,70 @@
     display: flex;
     align-items: center;
     gap: 0.75rem;
-    padding: 0.75rem 1rem;
+    padding: 0.6rem 0.8rem;
     border: none;
-    background: none;
+    background: transparent;
     cursor: pointer;
-    transition: background-color 0.2s ease;
+    border-radius: 8px;
     text-align: left;
-
-    &:hover:not(.active) {
-        background: #f8f9fa;
-    }
-
-    &.active {
-        background: #e3f2fd;
-        color: #1976d2;
-
-        .option-icon {
-            color: #1976d2;
-        }
-    }
-
-    &:first-child {
-        border-radius: 8px 8px 0 0;
-    }
-
-    &:last-child {
-        border-radius: 0 0 8px 8px;
-    }
-
-    &:only-child {
-        border-radius: 8px;
-    }
+    color: var(--text-color, #333);
+    transition: all 0.2s ease;
 
     .option-icon {
-        color: #666;
-        width: 16px;
-        text-align: center;
-        flex-shrink: 0;
+        width: 24px;
+        height: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--hover-bg, #f5f5f5);
+        border-radius: 6px;
+        color: var(--text-color-secondary, #666);
+        font-size: 0.85rem;
+        transition: transform 0.2s ease;
     }
 
     .option-content {
         flex: 1;
-        min-width: 0;
 
         .option-label {
-            font-weight: 500;
             font-size: 0.9rem;
-            color: #333;
-            margin-bottom: 0.1rem;
+            font-weight: 600;
+            margin-bottom: 2px;
         }
 
         .option-description {
             font-size: 0.75rem;
-            color: #666;
+            color: var(--text-color-secondary, #888);
             line-height: 1.2;
         }
     }
 
+    &:hover {
+        .option-icon {
+            transform: scale(1.1);
+            background: var(--primary-color-faint, #e3f2fd);
+            color: var(--primary-color, #1976d2);
+        }
+    }
+
+    &.active {
+        background: var(--primary-color-faint, #e3f2fd);
+        color: var(--primary-color, #1976d2);
+
+        .option-icon {
+            background: var(--primary-color, #1976d2);
+            color: white;
+        }
+
+        .option-description {
+            color: var(--primary-color, #1976d2);
+            opacity: 0.8;
+        }
+    }
+
     .check-icon {
-        color: #1976d2;
         font-weight: bold;
-        font-size: 0.9rem;
-        flex-shrink: 0;
+        color: var(--primary-color, #1976d2);
     }
 }
 

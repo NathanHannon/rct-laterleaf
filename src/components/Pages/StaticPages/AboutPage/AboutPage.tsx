@@ -1,0 +1,81 @@
+import React from 'react';
+import StaticPage from '../StaticPage';
+
+const AboutPage: React.FC = () => {
+    return (
+        <StaticPage className="about-page" title="A home for your next good read." eyebrow="About LaterLeaf">
+
+            <section className="intro">
+                <p>
+                    LaterLeaf is a modern article management platform designed to help you save,
+                    organize, and rediscover content that matters to you. Whether you're a researcher,
+                    student, or simply someone who loves to read, LaterLeaf provides the tools you
+                    need to build your personal knowledge library.
+                </p>
+            </section>
+
+            <section className="features">
+                <h2>Key Features</h2>
+                <div className="feature-grid">
+                    <div className="feature-item">
+                        <h3>AI-Powered Summaries</h3>
+                        <p>Our AI helps you quickly understand the key points of supported articles, saving you time and helping you focus on what matters.</p>
+                    </div>
+                    <div className="feature-item">
+                        <h3>Collection Management</h3>
+                        <p>Organize your articles into custom collections for easy retrieval and reference.</p>
+                    </div>
+                    <div className="feature-item">
+                        <h3>Advanced Search</h3>
+                        <p>Find articles quickly with our intelligent search that understands context and meaning.</p>
+                    </div>
+                    <div className="feature-item">
+                        <h3>Interactive Chat</h3>
+                        <p>Engage with your saved articles through our AI chat feature (Pro users).</p>
+                    </div>
+                    <div className="feature-item">
+                        <h3>Audio Overviews</h3>
+                        <p>Listen to your articles on the go with AI-generated podcasts (Pro users).</p>
+                    </div>
+                    <div className="feature-item">
+                        <h3>Browser Extension</h3>
+                        <p>Save articles instantly from any page with our Chrome extension.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section className="mission">
+                <h2>Our Mission</h2>
+                <p>
+                    We believe that information should be accessible, organized, and actionable.
+                    LaterLeaf empowers users to build their own curated knowledge base,
+                    making it easier to learn, research, and stay informed in our fast-paced digital world.
+                </p>
+            </section>
+
+            <section className="compatibility">
+                <h2>Site Compatibility</h2>
+                <div className="compatibility-content">
+                    <p>
+                        LaterLeaf works best with open web content and many popular publications.
+                        You can use our browser extension to save content directly from your current tab (currently available for Chromium browsers).
+                        Some sites with heavy paywalls or complex protection may not be fully supported yet.
+                        We're continuously working to improve compatibility while respecting publishers' rights.
+                    </p>
+                </div>
+            </section>
+
+            <section className="values">
+                <h2>Our Values</h2>
+                <ul>
+                    <li><strong>Privacy First:</strong> Your data and reading habits are private and secure.</li>
+                    <li><strong>User-Centric Design:</strong> Every feature is designed with user experience in mind.</li>
+                    <li><strong>Continuous Innovation:</strong> We're constantly improving and adding new features.</li>
+                    <li><strong>Accessibility:</strong> Knowledge should be accessible to everyone.</li>
+                </ul>
+            </section>
+        </StaticPage>
+    );
+};
+
+export default AboutPage;

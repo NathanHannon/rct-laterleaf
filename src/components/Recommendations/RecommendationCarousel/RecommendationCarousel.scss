@@ -1,0 +1,84 @@
+.recommendation-carousel {
+    width: 100%;
+    margin-bottom: 2.5rem;
+
+    h2 {
+        font-family: 'Instrument Serif', serif;
+        font-size: 1.8rem;
+        color: var(--text-color);
+        margin-bottom: 1.25rem;
+        padding: 0;
+        letter-spacing: -0.01em;
+    }
+
+    .carousel-container {
+        position: relative;
+    }
+
+    .carousel-scroll-area {
+        display: flex;
+        align-items: stretch;
+        overflow-x: auto;
+        scroll-snap-type: x mandatory;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+
+        /* Firefox */
+        &::-webkit-scrollbar {
+            display: none;
+            /* Safari and Chrome */
+        }
+
+        padding: 0 0 2px;
+        column-gap: 1.5rem;
+        row-gap: 0;
+    }
+
+    .carousel-item {
+        flex: 0 0 auto;
+        display: flex;
+        align-items: stretch;
+        width: min(360px, calc(100vw - 3rem));
+        scroll-snap-align: start;
+    }
+
+    .carousel-item > * {
+        width: 100%;
+        min-height: 100%;
+    }
+
+    .scroll-button {
+        position: absolute;
+        top: -3.1rem;
+        transform: none;
+        z-index: 10;
+        background-color: var(--background-color);
+        border: 1px solid var(--card-border);
+        color: var(--text-color);
+        border-radius: 5px;
+        width: 32px;
+        height: 32px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background-color 0.2s, opacity 0.2s;
+
+        &:hover {
+            background-color: var(--card-bg);
+        }
+
+        &.left {
+            left: auto;
+            right: 2.5rem;
+        }
+
+        &.right {
+            right: 0;
+        }
+
+        @media (max-width: 768px) {
+            display: none; // Hide buttons on mobile where swiping is natural
+        }
+    }
+}

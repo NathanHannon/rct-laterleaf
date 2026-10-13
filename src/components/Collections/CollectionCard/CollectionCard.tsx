@@ -73,21 +73,44 @@ const CollectionCard: React.FC<CollectionCardProps> = ({
             <motion.div
                 className="animated-collection-card"
                 layoutId={`collection-${collection.id}`}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                whileHover={{
-                    scale: 1.02,
-                    transition: { duration: 0.2 }
+                variants={{
+                    hidden: {
+                        opacity: 0,
+                        y: 30,
+                        scale: 0.95,
+                        filter: 'blur(4px)'
+                    },
+                    visible: {
+                        opacity: 1,
+                        y: 0,
+                        scale: 1,
+                        filter: 'blur(0px)',
+                        transition: {
+                            duration: 0.6,
+                            ease: [0.23, 1, 0.32, 1] // easeOutQuint
+                        }
+                    }
                 }}
+                transition={{ duration: 0.5, ease: [0.23, 1, 0.32, 1] }}
                 onClick={handleCardClick}
+                tabIndex={0}
+                role="link"
+                aria-label={`Open collection: ${collection.name}`}
+                onKeyDown={(event) => {
+                    if (event.target === event.currentTarget && event.key === 'Enter') {
+                        event.preventDefault();
+                        handleCardClick();
+                    }
+                }}
                 style={{ cursor: 'pointer' }}
             >
+                <p className="collection-kicker">A thread of thought</p>
                 <div className="collection-header">
                     <div className="collection-info">
                         <div className="collection-title-container">
                             {collection.emoji && <span className="collection-emoji">{collection.emoji}</span>}
                             <motion.h3
+                                className="card-title"
                                 layoutId={`collection-title-${collection.id}`}
                             >
                                 {collection.name}
@@ -105,7 +128,7 @@ const CollectionCard: React.FC<CollectionCardProps> = ({
                             className="article-count"
                             layoutId={`collection-count-${collection.id}`}
                         >
-                            {collection.articleCount || 0} articles
+                            {collection.articleCount || 0} {collection.articleCount === 1 ? 'article' : 'articles'}
                         </motion.span>
                     </div>
                     <div className="collection-actions" onClick={handleDropdownClick}>
@@ -115,6 +138,8 @@ const CollectionCard: React.FC<CollectionCardProps> = ({
                                 onToggleDropdown();
                             }}
                             className="dropdown-trigger"
+                            aria-label={`Options for ${collection.name}`}
+                            aria-expanded={isDropdownOpen}
                         >
                             <FontAwesomeIcon icon={faEllipsisV} />
                         </button>

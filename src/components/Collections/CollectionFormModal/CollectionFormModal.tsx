@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
-import EmojiPicker, { type EmojiClickData } from 'emoji-picker-react';
+import React, { useState, useEffect, useRef, useId } from 'react';
+import { createPortal } from 'react-dom';
+import EmojiPicker, { Theme, type EmojiClickData } from 'emoji-picker-react';
+import { useTheme } from '../../../hooks/useTheme';
 import './CollectionFormModal.scss';
 
 interface CollectionFormData {
@@ -18,91 +19,113 @@ interface CollectionFormModalProps {
 }
 
 const CollectionFormModal: React.FC<CollectionFormModalProps> = ({
-    isOpen,
-    onClose,
-    onSave,
-    initialData = { name: '', description: '', emoji: '' },
-    mode
+    isOpen, onClose, onSave, initialData, mode,
 }) => {
-    const [data, setData] = useState(initialData);
+    const [data, setData] = useState({ name: '', description: '', emoji: '' });
     const [showPicker, setShowPicker] = useState(false);
+    const dialogRef = useRef<HTMLDialogElement>(null);
+    const nameRef = useRef<HTMLInputElement>(null);
+    const id = useId();
+    const { activeAppearance } = useTheme();
+    const name = initialData?.name ?? '';
+    const description = initialData?.description ?? '';
+    const emoji = initialData?.emoji ?? '';
 
     useEffect(() => {
-        // This ensures that when you open the modal to edit a *different*
-        // collection, the form's state is updated with the new collection's data.
-        setData(initialData);
-    }, [initialData]);
+        if (isOpen) {
+            setData({ name, description, emoji });
+            setShowPicker(false);
+        }
+    }, [isOpen, name, description, emoji]);
 
-    const onEmojiClick = (emojiData: EmojiClickData) => {
-        setData(prev => ({ ...prev, emoji: emojiData.emoji }));
+    useEffect(() => {
+        const dialog = dialogRef.current;
+        if (isOpen && !dialog?.open) {
+            dialog?.showModal();
+            nameRef.current?.focus();
+        }
+        if (!isOpen && dialog?.open) dialog.close();
+    }, [isOpen]);
+
+    const onEmojiClick = (selection: EmojiClickData) => {
+        setData(previous => ({ ...previous, emoji: selection.emoji }));
         setShowPicker(false);
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        onSave(data);
+    const handleSubmit = (event: React.FormEvent) => {
+        event.preventDefault();
+        if (data.name.trim()) onSave({ ...data, name: data.name.trim() });
     };
 
-    if (!isOpen) return null;
-
-    return (
-        <AnimatePresence>
-            <motion.div
-                className="modal-overlay"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                onClick={onClose}
-            >
-                <motion.div
-                    className="modal-content"
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.9 }}
-                    onClick={(e) => e.stopPropagation()}
-                >
-                    <h2>{mode === 'create' ? 'Create New Collection' : 'Edit Collection'}</h2>
-                    <form onSubmit={handleSubmit}>
-                        <div className="form-group-horizontal">
-                            <div className="emoji-picker-container">
-                                <label>Icon</label>
-                                <button type="button" className="emoji-selector" onClick={() => setShowPicker(p => !p)}>
-                                    {data.emoji ? <span>{data.emoji}</span> : <span className="emoji-placeholder"></span>}
-                                </button>
-                                {showPicker && (
-                                    <div className="emoji-picker-popover">
-                                        <EmojiPicker onEmojiClick={onEmojiClick} />
-                                    </div>
-                                )}
-                            </div>
-                            <div className="form-group">
-                                <label>Name</label>
-                                <input
-                                    type="text"
-                                    value={data.name}
-                                    onChange={(e) => setData(prev => ({ ...prev, name: e.target.value }))}
-                                    placeholder="My Reading List"
-                                    required
-                                />
-                            </div>
+    return createPortal(
+        <dialog
+            ref={dialogRef}
+            className="collection-form-dialog"
+            closedby="any"
+            aria-labelledby={`${id}-title`}
+            aria-describedby={`${id}-intro`}
+            onCancel={(event) => { event.preventDefault(); onClose(); }}
+            onClose={() => { if (isOpen) onClose(); }}
+            onClick={(event) => {
+                if ('closedBy' in HTMLDialogElement.prototype || event.target !== event.currentTarget) return;
+                const bounds = event.currentTarget.getBoundingClientRect();
+                if (event.clientX < bounds.left || event.clientX > bounds.right || event.clientY < bounds.top || event.clientY > bounds.bottom) onClose();
+            }}
+        >
+            {isOpen && <>
+                <header className="collection-form-heading">
+                    <p className="collection-form-eyebrow">A thread of thought</p>
+                    <button className="collection-form-close" type="button" aria-label="Close collection form" onClick={onClose}>×</button>
+                    <h2 id={`${id}-title`}>{mode === 'create' ? 'A new collection.' : 'Edit your collection.'}</h2>
+                    <p id={`${id}-intro`}>Give related reads a place to belong.</p>
+                </header>
+                <form onSubmit={handleSubmit}>
+                    <div className="collection-form-name-row">
+                        <div className="collection-form-field collection-form-icon">
+                            <label htmlFor={`${id}-emoji`}>Icon</label>
+                            <button
+                                id={`${id}-emoji`}
+                                type="button"
+                                className="collection-form-emoji"
+                                aria-label="Choose collection icon"
+                                aria-expanded={showPicker}
+                                aria-controls={`${id}-picker`}
+                                onClick={() => setShowPicker(value => !value)}
+                            >{data.emoji || '❧'}</button>
                         </div>
-                        <div className="form-group">
-                            <label>Description (optional)</label>
-                            <textarea
-                                value={data.description}
-                                onChange={(e) => setData(prev => ({ ...prev, description: e.target.value }))}
-                                placeholder="A collection of interesting articles"
-                                rows={3}
+                        <div className="collection-form-field">
+                            <label htmlFor={`${id}-name`}>Name</label>
+                            <input
+                                id={`${id}-name`}
+                                ref={nameRef}
+                                value={data.name}
+                                onChange={event => setData(previous => ({ ...previous, name: event.target.value }))}
+                                placeholder="Ideas worth keeping"
+                                required
                             />
                         </div>
-                        <div className="modal-actions">
-                            <button type="button" onClick={onClose}>Cancel</button>
-                            <button type="submit">{mode === 'create' ? 'Create Collection' : 'Save Changes'}</button>
-                        </div>
-                    </form>
-                </motion.div>
-            </motion.div>
-        </AnimatePresence>
+                    </div>
+                    {showPicker && <div id={`${id}-picker`} className="collection-form-picker">
+                        <EmojiPicker onEmojiClick={onEmojiClick} theme={activeAppearance === 'dark' ? Theme.DARK : Theme.LIGHT} width="100%" height={320} />
+                    </div>}
+                    <div className="collection-form-field">
+                        <label htmlFor={`${id}-description`}>Description <span>(optional)</span></label>
+                        <textarea
+                            id={`${id}-description`}
+                            value={data.description}
+                            onChange={event => setData(previous => ({ ...previous, description: event.target.value }))}
+                            placeholder="What brings these reads together?"
+                            rows={3}
+                        />
+                    </div>
+                    <div className="collection-form-actions">
+                        <button type="button" onClick={onClose}>Cancel</button>
+                        <button type="submit" disabled={!data.name.trim()}>{mode === 'create' ? 'Create collection' : 'Save changes'}</button>
+                    </div>
+                </form>
+            </>}
+        </dialog>,
+        document.body,
     );
 };
 

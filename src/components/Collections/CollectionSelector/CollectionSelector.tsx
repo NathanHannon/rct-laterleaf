@@ -1,7 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { useAuth } from '@clerk/clerk-react';
+import { apiUrl } from '../../../constants/api';
+import React from 'react';
+import { useAuth } from "@clerk/react";
+import { useQuery, useMutation } from '@tanstack/react-query';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPlus, faSpinner } from '@fortawesome/free-solid-svg-icons';
+import { faPlus, faSpinner, faCheck } from '@fortawesome/free-solid-svg-icons';
 import { motion, AnimatePresence } from 'motion/react';
 import { useToastContext } from '../../../context/toastContextUtils';
 import './CollectionSelector.scss';
@@ -10,6 +12,7 @@ interface Collection {
     id: string;
     name: string;
     description?: string;
+    hasArticle?: boolean;
 }
 
 interface CollectionSelectorProps {
@@ -27,47 +30,12 @@ const CollectionSelector: React.FC<CollectionSelectorProps> = ({
 }) => {
     const { getToken } = useAuth();
     const { showSuccess, showError, showWarning } = useToastContext();
-    const [collections, setCollections] = useState<Collection[]>([]);
-    const [loading, setLoading] = useState(false);
-    const [addingToCollection, setAddingToCollection] = useState<string | null>(null);
 
-    useEffect(() => {
-        if (isOpen) {
-            fetchCollections();
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isOpen]);
-
-    const fetchCollections = async () => {
-        setLoading(true);
-        try {
+    const { data: suggestedNames = [], isLoading: loadingSuggestions } = useQuery({
+        queryKey: ['collection-suggestions-for-article', articleId],
+        queryFn: async () => {
             const token = await getToken();
-            const response = await fetch('/api/collections', {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
-
-            if (response.ok) {
-                const data = await response.json();
-                setCollections(data);
-            }
-        } catch (error) {
-            showError('Failed to fetch collections', 'Please try again later.');
-            console.error('Failed to fetch collections:', error);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const handleAddToCollection = async (collectionId: string) => {
-        setAddingToCollection(collectionId);
-        const selectedCollection = collections.find(c => c.id === collectionId);
-        const collectionName = selectedCollection?.name || 'collection';
-
-        try {
-            const token = await getToken();
-            const response = await fetch(`/api/collections/${collectionId}/link-article`, {
+            const response = await fetch(apiUrl('/collections/suggest-for-article'), {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -75,24 +43,78 @@ const CollectionSelector: React.FC<CollectionSelectorProps> = ({
                 },
                 body: JSON.stringify({ articleId })
             });
+            if (!response.ok) return [];
+            return response.json() as Promise<string[]>;
+        },
+        enabled: isOpen,
+    });
 
-            if (response.ok) {
+    const { data: collections = [], isLoading: loading } = useQuery({
+        queryKey: ['collections-for-article', articleId],
+        queryFn: async () => {
+            const token = await getToken();
+            const [collectionsResponse, articleCollectionsResponse] = await Promise.all([
+                fetch(apiUrl('/collections'), {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                }),
+                fetch(apiUrl(`/articles/${articleId}/collections`), {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                })
+            ]);
+
+            if (!collectionsResponse.ok) throw new Error('Failed to fetch collections');
+
+            const allCollections = await collectionsResponse.json();
+            let articleCollectionIds: string[] = [];
+
+            if (articleCollectionsResponse.ok) {
+                const articleCollections = await articleCollectionsResponse.json();
+                articleCollectionIds = articleCollections.map((c: any) => c.id);
+            }
+
+            return allCollections.map((c: Collection) => ({
+                ...c,
+                hasArticle: articleCollectionIds.includes(c.id)
+            })) as Collection[];
+        },
+        enabled: isOpen,
+    });
+
+    const addToCollectionMutation = useMutation({
+        mutationFn: async (collectionId: string) => {
+            const token = await getToken();
+            const response = await fetch(apiUrl(`/collections/${collectionId}/link-article`), {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ articleId })
+            });
+            return { ok: response.ok, status: response.status, collectionId };
+        },
+        onSuccess: (result) => {
+            const collectionName = collections.find(c => c.id === result.collectionId)?.name || 'collection';
+            if (result.ok) {
                 showSuccess('Article added to collection', `Successfully added to "${collectionName}"`);
                 onSuccess?.();
                 onClose();
-            } else if (response.status === 409) {
-                // Article already in collection
+            } else if (result.status === 409) {
                 showWarning('Article already in collection', `This article is already in "${collectionName}"`);
-            } else {
-                throw new Error('Failed to add to collection');
             }
-        } catch (error) {
+        },
+        onError: () => {
             showError('Failed to add to collection', 'Please try again later.');
-            console.error('Failed to add article to collection:', error);
-        } finally {
-            setAddingToCollection(null);
-        }
+        },
+    });
+
+    const handleAddToCollection = (collectionId: string) => {
+        const selectedCollection = collections.find(c => c.id === collectionId);
+        if (selectedCollection?.hasArticle) return;
+        addToCollectionMutation.mutate(collectionId);
     };
+
+    const addingToCollection = addToCollectionMutation.isPending ? addToCollectionMutation.variables : null;
 
     if (!isOpen) return null;
 
@@ -119,6 +141,12 @@ const CollectionSelector: React.FC<CollectionSelectorProps> = ({
                 >
                     <div className="modal-header">
                         <h3>Add to Collection</h3>
+                        {loadingSuggestions && (
+                            <span className="suggestions-loading-badge">
+                                <FontAwesomeIcon icon={faSpinner} spin size="sm" />
+                                Finding suggestions...
+                            </span>
+                        )}
                     </div>
 
                     <div className="modal-content">
@@ -134,30 +162,50 @@ const CollectionSelector: React.FC<CollectionSelectorProps> = ({
                             </div>
                         ) : (
                             <div className="collections-list">
-                                {collections.map((collection) => (
-                                    <motion.button
-                                        key={collection.id}
-                                        className="collection-option"
-                                        onClick={() => handleAddToCollection(collection.id)}
-                                        disabled={addingToCollection === collection.id}
-                                        whileHover={{ scale: 1.02 }}
-                                        whileTap={{ scale: 0.98 }}
-                                    >
-                                        <div className="collection-info">
-                                            <h4>{collection.name}</h4>
-                                            {collection.description && (
-                                                <p>{collection.description}</p>
-                                            )}
-                                        </div>
-                                        <div className="collection-action">
-                                            {addingToCollection === collection.id ? (
-                                                <FontAwesomeIcon icon={faSpinner} spin />
-                                            ) : (
-                                                <FontAwesomeIcon icon={faPlus} />
-                                            )}
-                                        </div>
-                                    </motion.button>
-                                ))}
+                                {collections
+                                    .sort((a, b) => {
+                                        const aSuggested = suggestedNames.includes(a.name);
+                                        const bSuggested = suggestedNames.includes(b.name);
+                                        if (aSuggested && !bSuggested) return -1;
+                                        if (!aSuggested && bSuggested) return 1;
+                                        return a.name.localeCompare(b.name);
+                                    })
+                                    .map((collection) => {
+                                        const isSuggested = suggestedNames.includes(collection.name);
+                                        return (
+                                            <motion.button
+                                                key={collection.id}
+                                                className={`collection-option ${isSuggested ? 'suggested' : ''} ${collection.hasArticle ? 'has-article' : ''}`}
+                                                onClick={() => handleAddToCollection(collection.id)}
+                                                disabled={addingToCollection === collection.id || collection.hasArticle}
+                                                whileHover={collection.hasArticle ? {} : { scale: 1.02 }}
+                                                whileTap={collection.hasArticle ? {} : { scale: 0.98 }}
+                                            >
+                                                <div className="collection-info">
+                                                    <div className="collection-name-row">
+                                                        <h4>{collection.name}</h4>
+                                                        {isSuggested && (
+                                                            <span className="suggestion-badge">
+                                                                Suggested
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                    {collection.description && (
+                                                        <p>{collection.description}</p>
+                                                    )}
+                                                </div>
+                                                <div className="collection-action">
+                                                    {addingToCollection === collection.id ? (
+                                                        <FontAwesomeIcon icon={faSpinner} spin />
+                                                    ) : collection.hasArticle ? (
+                                                        <FontAwesomeIcon icon={faCheck} className="check-icon" />
+                                                    ) : (
+                                                        <FontAwesomeIcon icon={faPlus} />
+                                                    )}
+                                                </div>
+                                            </motion.button>
+                                        );
+                                    })}
                             </div>
                         )}
                     </div>

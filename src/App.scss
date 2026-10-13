@@ -1,19 +1,10 @@
-:root {
-  --primary-color: #4CAF50;
-  --primary-color-rgb: 76, 175, 80;
-  --primary-hover: #45a049;
-  --card-background: #ffffff;
-  --border-color: #ededed;
-  --text-color: #141414;
-  --text-color-secondary: #525252;
-  --background-color: #fafafa;
-}
+// App-specific layout styles only - colors defined in theme.scss
 
 .app {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  background-color: var(--background-color);
+  font-family: 'Inter', sans-serif;
 }
 
 .layout-container {
@@ -41,12 +32,13 @@
 .signed-out-message {
   text-align: center;
   padding: 80px 24px;
-  color: #525252;
+  color: var(--text-color-secondary);
 
   h2 {
     font-size: 24px;
     font-weight: 700;
     margin-bottom: 8px;
+    color: var(--text-color);
   }
 
   p {

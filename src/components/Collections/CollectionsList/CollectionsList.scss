@@ -1,37 +1,108 @@
-.collections-container {
-    padding: 2rem;
-    max-width: 1200px;
+.collections-container-premium {
+    padding: 2rem 1.5rem;
+    max-width: 1400px;
     margin: 0 auto;
-}
 
-.collections-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 2rem;
+    .collections-header-premium {
+        text-align: left;
+        margin-bottom: 4rem;
+        position: relative;
+        padding: 4rem 0 2rem 0;
+        border-bottom: 1px solid var(--card-border);
+        overflow: hidden;
 
-    h1 {
-        color: #333;
-        margin: 0;
-    }
+        &::before {
+            content: '';
+            position: absolute;
+            top: -150px;
+            right: -150px;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, var(--primary-color-faint, rgba(0, 123, 255, 0.08)) 0%, transparent 70%);
+            z-index: -1;
+            border-radius: 50%;
+        }
 
-    .create-collection-btn {
-        background: #007bff;
-        color: white;
-        border: none;
-        border-radius: 8px;
-        padding: 0.75rem 1.5rem;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        cursor: pointer;
-        font-weight: 500;
-        transition: background-color 0.2s;
+        &::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            width: 60px;
+            height: 2px;
+            background: var(--primary-color);
+        }
 
-        &:hover {
-            background: #0056b3;
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+        }
+
+        .collections-title {
+            font-family: 'Instrument Serif', serif;
+            font-size: 3.5rem;
+            color: var(--text-color);
+            margin: 0;
+            letter-spacing: -0.02em;
+            line-height: 1.1;
+        }
+
+        .collections-count {
+            font-size: 0.9rem;
+            color: var(--accent-color);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-weight: 600;
+            display: block;
+            margin-top: 0.5rem;
+        }
+
+        .collections-subtitle {
+            font-size: 1.25rem;
+            color: var(--text-color-secondary);
+            max-width: 550px;
+            margin: 1rem 0 0 0;
+            line-height: 1.5;
+        }
+
+        .create-collection-btn {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            padding: 0.8rem 1.6rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+            box-shadow: 0 4px 12px rgba(var(--primary-rgb), 0.2);
+
+            &:hover {
+                background: var(--primary-color-hover);
+                transform: translateY(-2px);
+                box-shadow: 0 6px 16px rgba(var(--primary-rgb), 0.3);
+            }
+
+            &:active {
+                transform: translateY(0);
+            }
         }
     }
+}
+
+// Ensure proper contrast in both themes
+[data-theme='light'] .collections-header h1 {
+    color: #0f766e; // Dark teal for light mode
+}
+
+[data-theme='dark'] .collections-header h1 {
+    color: #ffffff !important; // Force white text in dark mode
 }
 
 .collections-grid {
@@ -70,15 +141,15 @@
     }
 
     .collection-description {
-        color: #666;
+        color: var(--text-color-secondary);
         margin: 0 0 1rem 0;
         font-size: 0.9rem;
         line-height: 1.4;
     }
 
     .article-count {
-        background: #f8f9fa;
-        color: #666;
+        background: var(--background-color);
+        color: var(--text-color-secondary);
         padding: 0.25rem 0.5rem;
         border-radius: 4px;
         font-size: 0.8rem;
@@ -92,14 +163,14 @@
     .dropdown-trigger {
         background: none;
         border: none;
-        color: #666;
+        color: var(--text-color-secondary);
         cursor: pointer;
         padding: 0.5rem;
         border-radius: 4px;
         transition: background-color 0.2s;
 
         &:hover {
-            background: #f8f9fa;
+            background: var(--background-color);
             color: #333;
         }
     }
@@ -129,7 +200,7 @@
             transition: background-color 0.2s;
 
             &:hover {
-                background: #f8f9fa;
+                background: var(--background-color);
             }
 
             &.delete-action {
@@ -242,5 +313,400 @@
     justify-content: center;
     align-items: center;
     min-height: 400px;
-    color: #666;
+    color: var(--text-color-secondary);
+}
+
+.suggestions-section {
+    margin-bottom: 2.5rem;
+
+    h2 {
+        font-size: 1.25rem;
+        color: var(--text-color-secondary);
+        margin-bottom: 1rem;
+        font-weight: 500;
+    }
+}
+
+.suggestions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1rem;
+}
+
+.suggestion-card {
+    background: linear-gradient(135deg, #f0f9ff 0%, #e6f7ff 100%);
+    border: 1px solid #bae7ff;
+    border-radius: 12px;
+    padding: 1.25rem;
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 123, 255, 0.15);
+        border-color: #69c0ff;
+
+        .suggestion-action {
+            background: #007bff;
+            color: white;
+        }
+    }
+
+    .suggestion-emoji {
+        font-size: 2rem;
+        line-height: 1;
+    }
+
+    .suggestion-content {
+        flex: 1;
+
+        h3 {
+            margin: 0 0 0.25rem 0;
+            color: #0050b3;
+            font-size: 1.1rem;
+        }
+
+        p {
+            margin: 0;
+            color: #595959;
+            font-size: 0.85rem;
+            line-height: 1.4;
+        }
+    }
+
+    .suggestion-action {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: rgba(0, 123, 255, 0.1);
+        color: #007bff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s ease;
+        flex-shrink: 0;
+    }
+}
+
+.suggestions-loading {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    color: var(--text-color-secondary);
+    padding: 1rem;
+    background: var(--background-color);
+    border-radius: 8px;
+    font-size: 0.95rem;
+
+    .fa-spinner {
+        color: #007bff;
+    }
+}
+
+[data-theme='dark'] {
+    .suggestions-section h2 {
+        color: #a0a0a0;
+    }
+
+    .suggestion-card {
+        background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+        border-color: #374151;
+
+        &:hover {
+            border-color: #60a5fa;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .suggestion-content {
+            h3 {
+                color: #60a5fa;
+            }
+
+            p {
+                color: #9ca3af;
+            }
+        }
+
+        .suggestion-action {
+            background: rgba(96, 165, 250, 0.1);
+            color: #60a5fa;
+        }
+    }
+
+    .suggestions-loading {
+        background: #1f2937;
+        color: #9ca3af;
+
+        .fa-spinner {
+            color: #60a5fa;
+        }
+    }
+}
+
+// Mobile responsive design
+@media (max-width: 768px) {
+    .collections-container {
+        padding: 1rem;
+    }
+
+    .collections-header {
+        flex-direction: column;
+        gap: 1rem;
+        text-align: center;
+
+        h1 {
+            font-size: 1.8rem;
+        }
+
+        .create-collection-btn {
+            align-self: center;
+            padding: 0.75rem 1rem;
+            font-size: 0.9rem;
+        }
+    }
+
+    .collections-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .collection-card {
+        padding: 1rem;
+    }
+
+    .modal-content {
+        padding: 1.5rem;
+        margin: 1rem;
+    }
+
+    .modal-actions {
+        flex-direction: column;
+
+        button {
+            width: 100%;
+        }
+    }
+}
+
+@media (max-width: 480px) {
+    .collections-container {
+        padding: 0.75rem;
+    }
+
+    .collections-header h1 {
+        font-size: 1.5rem;
+    }
+
+    .collection-header {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .collection-actions {
+        align-self: flex-end;
+    }
+}
+
+// Collections read as personal anthologies, using the active theme throughout.
+.collections-container-premium {
+    max-width: 1280px;
+
+    .collections-header-premium {
+        padding: 2rem 0;
+        margin-bottom: 2.5rem;
+
+        &::before {
+            display: none;
+        }
+
+        .collections-title {
+            font-weight: 400;
+            font-size: clamp(2.8rem, 5vw, 4rem);
+        }
+
+        .collections-eyebrow {
+            margin: 0 0 .7rem;
+            color: var(--accent-color);
+            font-size: .67rem;
+            text-transform: uppercase;
+            letter-spacing: .12em;
+        }
+
+        .collections-count {
+            text-transform: none;
+            font-weight: 400;
+            letter-spacing: 0;
+            margin-top: 1rem;
+        }
+
+        .collections-subtitle {
+            font-size: 1rem;
+            line-height: 1.75;
+        }
+
+        .create-collection-btn {
+            background: var(--button-bg);
+            color: var(--button-text);
+            border-radius: 5px;
+            box-shadow: none;
+            min-height: 44px;
+
+            &:hover {
+                background: var(--primary-hover);
+                box-shadow: none;
+                transform: none;
+            }
+        }
+    }
+
+    .collections-grid {
+        grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
+        gap: 1.75rem;
+    }
+
+    .animated-collection-card {
+        height: 100%;
+        box-sizing: border-box;
+        min-width: 0;
+        min-height: 180px;
+        padding: 1.25rem;
+        border-radius: 5px;
+        border-top: 3px solid var(--primary-color);
+        box-shadow: none;
+        overflow: visible;
+
+        &:hover {
+            box-shadow: none;
+            border-color: var(--primary-color);
+        }
+
+        .collection-kicker {
+            margin: 0 0 .75rem;
+            font-size: .65rem;
+            letter-spacing: .12em;
+            text-transform: uppercase;
+            color: var(--text-color-secondary);
+        }
+
+        .collection-header {
+            flex: 1;
+            gap: .75rem;
+        }
+
+        .collection-info {
+            display: flex;
+            flex-direction: column;
+            align-self: stretch;
+        }
+
+        .collection-title-container {
+            align-items: flex-start;
+        }
+
+        .card-title {
+            font: 400 1.65rem/1.15 'Instrument Serif', serif;
+            color: var(--text-color);
+            white-space: normal;
+            overflow-wrap: anywhere;
+            margin: 0;
+        }
+
+        .collection-emoji {
+            font-size: 1.35rem;
+            padding-top: .25rem;
+        }
+
+        .collection-description {
+            color: var(--text-color-secondary);
+            line-height: 1.7;
+            margin: .5rem 0 .75rem;
+        }
+
+        .article-count {
+            display: block;
+            margin-top: auto;
+            padding: .75rem 0 0;
+            border-top: 1px solid var(--card-border);
+            background: none;
+            color: var(--text-color-secondary);
+            border-radius: 0;
+        }
+
+        .dropdown-trigger {
+            color: var(--text-color-secondary);
+            min-width: 44px;
+            min-height: 44px;
+
+            &:hover {
+                background: var(--background-color);
+                color: var(--text-color);
+            }
+        }
+
+        .dropdown-menu {
+            background: var(--card-bg);
+            border-color: var(--card-border);
+
+            button {
+                color: var(--text-color);
+
+                &:hover {
+                    background: var(--background-color);
+                }
+
+                &.delete-action {
+                    color: var(--error-color, #dc3545);
+                }
+            }
+        }
+    }
+
+    .suggestion-card {
+        background: var(--card-bg);
+        border-color: var(--card-border);
+        box-shadow: none;
+        border-radius: 5px;
+
+        .suggestion-content h3 {
+            color: var(--text-color);
+            font: 400 1.5rem/1.2 'Instrument Serif', serif;
+        }
+
+        .suggestion-content p {
+            color: var(--text-color-secondary);
+        }
+
+        .suggestion-action {
+            background: var(--background-color);
+            color: var(--text-color);
+        }
+    }
+
+    button:focus-visible,
+    [role='link']:focus-visible {
+        outline: 2px solid var(--text-color);
+        outline-offset: 4px;
+    }
+
+    @media (max-width: 600px) {
+        padding: 1rem 0;
+
+        .collections-header-premium {
+            padding-top: 1rem;
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+
+        .collections-grid,
+        .collections-grid * {
+            transform: none !important;
+            filter: none !important;
+            transition: none !important;
+            animation: none !important;
+        }
+    }
 }

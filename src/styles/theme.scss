@@ -1,0 +1,322 @@
+// LaterLeaf Design System - Light Appearance
+[data-appearance='light'] {
+    // Primary brand colors
+    --primary-color: #22c55e; // Primary Green for CTAs, active states
+    --primary-color-rgb: 34, 197, 94; // RGB version for opacity usage
+    --primary-hover: #16a34a; // Darker green for hover states
+
+    // Text colors
+    --text-color: #0f766e; // Dark Teal for primary text 
+    --text-color-secondary: #4b5563; // Neutral Gray for secondary text
+
+    // Background colors
+    --background-color: #f9fafb; // Background White for main areas
+    --card-bg: #ffffff; // Bright white for cards/modals
+    --header-bg: #ffffff;
+    --footer-bg: #f9fafb;
+
+    // UI elements
+    --card-border: #e5e7eb; // Light border for cards
+    --button-bg: #22c55e; // Primary Green for buttons
+    --button-text: #052e16; // Deep green ink on bright green buttons
+    --link-color: #15803d; // Readable green for links on light surfaces
+    --accent-color: #15803d; // Leaf green secondary accent
+    --related-articles-color: #06b6d4; // Cyan for related articles feature
+    --related-articles-color-rgb: 6, 182, 212; // RGB version for opacity usage
+    --related-articles-hover: #0891b2; // Darker cyan for hover states
+}
+
+// LaterLeaf Design System - Dark Appearance
+[data-appearance='dark'] {
+    // Primary brand colors (adjusted for dark mode)
+    --primary-color: #22c55e;
+    --primary-color-rgb: 34, 197, 94;
+    --primary-hover: #16a34a;
+
+    // Text colors
+    --text-color: #ffffff; // White primary text in dark mode
+    --text-color-secondary: #9ca3af; // Lighter gray for secondary text
+
+    // Background colors
+    --background-color: #111827; // Dark background
+    --card-bg: #1f2937; // Dark gray for cards
+    --header-bg: #1f2937;
+    --footer-bg: #111827;
+
+    // UI elements
+    --card-border: #374151; // Darker border for cards
+    --button-bg: #22c55e; // Keep primary green for buttons
+    --button-text: #052e16;
+    --link-color: #22c55e;
+    --accent-color: #86efac; // Light leaf green on dark surfaces
+    --related-articles-color: #22d3ee; // Lighter cyan for dark mode
+    --related-articles-color-rgb: 34, 211, 238; // RGB version for opacity usage
+    --related-articles-hover: #06b6d4; // Medium cyan for hover states
+}
+
+// Default Theme Override
+[data-theme='default'] {
+    // No explicit overrides, uses default green
+}
+
+// Cherry Blossom Theme Override
+[data-theme='cherry-blossom'] {
+    // Primary brand colors
+    --primary-color: #ff9fb2; // Slightly more saturated pink for better contrast
+    --primary-color-rgb: 255, 159, 178;
+    --primary-hover: #ff7f96; // Deeper pink for hover
+
+    // UI elements
+    --button-bg: #ff9fb2;
+    --button-text: #2d1b1e; // Dark text on pink buttons for high legibility
+    --link-color: #d15c71; // Slightly darker link pink for accessibility
+    --accent-color: #fce7f3; // Pale blossom accent
+    --related-articles-color: #f472b6; // Pink shade for related items
+    --related-articles-color-rgb: 244, 114, 182;
+    --related-articles-hover: #db2777;
+
+    &[data-appearance="light"] {
+        // Background colors
+        --background-color: #fff5f7; // Hanakasumi (very pale pink)
+        --header-bg: #fff0f3; // Slightly more pink in the header
+        --text-color: #3b2f2f; // Deep Mahogany for readability
+        --text-color-secondary: #7a6b6b; // Muted grayish brown
+        --card-border: #f7d9df; // Subtle pink border
+    }
+
+    &[data-appearance="dark"] {
+        --background-color: #261417; // Even darker wine for better isolation
+        --card-bg: #351d21; 
+        --header-bg: #351d21;
+        --card-border: #4d2f33;
+        --text-color: #ffd1dc;
+        --text-color-secondary: #cea5ae;
+        --button-text: #1a0a0c; // Near-black on pink for dark mode contrast
+    }
+}
+// Midnight Ocean Theme Override
+[data-theme='midnight-ocean'] {
+    --primary-color: #06b6d4; // Cyan 
+    --primary-color-rgb: 6, 182, 212;
+    --primary-hover: #0891b2;
+
+    --button-bg: #06b6d4;
+    --button-text: #ffffff;
+    --link-color: #22d3ee;
+    --accent-color: #1e1b4b; // Indigo base
+    --related-articles-color: #6366f1; // Indigo-500
+    --related-articles-color-rgb: 99, 102, 241;
+
+    &[data-appearance="light"] {
+        --background-color: #eff6ff;
+        --header-bg: #dbeafe;
+        --text-color: #1e3a8a;
+        --text-color-secondary: #475569;
+        --card-bg: #ffffff;
+        --card-border: #bfdbfe;
+    }
+
+    &[data-appearance="dark"] {
+        --background-color: #020617; // Deep Indigo Black
+        --card-bg: #0f172a; // Slate-900
+        --header-bg: #0f172a;
+        --card-border: #1e293b;
+        --text-color: #f1f5f9;
+        --text-color-secondary: #94a3b8;
+    }
+}
+
+// Forest Moss Theme Override
+[data-theme='forest-moss'] {
+    --primary-color: #65a30d; // Lime-600
+    --primary-color-rgb: 101, 163, 13;
+    --primary-hover: #4d7c0f;
+
+    --button-bg: #65a30d;
+    --button-text: #ffffff;
+    --link-color: #4d7c0f;
+    --accent-color: #f7fee7;
+    --related-articles-color: #84cc16;
+    --related-articles-color-rgb: 132, 204, 22;
+
+    &[data-appearance="light"] {
+        --background-color: #f7f9f7;
+        --header-bg: #ecf3ec;
+        --text-color: #1a2e05; // Dark Olive
+        --text-color-secondary: #525252;
+        --card-bg: #ffffff;
+        --card-border: #dcfce7;
+    }
+
+    &[data-appearance="dark"] {
+        --background-color: #0a0a0a; // Near Black
+        --card-bg: #141c0a; // Very Dark Forest
+        --header-bg: #141c0a;
+        --card-border: #2d3a24;
+        --text-color: #ecfccb; // Lime-100
+        --text-color-secondary: #a3a3a3;
+    }
+}
+
+// Nord Arctic Theme Override (Arctic / focused)
+[data-theme='nord-arctic'] {
+    --primary-color: #88c0d0; // Nord Frost Blue
+    --primary-color-rgb: 136, 192, 208;
+    --primary-hover: #81a1c1;
+
+    --button-bg: #88c0d0;
+    --button-text: #2e3440;
+    --link-color: #5e81ac;
+    --accent-color: #ebcb8b; // Nord Yellow
+    --related-articles-color: #b48ead; // Nord Purple
+    --related-articles-color-rgb: 180, 142, 173;
+
+    &[data-appearance="light"] {
+        --background-color: #eceff4; // Nord Snow Storm
+        --header-bg: #e5e9f0;
+        --text-color: #2e3440; // Nord Polar Night
+        --text-color-secondary: #4c566a;
+        --card-bg: #ffffff;
+        --card-border: #d8dee9;
+    }
+
+    &[data-appearance="dark"] {
+        --background-color: #2e3440; // Nord Polar Night
+        --card-bg: #3b4252; 
+        --header-bg: #3b4252;
+        --card-border: #4c566a;
+        --text-color: #d8dee9; // Nord Snow Storm
+        --text-color-secondary: #a3be8c; // Nord Green for secondary/success
+    }
+}
+
+// Dark Coffee Theme Override (Warm sepia / coffee tones)
+[data-theme='dark-coffee'] {
+    --primary-color: #c07d2a; // Warm amber/caramel
+    --primary-color-rgb: 192, 125, 42;
+    --primary-hover: #a0661e;
+
+    --button-bg: #c07d2a;
+    --button-text: #ffffff;
+    --link-color: #a0661e;
+    --accent-color: #e8b44b; // Warm golden accent
+    --related-articles-color: #c47a5a; // Terracotta
+    --related-articles-color-rgb: 196, 122, 90;
+    --related-articles-hover: #a85e42;
+
+    &[data-appearance="light"] {
+        --background-color: #faf3e0; // Ivory Mist
+        --card-bg: #fffdf7; // Warm white
+        --header-bg: #f3e8cc; // Warm parchment
+        --text-color: #36251e; // Dark Coffee
+        --text-color-secondary: #7a6555;
+        --card-border: #e6d5b0;
+    }
+
+    &[data-appearance="dark"] {
+        --background-color: #1c0f09; // Deepest espresso
+        --card-bg: #36251e; // Dark Coffee
+        --header-bg: #36251e;
+        --card-border: #4d3628;
+        --text-color: #faf3e0; // Ivory Mist
+        --text-color-secondary: #c0a07a;
+    }
+}
+
+// Neon Nights Theme Override (Synthwave / Cyberpunk)
+[data-theme='neon-nights'] {
+    --primary-color: #ff00ff; // Neon Pink
+    --primary-color-rgb: 255, 0, 255;
+    --primary-hover: #cc00cc;
+
+    --button-bg: #ff00ff;
+    --button-text: #ffffff;
+    --link-color: #00ffff; // Cyan
+    --accent-color: #7000ff; // Ultraviolet
+    --related-articles-color: #00ffff;
+    --related-articles-color-rgb: 0, 255, 255;
+
+    &[data-appearance="light"] {
+        --background-color: #fce7f3; // Pale Fuchsia
+        --header-bg: #fae8ff;
+        --text-color: #4c1d95; // Deep Purple
+        --text-color-secondary: #7e22ce;
+        --card-bg: #ffffff;
+        --card-border: #f5d0fe;
+    }
+
+    &[data-appearance="dark"] {
+        --background-color: #0d0221; // Deepest Space Purple
+        --card-bg: #1a0b2e; 
+        --header-bg: #1a0b2e;
+        --card-border: #2d005d;
+        --text-color: #fdf4ff;
+        --text-color-secondary: #f0abfc; // Faded pink for contrast
+    }
+}
+
+// Wild Strawberry Theme Override (Hot pink / lime cream)
+[data-theme='wild-strawberry'] {
+    --primary-color: #fe4e96; // Wild Strawberry
+    --primary-color-rgb: 254, 78, 150;
+    --primary-hover: #e03080;
+
+    --button-bg: #fe4e96;
+    --button-text: #ffffff;
+    --link-color: #e03080;
+    --accent-color: #c8e83a; // Lime Cream accent
+    --related-articles-color: #fe4e96;
+    --related-articles-color-rgb: 254, 78, 150;
+    --related-articles-hover: #e03080;
+
+    &[data-appearance="light"] {
+        --background-color: #e3f482; // Lime Cream
+        --card-bg: #f0f9a0; // Lighter lime
+        --header-bg: #d6ed6a; // Slightly deeper lime
+        --text-color: #1a1a0a; // Near-black
+        --text-color-secondary: #4a5a10; // Olive-green
+        --card-border: #c8de55;
+    }
+
+    &[data-appearance="dark"] {
+        --background-color: #160610; // Deep berry-black
+        --card-bg: #270d1e; // Dark fuchsia
+        --header-bg: #270d1e;
+        --card-border: #55143a;
+        --text-color: #fff0f7; // Pale pink-white
+        --text-color-secondary: #fda8cd; // Soft strawberry
+    }
+}
+
+// Berry Red Theme Override (Crisp red / icy blue)
+[data-theme='berry-red'] {
+    --primary-color: #c21121; // Berry Red
+    --primary-color-rgb: 194, 17, 33;
+    --primary-hover: #a00e1b;
+
+    --button-bg: #c21121;
+    --button-text: #ffffff;
+    --link-color: #a00e1b;
+    --accent-color: #e53545; // Lighter red accent
+    --related-articles-color: #c21121;
+    --related-articles-color-rgb: 194, 17, 33;
+    --related-articles-hover: #a00e1b;
+
+    &[data-appearance="light"] {
+        --background-color: #b3e6fb; // Icy Blue
+        --card-bg: #e8f7fe; // Soft icy card
+        --header-bg: #9ddcf9; // Slightly deeper ice
+        --text-color: #0d1b2a; // Near-black
+        --text-color-secondary: #1e4d6b; // Deep steel blue
+        --card-border: #80d0f5;
+    }
+
+    &[data-appearance="dark"] {
+        --background-color: #100407; // Deep crimson-black
+        --card-bg: #1e0810; // Dark berry
+        --header-bg: #1e0810;
+        --card-border: #4a0e1a;
+        --text-color: #fce8ea; // Pale blush white
+        --text-color-secondary: #f4a0aa; // Soft pink-red
+    }
+}

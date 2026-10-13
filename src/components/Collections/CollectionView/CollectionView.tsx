@@ -1,6 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import { apiUrl } from '../../../constants/api';
+import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useAuth } from '@clerk/clerk-react';
+import { useAuth } from "@clerk/react";
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSpinner, faArrowLeft, faPlus, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { motion, AnimatePresence } from 'motion/react';
@@ -15,11 +17,8 @@ const CollectionView: React.FC = () => {
     const { collectionId } = useParams<{ collectionId: string }>();
     const { getToken, isLoaded, isSignedIn } = useAuth();
     const navigate = useNavigate();
+    const queryClient = useQueryClient();
     const { triggerImplode } = useCollectionAnimation();
-    const [collection, setCollection] = useState<Collection | null>(null);
-    const [articles, setArticles] = useState<Article[]>([]);
-    const [allUserArticles, setAllUserArticles] = useState<Article[]>([]);
-    const [loading, setLoading] = useState(true);
     const [showAddModal, setShowAddModal] = useState(false);
     const [removeConfirm, setRemoveConfirm] = useState<{ show: boolean; articleId: string; articleTitle: string }>({
         show: false, articleId: '', articleTitle: ''
@@ -27,102 +26,118 @@ const CollectionView: React.FC = () => {
     const [deleteConfirm, setDeleteConfirm] = useState<{ show: boolean; articleId: string; articleTitle: string }>({
         show: false, articleId: '', articleTitle: ''
     });
-    // const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
 
-    const fetchCollection = async () => {
-        try {
+    const { data: collection = null } = useQuery({
+        queryKey: ['collection', collectionId],
+        queryFn: async () => {
             const token = await getToken();
-            const response = await fetch(`/api/collections/${collectionId}`, {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
+            const response = await fetch(apiUrl(`/collections/${collectionId}`), {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (!response.ok) throw new Error('Failed to fetch collection');
+            return response.json() as Promise<Collection>;
+        },
+        enabled: isLoaded && !!isSignedIn && !!collectionId,
+    });
+
+    const { data: articles = [], isLoading: loadingArticles } = useQuery({
+        queryKey: ['collection-articles', collectionId],
+        queryFn: async () => {
+            const token = await getToken();
+            const articlesResponse = await fetch(apiUrl(`/collections/${collectionId}/articles`), {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (!articlesResponse.ok) throw new Error('Failed to fetch collection articles');
+            const articlesData = await articlesResponse.json();
+
+            const statusResponse = await fetch(apiUrl('/articles?filter=') + encodeURIComponent(JSON.stringify({
+                where: { id: { inq: articlesData.map((a: Article) => a.id) } }
+            })), {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const userArticlesData = await statusResponse.json();
+
+            const statusMap = new Map();
+            userArticlesData.forEach((article: Article) => {
+                statusMap.set(article.id, {
+                    isBookmarked: article.isBookmarked,
+                    isArchived: article.isArchived
+                });
             });
 
-            if (!response.ok) {
-                throw new Error('Failed to fetch collection');
-            }
+            return articlesData.map((article: Article) => ({
+                ...article,
+                isBookmarked: statusMap.get(article.id)?.isBookmarked || false,
+                isArchived: statusMap.get(article.id)?.isArchived || false
+            })) as Article[];
+        },
+        enabled: isLoaded && !!isSignedIn && !!collectionId,
+    });
 
-            const data = await response.json();
-            setCollection(data);
-        } catch (error) {
-            console.error('Failed to fetch collection:', error);
-        }
-    };
-
-    const fetchCollectionArticles = async () => {
-        try {
+    const { data: allUserArticles = [] } = useQuery({
+        queryKey: ['articles', 'all'],
+        queryFn: async () => {
             const token = await getToken();
-            const response = await fetch(`/api/collections/${collectionId}/articles`, {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
+            const response = await fetch(apiUrl('/articles'), {
+                headers: { 'Authorization': `Bearer ${token}` }
             });
+            if (!response.ok) throw new Error('Failed to fetch user articles');
+            return response.json() as Promise<Article[]>;
+        },
+        enabled: isLoaded && !!isSignedIn && showAddModal,
+    });
 
-            if (!response.ok) {
-                throw new Error('Failed to fetch collection articles');
-            }
+    const loading = loadingArticles;
 
-            const data = await response.json();
-            setArticles(data);
-        } catch (error) {
-            console.error('Failed to fetch collection articles:', error);
-        }
-    };
-
-    const fetchAllUserArticles = async () => {
-        try {
+    const addArticleMutation = useMutation({
+        mutationFn: async (articleId: string) => {
             const token = await getToken();
-            const response = await fetch('/api/articles', {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
-
-            if (!response.ok) {
-                throw new Error('Failed to fetch user articles');
-            }
-
-            const data = await response.json();
-            setAllUserArticles(data);
-        } catch (error) {
-            console.error('Failed to fetch user articles:', error);
-        }
-    };
-
-    useEffect(() => {
-        if (isLoaded && isSignedIn && collectionId) {
-            Promise.all([
-                fetchCollection(),
-                fetchCollectionArticles(),
-                fetchAllUserArticles()
-            ]).finally(() => setLoading(false));
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isLoaded, isSignedIn, collectionId]);
-
-    const handleAddArticleToCollection = async (articleId: string) => {
-        try {
-            const token = await getToken();
-            const response = await fetch(`/api/collections/${collectionId}/link-article`, {
+            const response = await fetch(apiUrl(`/collections/${collectionId}/link-article`), {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify({ articleId })
             });
+            if (!response.ok) throw new Error('Failed to add article to collection');
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['collection-articles', collectionId] });
+        },
+    });
 
-            if (!response.ok) {
-                throw new Error('Failed to add article to collection');
-            }
+    const removeArticleMutation = useMutation({
+        mutationFn: async (articleId: string) => {
+            const token = await getToken();
+            const response = await fetch(apiUrl(`/collections/${collectionId}/unlink-article/${articleId}`), {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (!response.ok) throw new Error('Failed to remove article from collection');
+        },
+        onSuccess: (_data, articleId) => {
+            queryClient.setQueryData(['collection-articles', collectionId], (old: Article[] | undefined) =>
+                old ? old.filter(a => a.id !== articleId) : []
+            );
+            setRemoveConfirm({ show: false, articleId: '', articleTitle: '' });
+        },
+        onError: () => {
+            setRemoveConfirm({ show: false, articleId: '', articleTitle: '' });
+        },
+    });
 
-            fetchCollectionArticles();
-        } catch (error) {
-            console.error('Failed to add article to collection:', error);
-        }
+    const articleActionMutation = useMutation({
+        mutationFn: async ({ articleId, endpoint, method = 'POST' }: { articleId: string; endpoint: string; method?: 'POST' | 'DELETE' }) => {
+            const token = await getToken();
+            const url = endpoint ? apiUrl(`/articles/${articleId}/${endpoint}`) : apiUrl(`/articles/${articleId}`);
+            const response = await fetch(url, { method, headers: { 'Authorization': `Bearer ${token}` } });
+            if (!response.ok) throw new Error(`Action failed: ${endpoint}`);
+        },
+    });
+
+    const handleAddArticleToCollection = (articleId: string) => {
+        addArticleMutation.mutate(articleId);
     };
 
-    const handleRemoveArticleFromCollection = async (articleId: string) => {
+    const handleRemoveArticleFromCollection = (articleId: string) => {
         const article = articles.find(a => a.id === articleId);
         setRemoveConfirm({
             show: true,
@@ -131,47 +146,12 @@ const CollectionView: React.FC = () => {
         });
     };
 
-    const confirmRemoveArticle = async () => {
+    const confirmRemoveArticle = () => {
         if (!removeConfirm.articleId) return;
-
-        try {
-            const token = await getToken();
-            const response = await fetch(`/api/collections/${collectionId}/unlink-article/${removeConfirm.articleId}`, {
-                method: 'DELETE',
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
-
-            if (!response.ok) {
-                throw new Error('Failed to remove article from collection');
-            }
-
-            setArticles(prev => prev.filter(article => article.id !== removeConfirm.articleId));
-            setRemoveConfirm({ show: false, articleId: '', articleTitle: '' });
-        } catch (error) {
-            console.error('Failed to remove article from collection:', error);
-            setRemoveConfirm({ show: false, articleId: '', articleTitle: '' });
-        }
+        removeArticleMutation.mutate(removeConfirm.articleId);
     };
 
-    const handleArticleAction = async (articleId: string, endpoint: string, method: 'POST' | 'DELETE' = 'POST') => {
-        try {
-            const token = await getToken();
-            const url = endpoint ? `/api/articles/${articleId}/${endpoint}` : `/api/articles/${articleId}`;
-            const response = await fetch(url, {
-                method,
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            if (!response.ok) throw new Error(`Action failed: ${endpoint}`);
-            return true;
-        } catch (error) {
-            console.error(`Failed to ${endpoint || 'delete'}:`, error);
-            return false;
-        }
-    };
-
-    const handleDelete = async (articleId: string) => {
+    const handleDelete = (articleId: string) => {
         const article = articles.find(a => a.id === articleId);
         setDeleteConfirm({
             show: true,
@@ -180,33 +160,45 @@ const CollectionView: React.FC = () => {
         });
     };
 
-    const confirmDeleteArticle = async () => {
+    const confirmDeleteArticle = () => {
         if (!deleteConfirm.articleId) return;
-
-        const success = await handleArticleAction(deleteConfirm.articleId, '', 'DELETE');
-        if (success) {
-            setArticles(prev => prev.filter(a => a.id !== deleteConfirm.articleId));
-            setAllUserArticles(prev => prev.filter(a => a.id !== deleteConfirm.articleId));
-        }
+        articleActionMutation.mutate(
+            { articleId: deleteConfirm.articleId, endpoint: '', method: 'DELETE' },
+            {
+                onSuccess: () => {
+                    queryClient.setQueryData(['collection-articles', collectionId], (old: Article[] | undefined) =>
+                        old ? old.filter(a => a.id !== deleteConfirm.articleId) : []
+                    );
+                },
+            }
+        );
         setDeleteConfirm({ show: false, articleId: '', articleTitle: '' });
     };
 
-    const handleArchive = async (articleId: string) => {
-        const success = await handleArticleAction(articleId, 'archive');
-        if (success) {
-            setArticles(prev => prev.map(a =>
-                a.id === articleId ? { ...a, isArchived: !a.isArchived } : a
-            ));
-        }
+    const handleArchive = (articleId: string) => {
+        articleActionMutation.mutate(
+            { articleId, endpoint: 'archive' },
+            {
+                onSuccess: () => {
+                    queryClient.setQueryData(['collection-articles', collectionId], (old: Article[] | undefined) =>
+                        old ? old.map(a => a.id === articleId ? { ...a, isArchived: !a.isArchived } : a) : []
+                    );
+                },
+            }
+        );
     };
 
-    const handleToggleBookmark = async (articleId: string) => {
-        const success = await handleArticleAction(articleId, 'bookmark');
-        if (success) {
-            setArticles(prev => prev.map(a =>
-                a.id === articleId ? { ...a, isBookmarked: !a.isBookmarked } : a
-            ));
-        }
+    const handleToggleBookmark = (articleId: string) => {
+        articleActionMutation.mutate(
+            { articleId, endpoint: 'bookmark' },
+            {
+                onSuccess: () => {
+                    queryClient.setQueryData(['collection-articles', collectionId], (old: Article[] | undefined) =>
+                        old ? old.map(a => a.id === articleId ? { ...a, isBookmarked: !a.isBookmarked } : a) : []
+                    );
+                },
+            }
+        );
     };
 
     // Get articles not in this collection

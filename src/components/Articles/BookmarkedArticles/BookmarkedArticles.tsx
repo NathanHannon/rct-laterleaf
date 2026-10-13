@@ -1,5 +1,7 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { useAuth } from '@clerk/clerk-react';
+import { apiUrl } from '../../../constants/api';
+import React, { useState } from 'react';
+import { useAuth } from "@clerk/react";
+import { useQuery } from '@tanstack/react-query';
 import { motion } from 'motion/react';
 import ArticleCard from '../ArticleCard/ArticleCard';
 import ConfirmationDialog from '../../Common/ConfirmationDialog/ConfirmationDialog';
@@ -7,88 +9,43 @@ import './BookmarkedArticles.scss';
 import type { Article } from '../../../interfaces/article';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSpinner } from '@fortawesome/free-solid-svg-icons';
+import { useArticleActions } from '../../../hooks/useArticleActions';
+import '../ArticleList/ArticleList.scss';
+import { Link } from 'react-router-dom';
 
 const BookmarkedArticles: React.FC = () => {
     const { getToken, isLoaded, isSignedIn } = useAuth();
-    const [articles, setArticles] = useState<Article[]>([]);
+    const actionMutation = useArticleActions();
     const [deleteConfirm, setDeleteConfirm] = useState<{ show: boolean; articleId: string | null }>({
         show: false,
         articleId: null
     });
 
-    const fetchArticles = useCallback(async () => {
-        try {
+    const { data: articles = [], isLoading, isError, isFetching, refetch } = useQuery({
+        queryKey: ['articles', 'bookmarked'],
+        queryFn: async () => {
             const token = await getToken();
             const filter = encodeURIComponent(JSON.stringify({ where: { isBookmarked: true } }));
-            const response = await fetch(`/api/articles?filter=${filter}`, {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
-
-            if (!response.ok) {
-                const errorText = await response.text();
-                throw new Error(`Network response was not ok: ${errorText}`);
-            }
-
-            const data: Article[] = await response.json();
-            setArticles(data);
-        } catch (error) {
-            console.error("Failed to fetch favorited articles:", error);
-        }
-    }, [getToken]);
-
-    useEffect(() => {
-        if (isLoaded && isSignedIn) {
-            fetchArticles();
-        }
-    }, [isLoaded, isSignedIn, fetchArticles]);
-
-    const handleAction = async (articleId: string, endpoint: string, method: 'POST' | 'DELETE' = 'POST') => {
-        try {
-            const token = await getToken();
-            const url = endpoint ? `/api/articles/${articleId}/${endpoint}` : `/api/articles/${articleId}`;
-            const response = await fetch(url, {
-                method,
+            const response = await fetch(apiUrl(`/articles?filter=${filter}`), {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
-            if (!response.ok) throw new Error(`Action failed: ${endpoint}`);
-            return true;
-        } catch (error) {
-            console.error(`Failed to ${endpoint || 'delete'}:`, error);
-            return false;
-        }
-    };
+            if (!response.ok) throw new Error('Failed to fetch bookmarked articles');
+            return response.json() as Promise<Article[]>;
+        },
+        enabled: isLoaded && !!isSignedIn,
+    });
 
-    const handleDelete = async (articleId: string) => {
-        setDeleteConfirm({ show: true, articleId });
+    const handleDelete = (articleId: string) => setDeleteConfirm({ show: true, articleId });
+    const confirmDelete = () => {
+        if (!deleteConfirm.articleId || actionMutation.isPending) return;
+        actionMutation.mutate({ articleId: deleteConfirm.articleId, action: 'delete' }, {
+            onSuccess: () => setDeleteConfirm({ show: false, articleId: null }),
+        });
     };
+    const handleArchive = (articleId: string) => actionMutation.mutate({ articleId, action: 'archive' });
+    const handleToggleBookmark = (articleId: string) => actionMutation.mutate({ articleId, action: 'bookmark' });
 
-    const confirmDelete = async () => {
-        if (!deleteConfirm.articleId) return;
-        const success = await handleAction(deleteConfirm.articleId, '', 'DELETE');
-        if (success) setArticles(prev => prev.filter(a => a.id !== deleteConfirm.articleId));
-        setDeleteConfirm({ show: false, articleId: null });
-    };
-
-    const handleArchive = async (articleId: string) => {
-        const success = await handleAction(articleId, 'archive');
-        if (success) {
-            setArticles(prev => prev.map(a =>
-                a.id === articleId ? { ...a, isArchived: !a.isArchived } : a
-            ));
-        }
-    };
-
-    const handleToggleBookmark = async (articleId: string) => {
-        const success = await handleAction(articleId, 'favorite');
-        if (success) {
-            // Un-favoriting should remove it from this list
-            setArticles(prev => prev.filter(a => a.id !== articleId));
-        }
-    };
-
-    if (!isLoaded) {
+    if (!isLoaded || isLoading) {
         return <div className="loading-container"><FontAwesomeIcon icon={faSpinner} spin size="3x" /></div>;
     }
 
@@ -98,16 +55,33 @@ const BookmarkedArticles: React.FC = () => {
 
     return (
         <div className="article-list-container">
-            <h2 className="list-title">Bookmarked Articles</h2>
+            <motion.header
+                className="premium-header"
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, ease: [0.23, 1, 0.32, 1] }}
+            >
+                <div className="header-eyebrow">Marked to revisit</div>
+                <h1 className="header-title">Favorites</h1>
+                <div className="header-mesh"></div>
+            </motion.header>
+
+            <p className="library-results">Articles you mark as favorites appear here. Keep your most useful reads close.</p>
+            {isError && <section className="library-state" role="alert"><h2>We couldn’t load these articles.</h2><p>Please check your connection and try again.</p><button disabled={isFetching} onClick={() => { void refetch(); }}>{isFetching ? 'Trying again…' : 'Try again'}</button></section>}
+            {!isError && articles.length === 0 && <section className="library-state"><h2>Keep a few favorites close.</h2><p>Articles you mark as favorites appear here. Keep your most useful reads close.</p><Link to="/articles">Back to your library</Link></section>}
+
             <motion.div
+                key={articles.length > 0 ? 'loaded' : 'empty'}
                 className="article-grid"
                 initial="hidden"
                 animate="visible"
                 variants={{
-                    hidden: {},
+                    hidden: { opacity: 0 },
                     visible: {
+                        opacity: 1,
                         transition: {
-                            staggerChildren: 0.1
+                            staggerChildren: 0.08,
+                            delayChildren: 0.1
                         }
                     }
                 }}
@@ -116,16 +90,25 @@ const BookmarkedArticles: React.FC = () => {
                     <motion.div
                         key={article.id}
                         variants={{
-                            hidden: { opacity: 0 },
-                            visible: { opacity: 1 }
+                            hidden: { opacity: 0, y: 30, scale: 0.95, filter: 'blur(4px)' },
+                            visible: {
+                                opacity: 1,
+                                y: 0,
+                                scale: 1,
+                                filter: 'blur(0px)',
+                                transition: {
+                                    duration: 0.6,
+                                    ease: [0.23, 1, 0.32, 1]
+                                }
+                            }
                         }}
-                        transition={{ duration: 0.4 }}
                     >
                         <ArticleCard
                             article={article}
                             onDelete={handleDelete}
                             onArchive={handleArchive}
                             onToggleBookmark={handleToggleBookmark}
+                            isActionPending={actionMutation.isPending}
                         />
                     </motion.div>
                 ))}
@@ -135,7 +118,8 @@ const BookmarkedArticles: React.FC = () => {
                 isOpen={deleteConfirm.show}
                 title="Delete Article"
                 message="Are you sure you want to delete this article? This action cannot be undone."
-                confirmText="Delete"
+                confirmText={actionMutation.isPending ? "Deleting…" : "Delete"}
+                isPending={actionMutation.isPending}
                 cancelText="Cancel"
                 variant="danger"
                 onConfirm={confirmDelete}
@@ -145,4 +129,4 @@ const BookmarkedArticles: React.FC = () => {
     );
 };
 
-export default BookmarkedArticles; 
+export default BookmarkedArticles;

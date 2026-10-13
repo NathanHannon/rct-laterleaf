@@ -1,0 +1,45 @@
+.search-mode-toggle {
+    display: flex;
+    position: relative;
+    background-color: var(--background-secondary);
+    border-radius: 20px;
+    padding: 3px;
+    border: 1px solid var(--border-color);
+    flex-shrink: 0;
+
+    .toggle-slider {
+        position: absolute;
+        top: 3px;
+        bottom: 3px;
+        background-color: var(--primary-color);
+        border-radius: 16px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+        transition: left 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+                    width 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        pointer-events: none;
+    }
+
+    .toggle-option {
+        position: relative;
+        flex: 1;
+        padding: 5px 14px;
+        border: none;
+        background-color: transparent;
+        color: var(--text-color-secondary);
+        cursor: pointer;
+        font-size: 0.85rem;
+        font-weight: 500;
+        border-radius: 16px;
+        white-space: nowrap;
+        transition: color 0.2s ease;
+        z-index: 1;
+
+        &.active {
+            color: #fff;
+        }
+
+        &:not(.active):hover {
+            color: var(--text-color);
+        }
+    }
+}

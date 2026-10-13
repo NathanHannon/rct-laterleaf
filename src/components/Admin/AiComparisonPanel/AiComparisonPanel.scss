@@ -1,0 +1,363 @@
+.ai-comparison {
+    --lab-accent: var(--primary-color);
+    display: grid;
+    gap: 2rem;
+
+    &__heading {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+
+        h2 {
+            margin: 0;
+            color: var(--text-color);
+            font-family: 'Instrument Serif', serif;
+            font-size: 2rem;
+            font-weight: 500;
+            letter-spacing: 0;
+        }
+    }
+
+    &__icon {
+        display: grid;
+        width: 3rem;
+        height: 3rem;
+        place-items: center;
+        border: 1px solid var(--card-border);
+        border-radius: 8px;
+        background: var(--card-bg);
+        color: var(--lab-accent);
+        font-size: 1.15rem;
+    }
+
+    &__eyebrow {
+        margin: 0 0 0.15rem;
+        color: var(--text-color-secondary);
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0;
+        text-transform: uppercase;
+    }
+
+    &__form {
+        display: grid;
+        gap: 1.5rem;
+        padding-block: 1.5rem;
+        border-block: 1px solid var(--card-border);
+    }
+
+    &__controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1.5rem 2.5rem;
+    }
+
+    &__prompt-field {
+        display: grid;
+        gap: 0.5rem;
+
+        textarea {
+            box-sizing: border-box;
+            width: 100%;
+            min-height: 10rem;
+            resize: vertical;
+            border: 1px solid var(--card-border);
+            border-radius: 8px;
+            padding: 1rem;
+            background: var(--card-bg);
+            color: var(--text-color);
+            font: inherit;
+            font-size: 1rem;
+            line-height: 1.6;
+
+            &:focus-visible {
+                outline: 2px solid var(--lab-accent);
+                outline-offset: 2px;
+            }
+        }
+    }
+
+    &__prompt-label {
+        display: flex;
+        justify-content: space-between;
+        gap: 1rem;
+        color: var(--text-color-secondary);
+        font-size: 0.82rem;
+
+        label {
+            color: var(--text-color);
+            font-weight: 650;
+        }
+    }
+
+    &__actions {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        min-height: 3rem;
+
+        button {
+            display: inline-flex;
+            min-height: 3rem;
+            align-items: center;
+            gap: 0.65rem;
+            border: 0;
+            border-radius: 8px;
+            padding-inline: 1.25rem;
+            background: var(--lab-accent);
+            color: white;
+            cursor: pointer;
+            font: inherit;
+            font-weight: 700;
+
+            &:disabled {
+                cursor: wait;
+                opacity: 0.65;
+            }
+
+            &:focus-visible {
+                outline: 2px solid var(--text-color);
+                outline-offset: 3px;
+            }
+        }
+
+        span {
+            color: var(--text-color-secondary);
+            font-size: 0.85rem;
+        }
+    }
+
+    &__error,
+    .ai-result__error {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.75rem;
+        border: 1px solid var(--card-border);
+        border-inline-start: 3px solid var(--lab-accent);
+        border-radius: 8px;
+        padding: 1rem;
+        background: var(--card-bg);
+        color: var(--text-color);
+    }
+
+    &__results {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 1rem;
+        align-items: stretch;
+
+        &--single {
+            grid-template-columns: minmax(0, 1fr);
+        }
+    }
+}
+
+.ai-segmented-control {
+    min-width: 0;
+    margin: 0;
+    border: 0;
+    padding: 0;
+
+    legend {
+        margin-bottom: 0.5rem;
+        color: var(--text-color-secondary);
+        font-size: 0.78rem;
+        font-weight: 650;
+    }
+
+    &__options {
+        display: inline-grid;
+        grid-auto-flow: column;
+        grid-auto-columns: minmax(5.5rem, 1fr);
+        overflow: hidden;
+        border: 1px solid var(--card-border);
+        border-radius: 8px;
+        background: var(--card-bg);
+
+        label {
+            position: relative;
+            cursor: pointer;
+
+            &:not(:last-child) {
+                border-inline-end: 1px solid var(--card-border);
+            }
+        }
+
+        input {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            overflow: hidden;
+            clip-path: inset(50%);
+        }
+
+        span {
+            display: grid;
+            min-height: 2.75rem;
+            place-items: center;
+            padding-inline: 0.9rem;
+            color: var(--text-color-secondary);
+            font-size: 0.82rem;
+            font-weight: 650;
+        }
+
+        input:checked + span {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        input:focus-visible + span {
+            outline: 2px solid var(--text-color);
+            outline-offset: -3px;
+        }
+    }
+}
+
+.ai-result {
+    min-width: 0;
+    border: 1px solid var(--card-border);
+    border-radius: 8px;
+    background: var(--card-bg);
+
+    &__header {
+        display: flex;
+        min-height: 4.5rem;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        border-bottom: 1px solid var(--card-border);
+        padding: 1rem 1.1rem;
+
+        p {
+            margin: 0 0 0.2rem;
+            color: var(--text-color-secondary);
+            font-size: 0.72rem;
+            font-weight: 750;
+            text-transform: uppercase;
+        }
+
+        h3 {
+            overflow-wrap: anywhere;
+            margin: 0;
+            color: var(--text-color);
+            font-size: 0.95rem;
+            font-weight: 650;
+            letter-spacing: 0;
+        }
+
+        button {
+            display: grid;
+            flex: 0 0 2.75rem;
+            width: 2.75rem;
+            height: 2.75rem;
+            place-items: center;
+            border: 1px solid var(--card-border);
+            border-radius: 8px;
+            background: var(--background-color);
+            color: var(--text-color-secondary);
+            cursor: pointer;
+
+            &:hover,
+            &:focus-visible {
+                border-color: var(--primary-color);
+                color: var(--primary-color);
+            }
+        }
+    }
+
+    &__metrics {
+        display: flex;
+        min-height: 2.5rem;
+        align-items: center;
+        gap: 0.5rem;
+        border-bottom: 1px solid var(--card-border);
+        padding-inline: 1.1rem;
+
+        span {
+            color: var(--text-color-secondary);
+            font-family: monospace;
+            font-size: 0.72rem;
+
+            &:not(:last-child)::after {
+                content: '/';
+                margin-inline-start: 0.5rem;
+                opacity: 0.5;
+            }
+        }
+    }
+
+    &__content {
+        max-height: 38rem;
+        overflow: auto;
+        padding: 1.1rem;
+        color: var(--text-color);
+        font-size: 0.92rem;
+        line-height: 1.65;
+
+        > :first-child {
+            margin-top: 0;
+        }
+
+        > :last-child {
+            margin-bottom: 0;
+        }
+
+        pre {
+            max-width: 100%;
+            overflow: auto;
+            border-radius: 8px;
+            padding: 0.9rem;
+            background: var(--background-color);
+        }
+
+        code {
+            overflow-wrap: anywhere;
+        }
+    }
+
+    &__error {
+        margin: 1rem;
+
+        p {
+            margin: 0;
+            overflow-wrap: anywhere;
+        }
+    }
+}
+
+.visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+}
+
+@media (max-width: 800px) {
+    .ai-comparison {
+        &__results {
+            grid-template-columns: minmax(0, 1fr);
+        }
+
+        &__controls {
+            display: grid;
+            gap: 1rem;
+        }
+
+        &__actions {
+            align-items: stretch;
+            flex-direction: column;
+
+            button {
+                justify-content: center;
+            }
+        }
+    }
+
+    .ai-segmented-control__options {
+        display: grid;
+        width: 100%;
+        grid-auto-columns: minmax(0, 1fr);
+    }
+}

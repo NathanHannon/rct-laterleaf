@@ -26,11 +26,25 @@
     .modal-header {
         padding: 1.5rem 1.5rem 0 1.5rem;
         flex-shrink: 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
 
         h3 {
-            margin: 0 0 1.5rem 0;
+            margin: 0;
             color: #333;
             font-size: 1.25rem;
+        }
+
+        .suggestions-loading-badge {
+            font-size: 0.8rem;
+            color: #666;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: #f8f9fa;
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
         }
     }
 
@@ -95,14 +109,41 @@
         cursor: not-allowed;
     }
 
+    &.suggested {
+        border-color: #007bff;
+        background: rgba(0, 123, 255, 0.05);
+
+        &:hover:not(:disabled) {
+            background: rgba(0, 123, 255, 0.1);
+        }
+    }
+
     .collection-info {
         text-align: left;
         flex: 1;
 
-        h4 {
-            margin: 0 0 0.25rem 0;
-            color: #333;
-            font-size: 1rem;
+        .collection-name-row {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.25rem;
+
+            h4 {
+                margin: 0;
+                color: #333;
+                font-size: 1rem;
+            }
+
+            .suggestion-badge {
+                background: linear-gradient(135deg, #007bff, #00d2ff);
+                color: white;
+                font-size: 0.7rem;
+                padding: 0.15rem 0.5rem;
+                border-radius: 12px;
+                font-weight: 600;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+            }
         }
 
         p {
@@ -120,6 +161,21 @@
 
         .fa-spinner {
             color: #666;
+        }
+
+        .check-icon {
+            color: #28a745;
+        }
+    }
+
+    &.has-article {
+        opacity: 0.7;
+        cursor: default;
+        background-color: #f8f9fa;
+
+        &:hover {
+            background-color: #f8f9fa;
+            transform: none;
         }
     }
 }

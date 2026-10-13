@@ -32,3 +32,5 @@ export function ToastProvider({ children }: ToastProviderProps) {
         </ToastContext.Provider>
     );
 }
+
+export { useToast };

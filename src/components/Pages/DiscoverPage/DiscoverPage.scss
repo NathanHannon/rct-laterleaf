@@ -1,0 +1,124 @@
+.discover-page {
+    width: 100%;
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem 4rem;
+}
+
+.discover-header {
+    text-align: left;
+    margin-bottom: 2.5rem;
+    position: relative;
+    padding: 2rem 0 1.75rem;
+    border-bottom: 1px solid var(--card-border);
+    overflow: visible;
+
+    // Atmospheric background effect
+    &::before { display: none; }
+
+    &::after {
+        content: '';
+        position: absolute;
+        bottom: -1px;
+        left: 0;
+        width: 60px;
+        height: 2px;
+        background: var(--primary-color);
+    }
+
+    h1 {
+        font-family: 'Instrument Serif', serif;
+        font-size: 3.5rem;
+        color: var(--text-color);
+        margin: 0 0 1rem 0;
+        letter-spacing: -0.02em;
+        line-height: 1.1;
+    }
+
+    p {
+        font-size: 1rem;
+        color: var(--text-color-secondary);
+        max-width: 550px;
+        margin: 0;
+        line-height: 1.7;
+    }
+}
+
+.discover-grid-header {
+    margin-top: 2.5rem;
+    margin-bottom: 2rem;
+
+    h2 {
+        font-family: 'Instrument Serif', serif;
+        font-size: 2rem;
+        margin: 0 0 0.5rem 0;
+        color: var(--text-color);
+    }
+
+    p {
+        color: var(--text-color-secondary);
+        font-size: 1rem;
+    }
+}
+
+.discover-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, 360px);
+    gap: 1.5rem;
+    padding: 0;
+}
+
+.discover-footer {
+    text-align: center;
+    margin-top: 2.5rem;
+    padding-bottom: 2rem;
+
+    .load-more-button {
+        padding: 0.75rem 2rem;
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--text-color);
+        background-color: var(--background-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background-color 0.2s ease, border-color 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+
+        &:hover:not(:disabled) {
+            background-color: var(--border-color);
+            transform: none;
+            box-shadow: none;
+        }
+
+        &:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+    }
+}
+
+.discover-page-loading,
+.discover-page-error,
+.discover-empty {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    min-height: 50vh;
+    color: var(--text-color-secondary);
+    text-align: center;
+
+    span {
+        margin-top: 1rem;
+        font-size: 1.2rem;
+    }
+
+    h3 {
+        font-size: 1.5rem;
+        color: var(--text-color);
+        margin-bottom: 0.5rem;
+    }
+}

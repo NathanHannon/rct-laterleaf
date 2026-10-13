@@ -35,9 +35,9 @@
             display: flex;
             align-items: center;
             gap: 16px;
-            font-size: 2.5rem;
-            font-weight: 700;
+            font: 400 clamp(2.5rem, 4vw, 3.5rem)/1.1 'Instrument Serif', serif;
             margin-bottom: 0.5rem;
+            color: var(--text-color); // Use theme text color
 
             .collection-emoji {
                 font-size: 2.75rem;
@@ -46,14 +46,14 @@
         }
 
         .collection-description {
-            color: #666;
+            color: var(--text-color-secondary);
             margin: 0 0 1rem 0;
             line-height: 1.4;
         }
 
         .article-count {
-            background: #f8f9fa;
-            color: #666;
+            background: var(--card-bg);
+            color: var(--text-color-secondary);
             padding: 0.25rem 0.5rem;
             border-radius: 4px;
             font-size: 0.9rem;
@@ -94,6 +94,35 @@
 .collection-article-wrapper {
     position: relative;
 
+    // Bookmark indicator styles for collection view
+    .favorite-indicator {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        color: #c62828;
+        font-size: 1.2em;
+        z-index: 3;
+        filter: drop-shadow(0 2px 4px rgba(198, 40, 40, 0.3));
+        transform-origin: top center;
+    }
+
+    // Save effect styles for collection view
+    .save-effect {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: rgba(76, 175, 80, 0.95);
+        color: white;
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-size: 0.9em;
+        font-weight: 500;
+        z-index: 4;
+        backdrop-filter: blur(4px);
+        box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+    }
+
     .remove-from-collection-btn {
         position: absolute;
         top: 10px;
@@ -126,11 +155,11 @@
 .empty-collection {
     text-align: center;
     padding: 4rem 2rem;
-    color: #666;
+    color: var(--text-color-secondary);
 
     h3 {
         margin: 0 0 1rem 0;
-        color: #333;
+        color: var(--text-color);
     }
 
     p {
@@ -158,6 +187,10 @@
 }
 
 .add-articles-modal {
+    background: white;
+    border-radius: 12px;
+    padding: 2rem;
+    width: 100%;
     max-width: 600px;
     max-height: 80vh;
 
@@ -181,13 +214,13 @@
 
             h4 {
                 margin: 0 0 0.5rem 0;
-                color: #333;
+                color: var(--text-color);
                 font-size: 1rem;
             }
 
             p {
                 margin: 0;
-                color: #666;
+                color: var(--text-color-secondary);
                 font-size: 0.9rem;
                 display: -webkit-box;
                 -webkit-line-clamp: 2;
@@ -218,5 +251,97 @@
     justify-content: center;
     align-items: center;
     min-height: 400px;
-    color: #666;
+    color: var(--text-color-secondary);
+}
+
+// Ensure proper contrast for collection view headers in both themes
+[data-appearance='light'] .collection-info h1 {
+    color: #0f766e; // Dark teal for light mode
+}
+
+[data-appearance='dark'] .collection-info h1 {
+    color: #ffffff !important; // Force white text in dark mode
+}
+
+// Mobile responsive design
+@media (max-width: 768px) {
+    .collection-view-container {
+        padding: 1rem;
+    }
+
+    .collection-header {
+        flex-direction: column;
+        gap: 1rem;
+
+        .collection-info {
+            text-align: center;
+
+            h1 {
+                font-size: 2rem;
+                flex-direction: column;
+                gap: 0.5rem;
+
+                .collection-emoji {
+                    font-size: 2rem;
+                }
+            }
+        }
+
+        .back-button,
+        .add-article-btn {
+            align-self: center;
+            font-size: 0.9rem;
+        }
+    }
+
+    .articles-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .empty-collection {
+        padding: 2rem 1rem;
+
+        .add-article-btn {
+            padding: 0.75rem 1.5rem;
+            font-size: 1rem;
+        }
+    }
+
+    .add-articles-modal {
+        padding: 1.5rem;
+        margin: 1rem;
+
+        .available-articles {
+            max-height: 300px;
+        }
+
+        .article-option {
+            flex-direction: column;
+            gap: 1rem;
+            text-align: center;
+
+            .add-btn {
+                width: 100%;
+            }
+        }
+    }
+}
+
+@media (max-width: 480px) {
+    .collection-view-container {
+        padding: 0.75rem;
+    }
+
+    .collection-header {
+        .collection-info h1 {
+            font-size: 1.5rem;
+        }
+    }
+
+    .collection-article-wrapper .remove-from-collection-btn {
+        width: 28px;
+        height: 28px;
+        opacity: 1; // Always visible on mobile for better accessibility
+    }
 }

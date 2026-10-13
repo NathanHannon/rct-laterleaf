@@ -1,0 +1,185 @@
+@use '../../../styles/mixins' as *;
+
+.related-articles-container {
+    margin: 1.5rem 0;
+    border-radius: 12px;
+    overflow: hidden;
+    @include glass-panel;
+    // Cyan tint for Related Articles
+    background: rgba(var(--related-articles-color-rgb), 0.1) !important;
+    border-color: rgba(var(--related-articles-color-rgb), 0.25);
+    box-shadow: 0 8px 32px rgba(var(--related-articles-color-rgb), 0.08);
+
+    [data-theme='dark'] & {
+        // Stained Glass: Higher opacity for rich color, but still translucent
+        background: rgba(var(--related-articles-color-rgb), 0.25) !important;
+        border-color: rgba(var(--related-articles-color-rgb), 0.4);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+        backdrop-filter: blur(16px);
+    }
+}
+
+.related-articles-toggle {
+    width: 100%;
+    padding: 1rem 1.5rem;
+    background: transparent;
+    border: none;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    cursor: pointer;
+    color: var(--text-color);
+    font-size: 1rem;
+    font-weight: 500;
+    transition: background-color 0.2s ease;
+
+    &:hover:not(:disabled) {
+        background: rgba(var(--related-articles-color-rgb), 0.08);
+    }
+
+    &:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+
+    .toggle-icon {
+        font-size: 1.25rem;
+    }
+
+    .toggle-text {
+        flex: 1;
+        text-align: left;
+    }
+
+    .expand-icon {
+        font-size: 0.75rem;
+        transition: transform 0.2s ease;
+        color: var(--related-articles-color);
+
+        &.expanded {
+            transform: rotate(180deg);
+        }
+    }
+}
+
+.related-articles-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+
+    // Animation props
+    max-height: 0;
+    opacity: 0;
+    overflow: hidden;
+    padding: 0 1.5rem;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+
+    &.expanded {
+        max-height: 1000px;
+        opacity: 1;
+        padding: 0 1.5rem 1.5rem;
+    }
+}
+
+.related-article-card {
+    display: flex;
+    gap: 1rem;
+    padding: 1rem;
+    background: var(--card-bg);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 1px solid rgba(var(--related-articles-color-rgb), 0.15);
+
+    &:hover {
+        transform: translateX(4px);
+        border-color: var(--related-articles-color);
+        box-shadow: 0 2px 8px rgba(var(--related-articles-color-rgb), 0.15);
+    }
+
+    .related-article-image {
+        flex-shrink: 0;
+        width: 80px;
+        height: 80px;
+        border-radius: 6px;
+        overflow: hidden;
+        background: var(--background-color);
+
+        img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+    }
+
+    .related-article-content {
+        flex: 1;
+        min-width: 0; // Allow text truncation
+    }
+
+    .related-article-title {
+        font-size: 0.95rem;
+        font-weight: 600;
+        margin: 0 0 0.5rem 0;
+        color: var(--text-color);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+
+        .bookmark-badge {
+            color: #c62828;
+            font-size: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+        }
+    }
+
+    .related-article-excerpt {
+        font-size: 0.85rem;
+        color: var(--text-color-secondary);
+        margin: 0 0 0.5rem 0;
+        line-height: 1.4;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .related-article-meta {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .similarity-badge {
+        font-size: 0.75rem;
+        padding: 0.25rem 0.5rem;
+        background: rgba(var(--related-articles-color-rgb), 0.15);
+        color: var(--related-articles-color);
+        border-radius: 4px;
+        font-weight: 500;
+    }
+}
+
+// Mobile responsive
+@media (max-width: 768px) {
+    .related-article-card {
+        .related-article-image {
+            width: 60px;
+            height: 60px;
+        }
+
+        .related-article-title {
+            font-size: 0.9rem;
+        }
+
+        .related-article-excerpt {
+            font-size: 0.8rem;
+            display: -webkit-box;
+            -webkit-line-clamp: 1; // Single line on mobile
+            line-clamp: 1;
+            -webkit-box-orient: vertical;
+        }
+    }
+}

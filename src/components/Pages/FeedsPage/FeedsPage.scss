@@ -1,0 +1,176 @@
+.feeds-page {
+    width: 100%;
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem 4rem;
+}
+
+.feeds-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 2.5rem;
+    padding: 2rem 0 1.75rem;
+    border-bottom: 1px solid var(--card-border);
+    position: relative;
+    overflow: visible;
+    gap: 2rem;
+
+    &::before { display: none; }
+
+    &::after {
+        content: '';
+        position: absolute;
+        bottom: -1px;
+        left: 0;
+        width: 60px;
+        height: 2px;
+        background: var(--primary-color);
+    }
+
+    &__text {
+        h1 {
+            font-family: 'Instrument Serif', serif;
+            font-size: 3.5rem;
+            color: var(--text-color);
+            margin: 0 0 1rem 0;
+            padding-left: 4px;
+            /* Give room for Instrument Serif left-extending glyphs like 'Y' */
+            letter-spacing: -0.02em;
+            line-height: 1.1;
+        }
+
+        p {
+            font-size: 1rem;
+            color: var(--text-color-secondary);
+            max-width: 550px;
+            margin: 0;
+            line-height: 1.7;
+        }
+    }
+}
+
+.manage-feeds-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--button-text);
+    background-color: var(--primary-color);
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+    white-space: nowrap;
+    flex-shrink: 0;
+
+    &:hover {
+        background-color: var(--primary-hover);
+        transform: none;
+        box-shadow: none;
+    }
+
+    &:active {
+        transform: translateY(0);
+    }
+}
+
+.feeds-filters {
+    display: flex;
+    gap: 0.75rem;
+    padding-bottom: 2rem;
+    overflow-x: auto;
+    scrollbar-width: none;
+
+    &::-webkit-scrollbar {
+        display: none;
+    }
+
+    .feed-filter-pill {
+        padding: 0.5rem 1rem;
+        background: var(--card-bg);
+        border: 1px solid var(--card-border);
+        color: var(--text-color-secondary);
+        border-radius: 4px;
+        font-size: 0.9rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        white-space: nowrap;
+
+        &:hover {
+            color: var(--text-color);
+            background: var(--background-secondary, var(--card-bg));
+            border-color: var(--text-color-secondary);
+        }
+
+        &.active {
+            background: var(--primary-color);
+            color: var(--button-text);
+            border-color: var(--primary-color);
+        }
+    }
+}
+
+.feeds-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 1.5rem;
+    padding: 0;
+}
+
+.feeds-empty {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    min-height: 40vh;
+    text-align: center;
+    color: var(--text-color-secondary);
+
+    .empty-icon {
+        font-size: 3rem;
+        color: var(--primary-color);
+        opacity: 0.4;
+        margin-bottom: 1.5rem;
+    }
+
+    h3 {
+        font-size: 1.5rem;
+        color: var(--text-color);
+        margin: 0 0 0.75rem 0;
+    }
+
+    p {
+        max-width: 450px;
+        line-height: 1.6;
+        margin: 0 0 2rem 0;
+    }
+}
+
+.feeds-page-loading {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    min-height: 50vh;
+    color: var(--text-color-secondary);
+
+    span {
+        margin-top: 1rem;
+        font-size: 1.2rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .feeds-header {
+        flex-direction: column;
+        padding: 3rem 0 2rem 0;
+
+        &__text h1 {
+            font-size: 2.5rem;
+        }
+    }
+}

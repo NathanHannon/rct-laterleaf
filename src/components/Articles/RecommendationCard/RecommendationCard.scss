@@ -1,0 +1,161 @@
+.recommendation-card {
+    background-color: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 5px;
+    box-shadow: none;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    transition: border-color 0.2s ease, background-color 0.2s ease;
+
+    &:hover {
+        box-shadow: none;
+        border-color: var(--primary-color);
+    }
+
+    .card-image {
+        height: 136px;
+        background-size: cover;
+        background-position: center;
+        border-bottom: 1px solid var(--card-border);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: none;
+        transform-origin: center center;
+
+        .placeholder-icon {
+            font-size: 48px;
+            color: rgba(255, 255, 255, 0.5);
+            transition: transform 0.4s ease;
+        }
+    }
+
+    .card-content {
+        padding: 1rem;
+        display: flex;
+        flex-direction: column;
+        flex-grow: 1;
+        gap: .6rem;
+    }
+
+    .card-feed-title {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        font-weight: 600;
+        color: var(--primary-color);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+
+        .feed-icon {
+            font-size: 0.7rem;
+        }
+    }
+
+    .card-title {
+        font-family: 'Instrument Serif', serif;
+        font-size: 1.5rem;
+        font-weight: 400;
+        color: var(--text-color);
+        margin: 0;
+        line-height: 1.15;
+        // Truncate to max 3 lines to prevent extreme clutter
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .card-author {
+        font-size: 0.85rem;
+        color: var(--text-color-secondary);
+        margin: 0 0 12px 0;
+        flex-grow: 1;
+    }
+
+    .card-actions {
+        display: flex;
+        gap: 8px;
+        margin-top: auto;
+
+        @media (max-width: 480px) {
+            flex-direction: column;
+        }
+    }
+
+    .action-button {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        padding: 10px 12px;
+        border: none;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        cursor: pointer;
+        flex: 1;
+        transition: background-color .2s ease, border-color .2s ease, color .2s ease;
+        white-space: nowrap;
+
+        &.add-button {
+            background-color: var(--primary-color);
+            color: white;
+
+            &:hover {
+                background-color: var(--primary-color-hover);
+                transform: none;
+                box-shadow: none;
+            }
+
+            &:active {
+                transform: translateY(0);
+            }
+        }
+
+        &.view-button {
+            background-color: transparent;
+            color: var(--text-color);
+            border: 1px solid var(--card-border);
+
+            &:hover {
+                background-color: rgba(var(--primary-color-rgb, 34, 197, 94), 0.05);
+                /* very light primary tint */
+                border-color: var(--primary-color);
+                color: var(--primary-color);
+                transform: none;
+            }
+
+            &:active {
+                transform: translateY(0);
+            }
+        }
+
+        &.dismiss-button {
+            flex: 0;
+            background-color: transparent;
+            color: var(--text-muted);
+            border: 1px solid var(--card-border);
+            border-radius: 50%;
+            width: 36px;
+            height: 36px;
+            min-width: 36px;
+            padding: 0;
+
+            &:hover {
+                color: #e74c3c;
+                border-color: #e74c3c;
+                background-color: rgba(231, 76, 60, 0.08);
+                transform: translateY(-2px);
+            }
+
+            &:active {
+                transform: translateY(0);
+            }
+        }
+    }
+}

@@ -6,12 +6,20 @@ import './Toast.scss';
 
 export type ToastType = 'success' | 'error' | 'warning' | 'info';
 
+export interface ToastAction {
+    label: string;
+    onClick: () => void;
+}
+
 export interface Toast {
     id: string;
     type: ToastType;
     title: string;
     message?: string;
     duration?: number;
+    action?: ToastAction;
+    createdAt: number;
+    priority: number;
 }
 
 interface ToastProps {
@@ -38,6 +46,9 @@ const Toast: React.FC<ToastProps> = ({ toast, onDismiss }) => {
     return (
         <motion.div
             className={`toast toast-${toast.type}`}
+            role={toast.type === 'error' ? 'alert' : 'status'}
+            aria-live={toast.type === 'error' ? 'assertive' : 'polite'}
+            aria-atomic="true"
             initial={{ opacity: 0, x: 300, scale: 0.8 }}
             animate={{ opacity: 1, x: 0, scale: 1 }}
             exit={{ opacity: 0, x: 300, scale: 0.8 }}
@@ -50,9 +61,22 @@ const Toast: React.FC<ToastProps> = ({ toast, onDismiss }) => {
             <div className="toast-content">
                 <div className="toast-title">{toast.title}</div>
                 {toast.message && <div className="toast-message">{toast.message}</div>}
+                {toast.action && (
+                    <button
+                        className="toast-action"
+                        type="button"
+                        onClick={() => {
+                            toast.action!.onClick();
+                            onDismiss(toast.id);
+                        }}
+                    >
+                        {toast.action.label}
+                    </button>
+                )}
             </div>
             <button
                 className="toast-close"
+                type="button"
                 onClick={() => onDismiss(toast.id)}
                 aria-label="Dismiss notification"
             >

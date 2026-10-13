@@ -1,22 +1,20 @@
 .animated-collection-card {
     position: relative;
-    background: white;
-    border: 1px solid #e0e0e0;
-    border-radius: 12px;
-    padding: 1.5rem;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-    transition: all 0.2s ease;
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 20px;
+    padding: 1.75rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+    transition: box-shadow 0.4s cubic-bezier(0.23, 1, 0.32, 1), border-color 0.4s ease;
     overflow: hidden;
     cursor: pointer;
     min-height: 200px;
+    display: flex;
+    flex-direction: column;
 
     &:hover {
-        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-        border-color: #d0d0d0;
-    }
-
-    &:active {
-        transform: scale(0.98);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+        border-color: var(--primary-color-muted, rgba(15, 118, 110, 0.2));
     }
 }
 
@@ -47,11 +45,20 @@
     font-size: 1.25rem;
     font-weight: 600;
     margin: 0;
-    color: var(--text-color-primary);
+    color: var(--text-color); // Use correct theme text color
     // Truncate long titles
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+}
+
+// Ensure proper contrast in both themes
+[data-appearance='light'] .card-title {
+    color: #0f766e; // Dark teal for light mode
+}
+
+[data-appearance='dark'] .card-title {
+    color: #ffffff !important; // Force white text in dark mode
 }
 
 .card-menu {
@@ -60,15 +67,15 @@
     .dropdown-trigger {
         background: none;
         border: none;
-        color: #666;
+        color: var(--text-color-secondary); // Use theme secondary text color
         cursor: pointer;
         padding: 0.5rem;
         border-radius: 4px;
         transition: background-color 0.2s;
 
         &:hover {
-            background: #f8f9fa;
-            color: #333;
+            background: var(--card-bg);
+            color: var(--text-color); // Darker on hover
         }
     }
 
@@ -76,8 +83,8 @@
         position: absolute;
         top: 100%;
         right: 0;
-        background: white;
-        border: 1px solid #e0e0e0;
+        background: var(--card-bg); // Use theme background
+        border: 1px solid var(--card-border); // Use theme border
         border-radius: 8px;
         box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
         z-index: 1000;
@@ -94,17 +101,18 @@
             display: flex;
             align-items: center;
             gap: 0.5rem;
+            color: var(--text-color); // Use theme text color
             transition: background-color 0.2s;
 
             &:hover {
-                background: #f8f9fa;
+                background: var(--background-color); // Use theme background for hover
             }
 
             &.delete-action {
-                color: #dc3545;
+                color: #dc3545; // Keep red for delete action
 
                 &:hover {
-                    background: #f8d7da;
+                    background: #f8d7da; // Keep red background for delete hover
                 }
             }
         }
@@ -137,6 +145,23 @@
 
 .collection-description {
     font-size: 0.9rem;
+    color: var(--text-color-secondary); // Use theme secondary text color
+    margin: 0.5rem 0;
+}
+
+.article-count {
+    font-size: 0.85rem;
+    color: #666; // Back to black/dark gray since it has its own background
+    font-weight: 500;
+}
+
+// Ensure proper contrast for secondary text in both themes
+[data-appearance='light'] .collection-description {
+    color: #4b5563; // Neutral gray for light mode
+}
+
+[data-appearance='dark'] .collection-description {
+    color: #9ca3af !important; // Force light gray text in dark mode
 }
 
 // Explosion animation keyframes

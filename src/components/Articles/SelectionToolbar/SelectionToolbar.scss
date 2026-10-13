@@ -1,0 +1,138 @@
+.selection-toolbar {
+    position: fixed;
+    transform: translate(-50%, -100%);
+    z-index: 1000;
+    animation: toolbar-fade-in 0.12s ease-out;
+
+    .highlight-colors {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        background: var(--card-bg);
+        border: 1px solid var(--card-border);
+        border-radius: 8px;
+        padding: 6px 10px;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+
+        .toolbar-icon {
+            color: var(--text-color-secondary);
+            font-size: 0.85rem;
+            margin-right: 2px;
+        }
+
+        .color-btn {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: transform 0.1s, border-color 0.1s;
+
+            &:hover {
+                transform: scale(1.2);
+                border-color: var(--text-color);
+            }
+
+            &.color-yellow { background: #fde68a; }
+            &.color-green { background: #86efac; }
+            &.color-blue { background: #93c5fd; }
+            &.color-pink { background: #f9a8d4; }
+            &.color-orange { background: #fdba74; }
+        }
+    }
+
+    .highlight-edit {
+        background: var(--card-bg);
+        border: 1px solid var(--card-border);
+        border-radius: 8px;
+        padding: 8px;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+        min-width: 240px;
+
+        .note-input {
+            width: 100%;
+            background: var(--background-color);
+            border: 1px solid var(--card-border);
+            border-radius: 6px;
+            color: var(--text-color);
+            font-family: inherit;
+            font-size: 0.8rem;
+            padding: 6px 8px;
+            resize: none;
+            outline: none;
+
+            &:focus {
+                border-color: var(--primary-color);
+            }
+        }
+
+        .edit-actions {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 6px;
+            gap: 6px;
+
+            .save-note-btn {
+                flex: 1;
+                background: var(--primary-color);
+                color: var(--button-text);
+                border: none;
+                border-radius: 6px;
+                padding: 5px 10px;
+                font-size: 0.75rem;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                gap: 4px;
+                justify-content: center;
+
+                &:hover {
+                    opacity: 0.9;
+                }
+            }
+
+            .delete-btn {
+                background: none;
+                border: 1px solid var(--card-border);
+                color: #ef4444;
+                border-radius: 6px;
+                padding: 5px 8px;
+                font-size: 0.75rem;
+                cursor: pointer;
+
+                &:hover {
+                    background: rgba(239, 68, 68, 0.1);
+                }
+            }
+        }
+    }
+}
+
+// Highlight mark styles applied to article content
+.highlight-mark {
+    cursor: pointer;
+    border-radius: 2px;
+    transition: opacity 0.15s;
+
+    &:hover {
+        opacity: 0.8;
+    }
+
+    &.highlight-yellow { background: rgba(253, 230, 138, 0.5); }
+    &.highlight-green { background: rgba(134, 239, 172, 0.5); }
+    &.highlight-blue { background: rgba(147, 197, 253, 0.5); }
+    &.highlight-pink { background: rgba(249, 168, 212, 0.5); }
+    &.highlight-orange { background: rgba(253, 186, 116, 0.5); }
+}
+
+@keyframes toolbar-fade-in {
+    from {
+        opacity: 0;
+        transform: translate(-50%, -100%) translateY(4px);
+    }
+    to {
+        opacity: 1;
+        transform: translate(-50%, -100%) translateY(0);
+    }
+}

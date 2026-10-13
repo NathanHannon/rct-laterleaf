@@ -1,4 +1,4 @@
-import type { UserResource } from '@clerk/types';
+import type { UserResource } from "@clerk/shared/types";
 
 /**
  * Extract user tier from Clerk's JWT token
@@ -8,21 +8,19 @@ import type { UserResource } from '@clerk/types';
 export const extractUserTier = (user: UserResource | null | undefined): 'pro' | 'free' => {
     if (!user) return 'free';
 
-    // Check if user has admin role in publicMetadata first
-    if (user.publicMetadata?.role === 'admin') {
-        console.log('🔱 Admin user detected, granting pro access');
+    // Check publicMetadata first, as it's synced from our DB via webhooks.
+    if (user.publicMetadata?.isPro === true || user.publicMetadata?.role === 'admin') {
         return 'pro';
     }
 
-    // Access the raw token from Clerk's user object
-    // The tier info is in the 'pla' field (e.g., "u:free_user" or "u:pro_user")
+    // Fallback for older JWTs or if metadata sync is delayed.
     const userWithToken = user as UserResource & {
         unsafeMetadata?: { _rawToken?: { pla?: string } };
-        __unstable__environment?: { jwt?: { pla?: string } };
+        __internal_environment?: { jwt?: { pla?: string } };
     };
 
     const rawToken = userWithToken.unsafeMetadata?._rawToken ||
-        userWithToken.__unstable__environment?.jwt ||
+        userWithToken.__internal_environment?.jwt ||
         {};
 
     const plaField = rawToken.pla || 'u:free_user';
@@ -32,12 +30,12 @@ export const extractUserTier = (user: UserResource | null | undefined): 'pro' | 
 };
 
 /**
- * Check if user has pro access
- * @param user - Clerk user object
+ * Check if user has pro access. This function now takes a boolean.
+ * @param isPro - The pro status boolean from the UserStatusContext.
  * @returns boolean
  */
-export const hasProAccess = (user: UserResource | null | undefined): boolean => {
-    return extractUserTier(user) === 'pro';
+export const hasProAccess = (isPro: boolean): boolean => {
+    return isPro;
 };
 
 /**

@@ -1,0 +1,299 @@
+import { apiUrl } from '../../../constants/api';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
+import { useAuth } from "@clerk/react";
+import { useQuery, useMutation } from '@tanstack/react-query';
+import RecommendationCard from '../../Articles/RecommendationCard/RecommendationCard';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faSpinner, faSync, faCheckCircle } from '@fortawesome/free-solid-svg-icons';
+import type { Article } from '../../../interfaces/article';
+import './DiscoverPage.scss';
+import { useToast } from '../../../context/toastContext';
+import { motion, type Variants, AnimatePresence } from 'motion/react';
+import RecommendationCarousel from '../../Recommendations/RecommendationCarousel/RecommendationCarousel';
+
+const DiscoverPage: React.FC = () => {
+    const { getToken, isSignedIn } = useAuth();
+    const { showSuccess, showError, showInfo } = useToast();
+    const [recommendations, setRecommendations] = useState<Article[]>([]);
+    const [recommendationType, setRecommendationType] = useState<'personalized' | 'popular' | 'none'>('popular');
+    const [isLoadingRecs, setIsLoadingRecs] = useState(true);
+    const [isFetchingMore, setIsFetchingMore] = useState(false);
+    const [allRecommendationsLoaded, setAllRecommendationsLoaded] = useState(false);
+
+    const { data: discoveredArticles = [], isLoading: isLoadingDiscovered } = useQuery({
+        queryKey: ['curated-articles'],
+        queryFn: async () => {
+            const response = await fetch(apiUrl('/curated-articles?limit=12'));
+            if (!response.ok) throw new Error('Failed to fetch discovered articles');
+            return response.json() as Promise<Article[]>;
+        },
+    });
+
+    // Keep local copy so dismiss/add can remove items from UI
+    const [dismissedDiscoveredIds, setDismissedDiscoveredIds] = useState<Set<string>>(new Set());
+    const [addedDiscoveredIds, setAddedDiscoveredIds] = useState<Set<string>>(new Set());
+    const visibleDiscoveredArticles = discoveredArticles.filter(
+        a => !dismissedDiscoveredIds.has(a.id) && !addedDiscoveredIds.has(a.id)
+    );
+
+    const fetchRecommendations = useCallback(async (isInitialFetch = false) => {
+        if (!isSignedIn || isFetchingMore) return;
+
+        setIsFetchingMore(true);
+        if (isInitialFetch) {
+            setIsLoadingRecs(true);
+        }
+
+        try {
+            const token = await getToken();
+            const previouslyRecommendedIds = isInitialFetch ? [] : recommendations.map(a => a.id);
+
+            const response = await fetch(apiUrl(`/recommendations`), {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ previouslyRecommendedIds }),
+            });
+
+            if (!response.ok) throw new Error(`Failed to fetch recommendations: ${response.statusText}`);
+            const data = await response.json();
+
+            if (data.type === 'none' || data.articles.length === 0) {
+                setAllRecommendationsLoaded(true);
+            } else {
+                setRecommendations(prev => isInitialFetch ? data.articles : [...prev, ...data.articles]);
+                setRecommendationType(data.type);
+            }
+        } catch {
+            showError("Error", "Could not load recommendations.");
+        } finally {
+            setIsLoadingRecs(false);
+            setIsFetchingMore(false);
+        }
+    }, [getToken, isSignedIn, showError, recommendations, isFetchingMore]);
+
+    useEffect(() => {
+        fetchRecommendations(true);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    const addToLibraryMutation = useMutation({
+        mutationFn: async (article: Article) => {
+            const token = await getToken();
+            const response = await fetch(apiUrl('/articles/import'), {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify({ url: article.url })
+            });
+            if (!response.ok) throw new Error('Failed to add article to library');
+            return article;
+        },
+        onSuccess: (article) => {
+            showSuccess('Article Added!', `"${article.title}" has been saved to your library.`);
+            setRecommendations(prev => prev.filter(rec => rec.id !== article.id));
+            setAddedDiscoveredIds(prev => new Set(prev).add(article.id));
+        },
+        onError: () => {
+            showError("Error", "Could not add article to your library.");
+        },
+    });
+
+    const handleAddToLibrary = (articleId: string) => {
+        const article = [...recommendations, ...discoveredArticles].find(rec => rec.id === articleId);
+        if (!article || !article.url) {
+            showError("Could not add article", "Article data is missing.");
+            return;
+        }
+        addToLibraryMutation.mutate(article);
+    };
+
+    const dismissTimers = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
+
+    const handleDismiss = (articleId: string) => {
+        const dismissed = [...recommendations, ...discoveredArticles].find(a => a.id === articleId);
+
+        setRecommendations(prev => prev.filter(rec => rec.id !== articleId));
+        setDismissedDiscoveredIds(prev => new Set(prev).add(articleId));
+
+        const timer = setTimeout(async () => {
+            dismissTimers.current.delete(articleId);
+            try {
+                const token = await getToken();
+                await fetch(apiUrl('/recommendations/dismiss'), {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ articleId }),
+                });
+            } catch {
+                // Silent — article already removed from UI
+            }
+        }, 6000);
+
+        dismissTimers.current.set(articleId, timer);
+
+        showInfo('Article dismissed', undefined, 6000, {
+            label: 'Undo',
+            onClick: () => {
+                const pending = dismissTimers.current.get(articleId);
+                if (pending) {
+                    clearTimeout(pending);
+                    dismissTimers.current.delete(articleId);
+                }
+                if (dismissed) {
+                    setRecommendations(prev => [...prev, dismissed]);
+                    setDismissedDiscoveredIds(prev => {
+                        const next = new Set(prev);
+                        next.delete(articleId);
+                        return next;
+                    });
+                }
+            },
+        });
+    };
+
+    useEffect(() => {
+        return () => {
+            dismissTimers.current.forEach(timer => clearTimeout(timer));
+        };
+    }, []);
+
+    const headerVariants: Variants = {
+        initial: { opacity: 0, y: -20 },
+        animate: { opacity: 1, y: 0, transition: { duration: 0.8, ease: [0.23, 1, 0.32, 1] } }
+    };
+
+    const title = recommendationType === 'popular' ? 'Popular Articles' : 'Recommended for You';
+    const subtitle = recommendationType === 'popular'
+        ? "Here are some articles trending in the community."
+        : "Based on your reading history, you might find these interesting.";
+
+    const isLoading = isLoadingRecs || isLoadingDiscovered;
+
+    if (isLoading) {
+        return (
+            <div className="discover-page-loading">
+                <FontAwesomeIcon icon={faSpinner} spin size="3x" />
+                <span>Finding articles for you...</span>
+            </div>
+        );
+    }
+
+    return (
+        <div className="discover-page">
+            <motion.div
+                className="discover-header"
+                initial="initial"
+                animate="animate"
+                variants={headerVariants}
+            >
+                <h1>Discover New Articles</h1>
+                <p>Find your next favorite read from the web and our community.</p>
+            </motion.div>
+
+            <motion.div
+                initial={{ opacity: 0, x: -30 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.8, delay: 0.2, ease: [0.23, 1, 0.32, 1] }}
+            >
+                <RecommendationCarousel
+                    title="New from Around the Web"
+                    articles={visibleDiscoveredArticles}
+                    onAddToLibrary={handleAddToLibrary}
+                    onDismiss={handleDismiss}
+                />
+            </motion.div>
+
+            {recommendations.length > 0 ? (
+                <>
+                    <motion.div
+                        className="discover-grid-header"
+                        initial={{ opacity: 0, y: 15 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 0.6, ease: [0.23, 1, 0.32, 1], delay: 0.3 }}
+                    >
+                        <h2>{title}</h2>
+                        <p>{subtitle}</p>
+                    </motion.div>
+                    <motion.div
+                        className="discover-grid"
+                        initial="hidden"
+                        animate="visible"
+                        variants={{
+                            hidden: { opacity: 0 },
+                            visible: {
+                                opacity: 1,
+                                transition: {
+                                    staggerChildren: 0.08,
+                                    delayChildren: 0.1
+                                }
+                            }
+                        }}
+                    >
+                        <AnimatePresence>
+                            {recommendations.filter(article => article && article.id).map((article) => (
+                                <motion.div
+                                    key={article.id}
+                                    variants={{
+                                        hidden: { opacity: 0, y: 30, scale: 0.95, filter: 'blur(4px)' },
+                                        visible: {
+                                            opacity: 1,
+                                            y: 0,
+                                            scale: 1,
+                                            filter: 'blur(0px)',
+                                            transition: {
+                                                duration: 0.6,
+                                                ease: [0.23, 1, 0.32, 1]
+                                            }
+                                        },
+                                        exit: {
+                                            opacity: 0,
+                                            scale: 0.95,
+                                            filter: 'blur(4px)',
+                                            transition: { duration: 0.3 }
+                                        }
+                                    }}
+                                    exit="exit"
+                                    whileHover={{
+                                        y: -8,
+                                        transition: { duration: 0.4, ease: [0.23, 1, 0.32, 1] }
+                                    }}
+                                    whileTap={{ scale: 0.98 }}
+                                >
+                                    <RecommendationCard
+                                        article={article}
+                                        onAddToLibrary={handleAddToLibrary}
+                                        onDismiss={handleDismiss}
+                                    />
+                                </motion.div>
+                            ))}
+                        </AnimatePresence>
+                    </motion.div>
+                    <div className="discover-footer">
+                        <button onClick={() => fetchRecommendations()} disabled={isFetchingMore || allRecommendationsLoaded} className="load-more-button">
+                            {isFetchingMore ? (
+                                <><FontAwesomeIcon icon={faSpinner} spin /> Loading...</>
+                            ) : allRecommendationsLoaded ? (
+                                <><FontAwesomeIcon icon={faCheckCircle} /> No More Articles</>
+                            ) : (
+                                <><FontAwesomeIcon icon={faSync} /> Load More</>
+                            )}
+                        </button>
+                    </div>
+                </>
+            ) : (
+                <div className="discover-empty">
+                    <h3>No new recommendations for you right now.</h3>
+                    <p>Check back later, or start saving and reading articles to get personalized suggestions!</p>
+                </div>
+            )}
+        </div>
+    );
+};
+
+export default DiscoverPage;

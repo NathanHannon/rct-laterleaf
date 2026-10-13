@@ -1,17 +1,93 @@
 .article-list-container {
-    padding: 2rem;
+    padding: 2rem 1.5rem;
+    max-width: 1280px;
+    margin: 0 auto;
 
-    .list-title {
-        font-size: 2rem;
-        margin-bottom: 1.5rem;
-        color: #333;
+    .premium-header {
+        text-align: left;
+        margin-bottom: 4rem;
+        position: relative;
+        padding: 2rem 0 1.75rem;
+        border-bottom: 1px solid var(--card-border);
+        overflow: hidden;
+
+        &::before {
+            content: '';
+            position: absolute;
+            top: -150px;
+            right: -150px;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, var(--primary-color-faint, rgba(0, 123, 255, 0.08)) 0%, transparent 70%);
+            z-index: -1;
+            border-radius: 50%;
+        }
+
+        &::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            width: 60px;
+            height: 2px;
+            background: var(--primary-color);
+        }
+
+        .header-eyebrow {
+            font-size: 0.9rem;
+            color: var(--primary-color);
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            display: block;
+        }
+
+        .header-title {
+            font-family: 'Instrument Serif', serif;
+            font-size: 3.5rem;
+            color: var(--text-color);
+            margin: 0;
+            letter-spacing: -0.02em;
+            line-height: 1.1;
+        }
+
+        .header-mesh {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image:
+                radial-gradient(at 0% 0%, var(--primary-color-faint) 0, transparent 50%),
+                radial-gradient(at 50% 0%, var(--primary-color-faint) 0, transparent 50%);
+            opacity: 0.4;
+            z-index: -2;
+            pointer-events: none;
+        }
     }
 
     .article-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-        gap: 1.5rem;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 2rem;
     }
+}
+
+.article-list-container .premium-header {
+    margin-bottom: 2.5rem;
+    overflow: visible;
+}
+
+.article-list-container .premium-header::before { display: none; }
+
+// Ensure proper contrast in both themes
+[data-theme='light'] .article-list-container .list-title {
+    color: #0f766e; // Dark teal for light mode
+}
+
+[data-theme='dark'] .article-list-container .list-title {
+    color: #ffffff !important; // Force white text in dark mode
 }
 
 .loading-container {
