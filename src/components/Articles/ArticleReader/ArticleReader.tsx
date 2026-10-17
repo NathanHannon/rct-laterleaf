@@ -15,11 +15,10 @@ import ArticleChat from '../ArticleChat/ArticleChat';
 import SelectionToolbar from '../SelectionToolbar/SelectionToolbar';
 import './ArticleReader.scss';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBookmark as faBookmarkSolid, faHeart as faHeartSolid, faArchive, faTrash, faRotateRight, faFolderPlus, faEllipsisV, faGem, faClock, faStarHalfStroke, faPodcast, faHeadphones, faLanguage, faCheck, faCloudArrowDown, faCloud, faComments } from '@fortawesome/free-solid-svg-icons';
+import { faBookmark as faBookmarkSolid, faHeart as faHeartSolid, faArchive, faTrash, faRotateRight, faFolderPlus, faEllipsisV, faClock, faStarHalfStroke, faPodcast, faHeadphones, faLanguage, faCheck, faCloudArrowDown, faCloud, faComments } from '@fortawesome/free-solid-svg-icons';
 import { faBookmark as faBookmarkRegular, faHeart as faHeartRegular } from '@fortawesome/free-regular-svg-icons';
 import { hasProAccess } from '../../../utils/tierUtils';
 import { useUserStatus } from '../../../hooks/useUserStatus';
-import { useUserCredits } from '../../../hooks/useUserCredits';
 import { useReadingPreferences } from '../../../hooks/useReadingPreferences';
 import { LANGUAGES } from '../../../constants/languages';
 import { useReaderArticle } from '../../../hooks/useReaderArticle';
@@ -51,7 +50,6 @@ const ArticleReader = () => {
     const { articleId } = useParams<{ articleId: string }>();
     const { getToken } = useAuth();
     const { isPro } = useUserStatus();
-    const { credits, fetchCredits } = useUserCredits();
     const { readingTheme, currentFontOption } = useReadingPreferences();
     const { showWarning } = useToastContext();
     const navigate = useNavigate();
@@ -91,7 +89,6 @@ const ArticleReader = () => {
     const [showDropdown, setShowDropdown] = useState(false);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [showDeleteSummaryConfirm, setShowDeleteSummaryConfirm] = useState(false);
-    const [useProSummary, setUseProSummary] = useState(false);
     const [showTranslateDropdown, setShowTranslateDropdown] = useState(false);
     const [isTranslating, setIsTranslating] = useState(false);
     const [currentLanguage, setCurrentLanguage] = useState<string>('original');
@@ -105,7 +102,7 @@ const ArticleReader = () => {
         const summaryLabel = softCapWarning.remaining === 1 ? 'summary' : 'summaries';
         showWarning(
             'Approaching your monthly summary limit',
-            `${softCapWarning.remaining} free ${summaryLabel} remaining this month. Upgrade to Pro for unlimited summaries.`,
+            `${softCapWarning.remaining} free ${summaryLabel} remaining this month.`,
         );
     };
 
@@ -290,13 +287,6 @@ const ArticleReader = () => {
                 action: () => handleSummarize()
             },
             {
-                id: 'ai-summary-pro',
-                label: 'Regenerate with Pro AI',
-                icon: faGem,
-                section: 'AI Features',
-                action: () => handleRefreshSummary(true)
-            },
-            {
                 id: 'ai-podcast',
                 label: showPodcastPlayer ? 'Hide Podcast Player' : 'Open Podcast Player',
                 icon: faPodcast,
@@ -344,12 +334,6 @@ const ArticleReader = () => {
         isChatMode, showSummary, currentLanguage, showTranslateDropdown,
         registerCommand, unregisterCommand
     ]);
-
-
-    // Fetch user credits on mount
-    useEffect(() => {
-        fetchCredits();
-    }, [fetchCredits]);
 
     const handleFavorite = async () => {
         if (!articleId || !article) return;
@@ -411,7 +395,6 @@ const ArticleReader = () => {
         try {
             const token = await getToken();
             const params = new URLSearchParams();
-            if (useProSummary && !userHasProAccess) params.append('usePro', 'true');
             if (detectedLanguage) params.append('language', detectedLanguage);
             if (adminAccess?.canSelectAiProvider && summaryProvider !== 'default') params.append('provider', summaryProvider);
             const qs = params.toString();
@@ -436,7 +419,6 @@ const ArticleReader = () => {
                 status: data.status
             });
             showSummaryCreditWarning(data.softCapWarning);
-            void fetchCredits();
             setShowSummary(true);
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Failed to generate summary');
@@ -445,7 +427,7 @@ const ArticleReader = () => {
         }
     };
 
-    const handleRefreshSummary = async (useProOverride?: boolean, languageCode?: string) => {
+    const handleRefreshSummary = async (languageCode?: string) => {
         if (!articleId || !article) return;
 
         // Use provided language, or fall back to current summary language, detected language, or default to English
@@ -455,11 +437,8 @@ const ArticleReader = () => {
 
         try {
             const token = await getToken();
-            const effectiveUsePro = typeof useProOverride === 'boolean' ? useProOverride : (useProSummary && !userHasProAccess);
-
             // Build query params
             const params = new URLSearchParams({ force: 'true' });
-            if (effectiveUsePro) params.append('usePro', 'true');
             if (adminAccess?.canSelectAiProvider && summaryProvider !== 'default') params.append('provider', summaryProvider);
 
             // Send the ISO code (e.g., 'es') directly to the backend
@@ -495,7 +474,6 @@ const ArticleReader = () => {
                 status: data.status
             });
             showSummaryCreditWarning(data.softCapWarning);
-            void fetchCredits();
             setShowSummary(true);
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Failed to regenerate summary');
@@ -733,26 +711,6 @@ const ArticleReader = () => {
                     </AnimatePresence>
                 </div>
 
-                {/* Pro Summary Toggle for Free Users */}
-                {!userHasProAccess && (
-                    <div className="pro-toggle-container">
-                        <label className="toggle-switch" title="Use Pro model for summaries">
-                            <input
-                                id="pro-toggle"
-                                type="checkbox"
-                                checked={useProSummary}
-                                onChange={(e) => setUseProSummary(e.target.checked)}
-                                disabled={isGeneratingSummary || (credits?.proCreditsRemaining === 0 && !useProSummary)}
-                            />
-                            <span className="slider round"></span>
-                        </label>
-                        <span className="toggle-label">
-                            <FontAwesomeIcon icon={faGem} />
-                            {credits && <span className={`credit-badge ${credits.proCreditsRemaining === 0 ? 'empty' : ''}`}>{credits.proCreditsRemaining}</span>}
-                        </span>
-                    </div>
-                )}
-
                 <div className="actions-dropdown">
                     <button
                         onClick={() => setShowDropdown(!showDropdown)}
@@ -849,7 +807,7 @@ const ArticleReader = () => {
                 isGeneratingSummary={isGeneratingSummary}
                 detectedLanguage={detectedLanguage}
                 summaryMetadata={summaryMetadata}
-                onRefresh={(language) => { void handleRefreshSummary(undefined, language); }}
+                onRefresh={(language) => { void handleRefreshSummary(language); }}
                 onDelete={handleDeleteSummary}
                 onClose={() => setShowSummary(false)}
             />

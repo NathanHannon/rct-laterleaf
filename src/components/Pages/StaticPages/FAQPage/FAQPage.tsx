@@ -21,7 +21,7 @@ const FAQPage = () => {
         {
             id: 'free-vs-pro',
             question: 'What\'s the difference between Free and Pro accounts?',
-            answer: 'Free accounts include basic article saving, summarization, and organization features with a monthly limit on AI-generated summaries. Pro accounts offer unlimited summaries, Audio Overviews to listen to your articles, and access to advanced semantic search features.'
+            answer: 'Free accounts include article saving, AI summaries (up to 50 per month), and organization features. Pro adds Audio Overviews to listen to your articles and advanced semantic search.'
         },
         {
             id: 'how-to-upgrade',
