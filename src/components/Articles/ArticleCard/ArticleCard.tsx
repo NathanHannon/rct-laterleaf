@@ -20,7 +20,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
 }) => {
     // Destructure both standard and metadata fields
     const {
-        id, imageUrl, title, excerpt, isBookmarked, isArchived, isUrlOnly, url,
+        id, imageUrl, title, excerpt, isBookmarked, isArchived, isUrlOnly, isPastedText, url,
         // Rich metadata fields
         siteName, siteIcon, ogImage, ogDescription, themeColor
     } = article;
@@ -204,7 +204,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
                                         <FontAwesomeIcon
                                             icon={faStarHalfStroke}
                                             className="indicator-summary"
-                                            title="Pro Summary Available"
+                                            title="AI Summary Available"
                                         />
                                     )}
                                     {article.audioLocation && (
@@ -267,17 +267,16 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
                                             exit={{ opacity: 0, scale: 0.95, y: -10 }}
                                             transition={{ duration: 0.15 }}
                                         >
-                                            <button
+                                            {!isPastedText && <button
                                                 onClick={() => {
                                                     setShowCollectionSelector(true);
-                                                    // Small delay to ensure modal opens before dropdown closes
                                                     setTimeout(() => setShowDropdown(false), 50);
                                                 }}
                                                 className="dropdown-item collection-item"
                                             >
                                                 <FontAwesomeIcon icon={faFolderPlus} />
                                                 <span>Add to Collection</span>
-                                            </button>
+                                            </button>}
                                             <button
                                                 onClick={() => handleDropdownAction(() => id && onArchive(id))}
                                                 disabled={isActionPending}
@@ -303,11 +302,11 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
                 </div>
             </motion.div>
 
-            <CollectionSelector
+            {!isPastedText && <CollectionSelector
                 isOpen={showCollectionSelector}
                 onClose={() => setShowCollectionSelector(false)}
                 articleId={id ?? ''}
-            />
+            />}
         </>
     );
 };

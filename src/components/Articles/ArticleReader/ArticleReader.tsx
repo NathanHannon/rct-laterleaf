@@ -324,7 +324,9 @@ const ArticleReader = () => {
             },
         ];
 
-        cmds.forEach(registerCommand);
+        cmds.filter(command => !article?.isPastedText || ![
+            'article-collection', 'article-open-original', 'ai-podcast', 'ai-audio', 'ai-chat', 'article-translate'
+        ].includes(command.id)).forEach(registerCommand);
         return () => { cmds.forEach(cmd => unregisterCommand(cmd.id)); };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [
@@ -629,7 +631,7 @@ const ArticleReader = () => {
                     {article.summary && article.summaryStatus !== 'pending' && <span className="ready-dot" />}
                 </button>
 
-                <button
+                {!article.isPastedText && <button
                     onClick={() => setShowPodcastPlayer(!showPodcastPlayer)}
                     className={`action-icon-btn button-podcast ${showPodcastPlayer ? 'active' : ''} ${article.hasContent === false ? 'disabled' : ''}`}
                     disabled={article.hasContent === false}
@@ -637,9 +639,9 @@ const ArticleReader = () => {
                 >
                     <FontAwesomeIcon icon={faPodcast} />
                     {article.audioLocation && <span className="ready-dot" />}
-                </button>
+                </button>}
 
-                <button
+                {!article.isPastedText && <button
                     onClick={() => setShowAudioPlayer(!showAudioPlayer)}
                     className={`action-icon-btn button-audio ${showAudioPlayer ? 'active' : ''} ${article.narrationLocation ? 'has-narration' : ''} ${article.hasContent === false ? 'disabled' : ''}`}
                     disabled={article.hasContent === false}
@@ -647,9 +649,9 @@ const ArticleReader = () => {
                 >
                     <FontAwesomeIcon icon={faHeadphones} />
                     {article.narrationLocation && <span className="ready-dot" />}
-                </button>
+                </button>}
 
-                <button
+                {!article.isPastedText && <button
                     onClick={() => setIsChatMode(!isChatMode)}
                     className={`action-icon-btn button-chat ${isChatMode ? 'active' : ''} ${article.hasContent === false ? 'disabled' : ''}`}
                     disabled={article.hasContent === false || !userHasProAccess}
@@ -657,10 +659,10 @@ const ArticleReader = () => {
                 >
                     <FontAwesomeIcon icon={faComments} />
                     {userHasProAccess && <span className="pro-badge-dot" />}
-                </button>
+                </button>}
 
                 {/* Translation Dropdown */}
-                <div className="action-dropdown-container">
+                {!article.isPastedText && <div className="action-dropdown-container">
                     <button
                         className={`action-icon-btn button-translate ${currentLanguage !== 'original' ? 'active' : ''}`}
                         onClick={() => setShowTranslateDropdown(!showTranslateDropdown)}
@@ -709,7 +711,7 @@ const ArticleReader = () => {
                             </motion.div>
                         )}
                     </AnimatePresence>
-                </div>
+                </div>}
 
                 <div className="actions-dropdown">
                     <button
@@ -728,14 +730,14 @@ const ArticleReader = () => {
                                 exit={{ opacity: 0, scale: 0.95, y: -10 }}
                                 transition={{ duration: 0.15 }}
                             >
-                                <button
+                                {!article.isPastedText && <button
                                     onClick={() => handleDropdownAction(handleToggleOffline)}
                                     className={`dropdown-item offline-item ${isAvailableOffline ? 'active' : ''}`}
                                     disabled={isSavingOffline}
                                 >
                                     <FontAwesomeIcon icon={isSavingOffline ? faRotateRight : isAvailableOffline ? faCloud : faCloudArrowDown} spin={isSavingOffline} />
                                     <span>{isAvailableOffline ? 'Remove offline copy' : 'Save for offline'}</span>
-                                </button>
+                                </button>}
 
                                 <button
                                     onClick={() => handleDropdownAction(() => setShowCollectionSelector(true))}
@@ -769,7 +771,7 @@ const ArticleReader = () => {
             <div className="article-header">
                 <h1>{article.title}</h1>
                 <div className="article-meta">
-                    <div className="article-author">By {article.author || 'Unknown author'}</div>
+                    <div className="article-author">{article.isPastedText ? 'Pasted text' : `By ${article.author || 'Unknown author'}`}</div>
                     {article.publishDate && <div className="article-date">Published on: {new Date(article.publishDate).toLocaleDateString()}</div>}
                     {estimatedReadingTime > 0 && (
                         <div className="reading-time">
@@ -780,7 +782,7 @@ const ArticleReader = () => {
                 </div>
                 {adminAccess?.canSelectAiProvider && (
                     <fieldset className="admin-summary-provider">
-                        <legend>{adminAccess?.canSelectAiProvider ? 'Summary provider' : 'Pro summary provider'}</legend>
+                        <legend>Summary provider</legend>
                         <div className="admin-summary-provider__options">
                             {([['default', 'Automatic'], ['gemini', 'Gemini'], ['openai-compatible', 'OpenAI']] as const).map(([value, label]) => (
                                 <label key={value}>
@@ -814,7 +816,7 @@ const ArticleReader = () => {
 
             {/* AI Podcast Player */}
             <AnimatePresence>
-                {article.content && articleId && showPodcastPlayer && (
+                {!article.isPastedText && article.content && articleId && showPodcastPlayer && (
                     <motion.div
                         className="article-audio-section"
                         initial={{ opacity: 0, height: 0, marginBottom: 0 }}
@@ -836,7 +838,7 @@ const ArticleReader = () => {
 
             {/* Standard TTS Player */}
             <AnimatePresence>
-                {articleId && showAudioPlayer && (
+                {!article.isPastedText && articleId && showAudioPlayer && (
                     <motion.div
                         className="article-audio-section"
                         initial={{ opacity: 0, height: 0, marginBottom: 0 }}
@@ -856,13 +858,13 @@ const ArticleReader = () => {
             </AnimatePresence>
 
             {/* Related Articles from User's Library */}
-            {articleId && !article.isUrlOnly && (
+            {articleId && !article.isUrlOnly && !article.isPastedText && (
                 <RelatedArticles articleId={articleId} />
             )}
 
-            <div className="article-source">
+            {!article.isPastedText && article.url && <div className="article-source">
                 <p>This content is republished from <a href={article.url} target="_blank" rel="noopener noreferrer">the original source</a> for personal use. All rights belong to the original author and publisher.</p>
-            </div>
+            </div>}
             <hr />
             <div
                 ref={contentRef}
@@ -871,15 +873,15 @@ const ArticleReader = () => {
                 dangerouslySetInnerHTML={{ __html: displayContent }}
             />
 
-            {articleId && (
+            {articleId && !article.isPastedText && (
                 <SelectionToolbar articleId={articleId} contentRef={contentRef} />
             )}
 
-            <CollectionSelector
+            {!article.isPastedText && <CollectionSelector
                 isOpen={showCollectionSelector}
                 onClose={() => setShowCollectionSelector(false)}
                 articleId={article.id ?? ''}
-            />
+            />}
 
             <ConfirmationDialog
                 isOpen={showDeleteConfirm}
@@ -904,14 +906,14 @@ const ArticleReader = () => {
             />
 
             {/* Right-side Chat Panel */}
-            <ArticleChat
+            {!article.isPastedText && <ArticleChat
                 articleId={articleId!}
                 isOpen={isChatMode}
                 onClose={() => setIsChatMode(false)}
                 userHasProAccess={userHasProAccess}
                 articleTitle={article?.title}
                 articleSummary={article?.summary}
-            />
+            />}
         </div>
     );
 };

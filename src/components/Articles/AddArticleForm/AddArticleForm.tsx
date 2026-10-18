@@ -17,18 +17,21 @@ const AddArticleForm: React.FC<AddArticleFormProps> = ({ onArticleAdded }) => {
     const { getToken } = useAuth();
     const { showSuccess, showWarning, showInfo } = useToastContext();
     const { handleApiError, handleGenericError } = useApiErrorHandler();
+    const [inputMode, setInputMode] = useState<'url' | 'text'>('url');
     const [newLink, setNewLink] = useState('');
+    const [pastedText, setPastedText] = useState('');
 
     const importMutation = useMutation({
-        mutationFn: async (url: string) => {
+        mutationFn: async (value: string) => {
             const token = await getToken();
-            const response = await fetch(apiUrl('/articles/import'), {
+            const isPastedText = inputMode === 'text';
+            const response = await fetch(apiUrl(isPastedText ? '/articles/paste' : '/articles/import'), {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
                 },
-                body: JSON.stringify({ url })
+                body: JSON.stringify(isPastedText ? { content: value } : { url: value })
             });
 
             if (!response.ok) {
@@ -41,7 +44,13 @@ const AddArticleForm: React.FC<AddArticleFormProps> = ({ onArticleAdded }) => {
         onSuccess: (data) => {
             if (data === null) return; // Error was already handled
             setNewLink('');
+            setPastedText('');
             onArticleAdded();
+
+            if (data.isPastedText) {
+                showSuccess('Text saved!', 'Your text is ready to read and summarize.');
+                return;
+            }
 
             if (data.success === false) {
                 showWarning(
@@ -67,45 +76,72 @@ const AddArticleForm: React.FC<AddArticleFormProps> = ({ onArticleAdded }) => {
     });
 
     const isImporting = importMutation.isPending;
+    const pastedTextBytes = new TextEncoder().encode(pastedText).length;
 
     const handleImportArticle = (e: React.FormEvent) => {
         e.preventDefault();
-        if (!newLink.trim() || isImporting) return;
-        importMutation.mutate(newLink.trim());
+        const value = inputMode === 'url' ? newLink.trim() : pastedText.trim();
+        if (!value || isImporting) return;
+        importMutation.mutate(value);
     };
 
     return (
         <div className="add-article-wrapper">
-            <label className="save-article-label" htmlFor="save-article-url">Save an article</label>
+            <div className="add-article-mode" role="group" aria-label="What would you like to save?">
+                <button type="button" className={inputMode === 'url' ? 'active' : ''} aria-pressed={inputMode === 'url'} onClick={() => setInputMode('url')}>Link</button>
+                <button type="button" className={inputMode === 'text' ? 'active' : ''} aria-pressed={inputMode === 'text'} onClick={() => setInputMode('text')}>Copied text</button>
+            </div>
+            <label className="save-article-label" htmlFor={inputMode === 'url' ? 'save-article-url' : 'save-article-text'}>
+                {inputMode === 'url' ? 'Save an article link' : 'Save copied text'}
+            </label>
             <form className="add-article-form" onSubmit={handleImportArticle}>
-                <div className="input-wrapper">
-                    <input
-                        id="save-article-url"
-                        type="url"
-                        required
-                        autoComplete="url"
-                        aria-describedby="save-article-help"
-                        placeholder="Paste an article link…"
-                        value={newLink}
-                        onChange={(e) => setNewLink(e.target.value)}
-                        disabled={isImporting}
-                    />
-                    <button type="submit" className="save-link-button" disabled={!newLink.trim() || isImporting}>
-                        {isImporting ? (
-                            <FontAwesomeIcon icon={faSpinner} spin />
-                        ) : (
-                            <FontAwesomeIcon icon={faPlus} />
-                        )}
-                        <span>{isImporting ? 'Saving…' : 'Save'}</span>
-                    </button>
-                </div>
+                {inputMode === 'url' ? (
+                    <div className="input-wrapper">
+                        <input
+                            id="save-article-url"
+                            type="url"
+                            required
+                            autoComplete="url"
+                            aria-describedby="save-article-help"
+                            placeholder="Paste an article link…"
+                            value={newLink}
+                            onChange={(e) => setNewLink(e.target.value)}
+                            disabled={isImporting}
+                        />
+                        <button type="submit" className="save-link-button" disabled={!newLink.trim() || isImporting}>
+                            {isImporting ? <FontAwesomeIcon icon={faSpinner} spin /> : <FontAwesomeIcon icon={faPlus} />}
+                            <span>{isImporting ? 'Saving…' : 'Save'}</span>
+                        </button>
+                    </div>
+                ) : (
+                    <>
+                        <textarea
+                            id="save-article-text"
+                            className="pasted-text-input"
+                            required
+                            maxLength={64_000}
+                            rows={5}
+                            placeholder="Paste copied text here…"
+                            value={pastedText}
+                            onChange={(e) => setPastedText(e.target.value)}
+                            disabled={isImporting}
+                        />
+                        <div className="pasted-text-footer">
+                            <span>{pastedTextBytes.toLocaleString()} / 65,536 bytes</span>
+                            <button type="submit" className="save-link-button" disabled={!pastedText.trim() || pastedTextBytes > 65_536 || isImporting}>
+                                {isImporting ? <FontAwesomeIcon icon={faSpinner} spin /> : <FontAwesomeIcon icon={faPlus} />}
+                                <span>{isImporting ? 'Saving…' : 'Save text'}</span>
+                            </button>
+                        </div>
+                    </>
+                )}
             </form>
-            <div className="extension-promo" id="save-article-help">
+            {inputMode === 'url' && <div className="extension-promo" id="save-article-help">
                 <FontAwesomeIcon icon={faPuzzlePiece} />
                 <span>
                     You can also save as you browse with the <strong>LaterLeaf browser extension.</strong>
                 </span>
-            </div>
+            </div>}
         </div>
     );
 };

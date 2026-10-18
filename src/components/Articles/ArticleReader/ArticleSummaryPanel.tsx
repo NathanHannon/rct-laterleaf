@@ -11,7 +11,7 @@ interface ArticleSummaryPanelProps {
     isOpen: boolean;
     isGeneratingSummary: boolean;
     detectedLanguage: string | null;
-    summaryMetadata: { model?: string; fallbackUsed?: boolean };
+    summaryMetadata: { fallbackUsed?: boolean };
     onRefresh: (language?: string) => void;
     onDelete: () => void;
     onClose: () => void;
@@ -44,11 +44,6 @@ export default function ArticleSummaryPanel({ article, isOpen, isGeneratingSumma
                                     {summaryMetadata.fallbackUsed && article.summaryStatus === 'completed' && (
                                         <span className="status-badge fallback" title="Primary AI model was busy, used backup model">
                                             🔄 Backup model used
-                                        </span>
-                                    )}
-                                    {summaryMetadata.model && !summaryMetadata.fallbackUsed && (
-                                        <span className="status-badge success" title={`Generated using ${summaryMetadata.model}`}>
-                                            ✅ {summaryMetadata.model?.includes('3-flash') || summaryMetadata.model?.includes('2.5-pro') ? 'Pro model' : 'Standard model'}
                                         </span>
                                     )}
                                 </div>

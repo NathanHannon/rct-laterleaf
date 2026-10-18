@@ -20,6 +20,7 @@ export interface Article {
     narrationStatus?: string;
     createdAt: string;
     isUrlOnly?: boolean; // Flag for URL-only entries that failed extraction
+    isPastedText?: boolean;
     hasContent?: boolean; // Flag indicating if the user has access to the full content
     readingTime?: number;
 
