@@ -262,7 +262,7 @@ const ResearchPage = () => {
                         transition={{ duration: 0.3 }}
                     >
                         <div className="result-meta">
-                            <span>Synthesized from {result.articleCount} article{result.articleCount !== 1 ? 's' : ''}</span>
+                            <span>Synthesized from {result.articleCount} source{result.articleCount !== 1 ? 's' : ''}</span>
                             <div className="result-export-actions">
                                 <button onClick={handleCopy} className="export-btn" title="Copy markdown">
                                     <FontAwesomeIcon icon={copied ? faCheck : faCopy} />
@@ -293,7 +293,7 @@ const ResearchPage = () => {
                         </div>
                         {(result.sources?.length ?? 0) > 0 && (
                             <div className="result-sources">
-                                <h4>Source Articles</h4>
+                                <h4>Sources</h4>
                                 <div className="source-links">
                                     {result.sources.map((source) => (
                                         <Link

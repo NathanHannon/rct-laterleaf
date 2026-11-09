@@ -20,9 +20,10 @@ const AddArticleForm: React.FC<AddArticleFormProps> = ({ onArticleAdded }) => {
     const [inputMode, setInputMode] = useState<'url' | 'text'>('url');
     const [newLink, setNewLink] = useState('');
     const [pastedText, setPastedText] = useState('');
+    const [pastedTitle, setPastedTitle] = useState('');
 
     const importMutation = useMutation({
-        mutationFn: async (value: string) => {
+        mutationFn: async ({ value, title }: { value: string; title?: string }) => {
             const token = await getToken();
             const isPastedText = inputMode === 'text';
             const response = await fetch(apiUrl(isPastedText ? '/articles/paste' : '/articles/import'), {
@@ -31,7 +32,7 @@ const AddArticleForm: React.FC<AddArticleFormProps> = ({ onArticleAdded }) => {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
                 },
-                body: JSON.stringify(isPastedText ? { content: value } : { url: value })
+                body: JSON.stringify(isPastedText ? { content: value, title } : { url: value })
             });
 
             if (!response.ok) {
@@ -45,6 +46,7 @@ const AddArticleForm: React.FC<AddArticleFormProps> = ({ onArticleAdded }) => {
             if (data === null) return; // Error was already handled
             setNewLink('');
             setPastedText('');
+            setPastedTitle('');
             onArticleAdded();
 
             if (data.isPastedText) {
@@ -82,7 +84,7 @@ const AddArticleForm: React.FC<AddArticleFormProps> = ({ onArticleAdded }) => {
         e.preventDefault();
         const value = inputMode === 'url' ? newLink.trim() : pastedText.trim();
         if (!value || isImporting) return;
-        importMutation.mutate(value);
+        importMutation.mutate({ value, title: inputMode === 'text' ? pastedTitle.trim() : undefined });
     };
 
     return (
@@ -115,6 +117,17 @@ const AddArticleForm: React.FC<AddArticleFormProps> = ({ onArticleAdded }) => {
                     </div>
                 ) : (
                     <>
+                        <label className="save-article-label" htmlFor="save-article-title">Title (optional)</label>
+                        <input
+                            id="save-article-title"
+                            className="pasted-title-input"
+                            type="text"
+                            maxLength={120}
+                            placeholder="Add a title, or use the first line"
+                            value={pastedTitle}
+                            onChange={(e) => setPastedTitle(e.target.value)}
+                            disabled={isImporting}
+                        />
                         <textarea
                             id="save-article-text"
                             className="pasted-text-input"
