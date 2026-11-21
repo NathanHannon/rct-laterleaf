@@ -108,7 +108,7 @@
                 font-size: 0.9rem;
                 transition: background 0.2s ease, color 0.2s ease, transform 0.1s ease;
                 
-                [data-theme='dark'] & {
+                [data-appearance='dark'] & {
                     background: rgba(255, 255, 255, 0.1);
                     border-color: rgba(255, 255, 255, 0.1);
                 }

@@ -27,7 +27,12 @@ export const ThemeProvider = ({ children }: ThemeProviderProps) => {
         return 'default';
     });
 
-    const [activeAppearance, setActiveAppearance] = useState<'light' | 'dark'>('light');
+    const [activeAppearance, setActiveAppearance] = useState<'light' | 'dark'>(() => {
+        if (appearance === 'dark' || appearance === 'light') {
+            return appearance;
+        }
+        return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    });
 
     useEffect(() => {
         const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
@@ -57,6 +62,10 @@ export const ThemeProvider = ({ children }: ThemeProviderProps) => {
         document.documentElement.setAttribute('data-theme', theme);
         localStorage.setItem('appearance', appearance);
         localStorage.setItem('theme', theme);
+        const themeColorMeta = document.querySelector('meta[name="theme-color"]');
+        if (themeColorMeta) {
+            themeColorMeta.setAttribute('content', activeAppearance === 'dark' ? '#111827' : '#f9fafb');
+        }
     }, [activeAppearance, appearance, theme]);
 
     const setAppearance = (newAppearance: AppearancePreference) => {

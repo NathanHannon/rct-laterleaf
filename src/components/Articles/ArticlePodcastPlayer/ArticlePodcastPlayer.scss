@@ -37,7 +37,7 @@
         }
     }
 
-    [data-theme='dark'] & {
+    [data-appearance='dark'] & {
         // Stained Glass: Higher opacity for rich color, but still translucent
         background: rgba(255, 87, 34, 0.35) !important;
         border-color: rgba(255, 87, 34, 0.5);
@@ -55,7 +55,7 @@
         opacity: 0.2; // Subtle background for the podcast player
     }
 
-    [data-theme='dark'] & {
+    [data-appearance='dark'] & {
         background: linear-gradient(135deg, #2d1f1a 0%, #1f1612 100%);
         border-color: #ff5722;
     }
@@ -127,7 +127,7 @@
             font-size: 0.85rem;
             padding: 0;
 
-            [data-theme='dark'] & {
+            [data-appearance='dark'] & {
                 background: rgba(255, 255, 255, 0.1);
                 border-color: rgba(255, 255, 255, 0.1);
                 color: rgba(255, 255, 255, 0.9);
@@ -148,7 +148,7 @@
                 border-color: var(--card-border);
                 color: var(--text-color-secondary);
 
-                [data-theme='dark'] & {
+                [data-appearance='dark'] & {
                     background: rgba(255, 255, 255, 0.05);
                     border-color: rgba(255, 255, 255, 0.05);
                 }
@@ -388,7 +388,7 @@
         transition: all 0.2s ease;
         margin-left: 2rem;
 
-        [data-theme='dark'] & {
+        [data-appearance='dark'] & {
             background: rgba(220, 53, 69, 0.25);
             color: #ff6b6b;
             border-color: #ff6b6b;
@@ -600,7 +600,7 @@
             text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
         }
 
-        [data-theme='dark'] & {
+        [data-appearance='dark'] & {
             background: linear-gradient(180deg, rgba(10, 10, 10, 0.92) 0%, rgba(20, 20, 20, 0.84) 100%);
         }
     }
@@ -652,7 +652,7 @@
     margin-bottom: 1rem;
     border: 2px solid #ff9800;
 
-    [data-theme='dark'] & {
+    [data-appearance='dark'] & {
         background: linear-gradient(135deg, #2d1a0d 0%, #1f1308 100%);
         color: #ff9800;
         border-color: #ff9800;
@@ -750,7 +750,7 @@
             font-weight: 700;
             text-align: center;
 
-            [data-theme='dark'] & {
+            [data-appearance='dark'] & {
                 background-color: transparent;
                 color: var(--primary-color);
             }

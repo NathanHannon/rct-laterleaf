@@ -101,7 +101,7 @@
     color: #0f766e; // Dark teal for light mode
 }
 
-[data-theme='dark'] .collections-header h1 {
+[data-appearance='dark'] .collections-header h1 {
     color: #ffffff !important; // Force white text in dark mode
 }
 
@@ -406,7 +406,7 @@
     }
 }
 
-[data-theme='dark'] {
+[data-appearance='dark'] {
     .suggestions-section h2 {
         color: #a0a0a0;
     }

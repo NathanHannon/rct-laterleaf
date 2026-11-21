@@ -10,7 +10,7 @@
     border-color: rgba(var(--related-articles-color-rgb), 0.25);
     box-shadow: 0 8px 32px rgba(var(--related-articles-color-rgb), 0.08);
 
-    [data-theme='dark'] & {
+    [data-appearance='dark'] & {
         // Stained Glass: Higher opacity for rich color, but still translucent
         background: rgba(var(--related-articles-color-rgb), 0.25) !important;
         border-color: rgba(var(--related-articles-color-rgb), 0.4);
