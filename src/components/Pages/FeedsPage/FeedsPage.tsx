@@ -40,7 +40,7 @@ export interface FeedItem {
 
 const FeedsPage: React.FC = () => {
     const { getToken } = useAuth();
-    const { showSuccess, showError, showInfo } = useToast();
+    const { showSuccess, showError, showInfo, showWarning } = useToast();
     const posthog = usePostHog();
     const queryClient = useQueryClient();
     const [isManageOpen, setIsManageOpen] = useState(false);
@@ -150,11 +150,22 @@ const FeedsPage: React.FC = () => {
                 },
                 body: JSON.stringify({ url: article.url }),
             });
-            if (!response.ok) throw new Error('Failed to add article to library');
-            return article;
+            const data = await response.json().catch(() => ({}));
+            if (!response.ok) {
+                throw new Error(data.message || data.error?.message || 'Could not add article to your library.');
+            }
+            return { article, data };
         },
-        onSuccess: (article) => {
-            showSuccess('Article Added!', `"${article.title}" has been saved to your library.`);
+        onSuccess: ({ article, data }) => {
+            if (data?.success === false) {
+                showWarning(
+                    'Saved Link Only',
+                    data.message || `We couldn't extract "${article.title}" (this site may require JavaScript). Saved as a link—try the LaterLeaf browser extension for full text.`,
+                    8000,
+                );
+            } else {
+                showSuccess('Article Added!', `"${article.title}" has been saved to your library.`);
+            }
             posthog.capture('feed_article_added', {
                 article_url: article.url,
                 feed_title: article.feedTitle
@@ -163,8 +174,8 @@ const FeedsPage: React.FC = () => {
                 old ? old.filter(a => a.id !== article.id) : []
             );
         },
-        onError: () => {
-            showError('Error', 'Could not add article to your library.');
+        onError: (error: Error) => {
+            showError('Error', error.message || 'Could not add article to your library.');
         },
     });
 

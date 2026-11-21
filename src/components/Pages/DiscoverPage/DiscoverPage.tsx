@@ -13,7 +13,7 @@ import RecommendationCarousel from '../../Recommendations/RecommendationCarousel
 
 const DiscoverPage: React.FC = () => {
     const { getToken, isSignedIn } = useAuth();
-    const { showSuccess, showError, showInfo } = useToast();
+    const { showSuccess, showError, showInfo, showWarning } = useToast();
     const [recommendations, setRecommendations] = useState<Article[]>([]);
     const [recommendationType, setRecommendationType] = useState<'personalized' | 'popular' | 'none'>('popular');
     const [isLoadingRecs, setIsLoadingRecs] = useState(true);
@@ -87,16 +87,27 @@ const DiscoverPage: React.FC = () => {
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify({ url: article.url })
             });
-            if (!response.ok) throw new Error('Failed to add article to library');
-            return article;
+            const data = await response.json().catch(() => ({}));
+            if (!response.ok) {
+                throw new Error(data.message || data.error?.message || 'Could not add article to your library.');
+            }
+            return { article, data };
         },
-        onSuccess: (article) => {
-            showSuccess('Article Added!', `"${article.title}" has been saved to your library.`);
+        onSuccess: ({ article, data }) => {
+            if (data?.success === false) {
+                showWarning(
+                    'Saved Link Only',
+                    data.message || `We couldn't extract "${article.title}" (this site may require JavaScript). Saved as a link—try the LaterLeaf browser extension for full text.`,
+                    8000,
+                );
+            } else {
+                showSuccess('Article Added!', `"${article.title}" has been saved to your library.`);
+            }
             setRecommendations(prev => prev.filter(rec => rec.id !== article.id));
             setAddedDiscoveredIds(prev => new Set(prev).add(article.id));
         },
-        onError: () => {
-            showError("Error", "Could not add article to your library.");
+        onError: (error: Error) => {
+            showError('Error', error.message || 'Could not add article to your library.');
         },
     });
 
