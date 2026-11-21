@@ -8,7 +8,7 @@ import Sidebar from '../Sidebar/Sidebar';
 import SearchModeToggle from '../../Search/SearchModeToggle/SearchModeToggle';
 import { useSearch } from '../../../hooks/searchHook';
 import './Header.scss';
-import logo from '../../../assets/logo/icon-transparent.png';
+import LaterLeafLogo from '../../Common/LaterLeafLogo/LaterLeafLogo';
 
 const Header: React.FC = () => {
     const navigate = useNavigate();
@@ -104,7 +104,7 @@ const Header: React.FC = () => {
                         onMouseEnter={() => setIsLogoHovered(true)}
                         onMouseLeave={() => setIsLogoHovered(false)}
                     >
-                        <img src={logo} alt="LaterLeaf logo" />
+                        <LaterLeafLogo className="logo-mark" size={32} />
                         <div className="logo-text-container">
                             <div
                                 className="logo-text-stack"

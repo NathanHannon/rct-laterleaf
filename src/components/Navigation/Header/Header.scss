@@ -54,14 +54,16 @@
         .logo {
             display: flex;
             align-items: center;
+            gap: 0.5rem;
             text-decoration: none;
             color: var(--text-color);
             height: 40px; // Fixed height to prevent layout shifts
             user-select: none;
 
-            img {
-                height: 40px;
-                width: 40px;
+            img,
+            .logo-mark {
+                height: 32px;
+                width: 32px;
                 flex-shrink: 0;
                 pointer-events: none;
             }

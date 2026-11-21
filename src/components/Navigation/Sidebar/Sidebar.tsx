@@ -7,7 +7,7 @@ import { hasProAccess } from '../../../utils/tierUtils';
 import HelpModal from '../../Common/HelpModal/HelpModal';
 import Wrapped from '../../Wrapped/Wrapped';
 import './Sidebar.scss';
-import logo from '../../../assets/logo/icon-transparent.png';
+import LaterLeafLogo from '../../Common/LaterLeafLogo/LaterLeafLogo';
 import { useUserStatus } from '../../../hooks/useUserStatus';
 import UpgradeButton from '../../Common/Controls/UpgradeButton/UpgradeButton';
 
@@ -46,7 +46,7 @@ const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(({ isOpen, onClose }, r
             <div className={`sidebar ${isOpen ? 'sidebar--open' : ''}`} ref={ref}>
                 <div className="sidebar__header">
                     <div className="sidebar__logo">
-                        <img src={logo} alt="laterLeaf logo" />
+                        <LaterLeafLogo className="sidebar__logo-mark" size={32} />
                         <h3>LaterLeaf</h3>
                     </div>
                     <button

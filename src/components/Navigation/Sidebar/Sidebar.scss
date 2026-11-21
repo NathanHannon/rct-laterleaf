@@ -31,11 +31,12 @@
         .sidebar__logo {
             display: flex;
             align-items: center;
-            // gap removed to match header
+            gap: 0.5rem;
 
-            img {
-                height: 40px;
-                width: 40px;
+            img,
+            .sidebar__logo-mark {
+                height: 32px;
+                width: 32px;
                 flex-shrink: 0;
             }
 
