@@ -3,8 +3,8 @@ import './ArticleCard.scss';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBookmark as faBookmarkSolid, faArchive, faTrash, faEllipsisV, faFolderPlus, faSeedling, faPlus, faExternalLinkAlt, faShieldAlt, faStarHalfStroke, faPodcast } from '@fortawesome/free-solid-svg-icons';
-import { faBookmark as faBookmarkRegular } from '@fortawesome/free-regular-svg-icons';
+import { faArchive, faTrash, faEllipsisV, faFolderPlus, faSeedling, faPlus, faExternalLinkAlt, faShieldAlt, faStarHalfStroke, faPodcast } from '@fortawesome/free-solid-svg-icons';
+import BookmarkLeafIcon from '../../Common/LaterLeafLogo/BookmarkLeafIcon';
 import CollectionSelector from '../../Collections/CollectionSelector/CollectionSelector';
 import { getGradientForString } from '../../../utils/colorUtils';
 import { extractUrlMetadata, getDomainColor } from '../../../utils/urlMetadata';
@@ -80,27 +80,21 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
                     {currentBookmarkState && (
                         <motion.div
                             className="favorite-indicator"
-                            initial={{ y: -30, opacity: 0, rotateX: -90 }}
+                            initial={{ y: -20, opacity: 0, rotateZ: -10, scale: 0.8 }}
                             animate={{
                                 y: 0,
                                 opacity: 1,
-                                rotateX: 0,
-                                scale: [1, 1.1, 1],
+                                rotateZ: 0,
+                                scale: 1,
                             }}
-                            exit={{ y: -30, opacity: 0, rotateX: -90 }}
+                            exit={{ y: -20, opacity: 0, rotateZ: -10, scale: 0.8 }}
                             transition={{
-                                scale: {
-                                    duration: 2,
-                                    repeat: Infinity,
-                                    repeatDelay: 4,
-                                    ease: "easeInOut"
-                                },
-                                y: { duration: 0.4, ease: "easeOut" },
-                                opacity: { duration: 0.4 },
-                                rotateX: { duration: 0.4, ease: "easeOut" }
+                                type: 'spring',
+                                stiffness: 360,
+                                damping: 22,
                             }}
                         >
-                            <FontAwesomeIcon icon={faBookmarkSolid} />
+                            <BookmarkLeafIcon filled size={28} />
                         </motion.div>
                     )}
                 </AnimatePresence>
@@ -238,14 +232,14 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
                                 aria-pressed={currentBookmarkState}
                                 aria-label={currentBookmarkState ? "Remove from favorites" : "Add to favorites"}
                                 className={`button-favorite ${currentBookmarkState ? 'favorited' : ''}`}
-                                whileTap={{ scale: 0.95 }}
+                                whileTap={{ scale: 0.92 }}
                                 animate={isBookmarkAnimating ? {
-                                    scale: [1, 1.1, 1],
-                                    rotateZ: [0, 5, -5, 0]
+                                    scale: [1, 1.16, 1],
+                                    rotateZ: [0, -8, 6, 0]
                                 } : {}}
-                                transition={{ duration: 0.3 }}
+                                transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
                             >
-                                <FontAwesomeIcon icon={currentBookmarkState ? faBookmarkSolid : faBookmarkRegular} />
+                                <BookmarkLeafIcon filled={Boolean(currentBookmarkState)} size={20} />
                             </motion.button>
 
                             <div className="actions-dropdown">
