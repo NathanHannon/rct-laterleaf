@@ -17,6 +17,7 @@ import './ArticleReader.scss';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBookmark as faBookmarkSolid, faHeart as faHeartSolid, faArchive, faTrash, faRotateRight, faFolderPlus, faEllipsisV, faClock, faStarHalfStroke, faPodcast, faHeadphones, faLanguage, faCheck, faCloudArrowDown, faCloud, faComments } from '@fortawesome/free-solid-svg-icons';
 import { faBookmark as faBookmarkRegular, faHeart as faHeartRegular } from '@fortawesome/free-regular-svg-icons';
+import BookmarkLeafIcon from '../../Common/LaterLeafLogo/BookmarkLeafIcon';
 import { hasProAccess } from '../../../utils/tierUtils';
 import { useUserStatus } from '../../../hooks/useUserStatus';
 import { useReadingPreferences } from '../../../hooks/useReadingPreferences';
@@ -593,15 +594,16 @@ const ArticleReader = () => {
                 <motion.button
                     onClick={handleFavorite}
                     className={`action-icon-btn button-favorite ${article.isBookmarked ? 'bookmarked' : ''}`}
-                    whileTap={{ scale: 0.95 }}
+                    whileTap={{ scale: 0.92 }}
                     animate={isBookmarkAnimating ? {
-                        scale: [1, 1.1, 1],
-                        rotateZ: [0, 5, -5, 0]
+                        scale: [1, 1.16, 1],
+                        rotateZ: [0, -8, 6, 0]
                     } : {}}
-                    transition={{ duration: 0.3 }}
+                    transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
+                    aria-pressed={article.isBookmarked}
                     title={article.isBookmarked ? 'Remove from favorites' : 'Add to favorites'}
                 >
-                    <FontAwesomeIcon icon={article.isBookmarked ? faBookmarkSolid : faBookmarkRegular} />
+                    <BookmarkLeafIcon filled={Boolean(article.isBookmarked)} size={20} />
                 </motion.button>
 
                 <motion.button

@@ -573,22 +573,22 @@
     }
 
     .button-favorite {
-        background-color: var(--primary-color);
-        color: var(--button-text);
+        background-color: var(--background-color);
+        color: var(--text-color-secondary);
+        border: 1px solid var(--card-border);
 
         &:hover:not(:disabled) {
-            background-color: var(--primary-hover);
+            border-color: var(--primary-color);
+            color: var(--primary-color);
         }
 
         &.bookmarked {
-            background-color: #424242;
+            background-color: rgba(var(--primary-color-rgb, 34, 197, 94), 0.16);
+            border: 1px solid rgba(var(--primary-color-rgb, 34, 197, 94), 0.45);
+            box-shadow: 0 0 12px rgba(var(--primary-color-rgb, 34, 197, 94), 0.25);
 
             &:hover:not(:disabled) {
-                background-color: #616161;
-            }
-
-            svg {
-                color: #c62828;
+                background-color: rgba(var(--primary-color-rgb, 34, 197, 94), 0.24);
             }
         }
     }
