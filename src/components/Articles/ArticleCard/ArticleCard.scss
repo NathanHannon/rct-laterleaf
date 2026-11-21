@@ -6,7 +6,7 @@
     color: inherit;
     background-color: var(--card-bg); // Use theme background
     border: 1px solid var(--card-border); // Use theme border
-    border-radius: 5px;
+    border-radius: 12px;
     overflow: visible;
     height: 100%;
     min-width: 0;
@@ -91,8 +91,8 @@
     position: relative;
     overflow: hidden;
     background-color: var(--card-bg);
-    border-top-left-radius: 8px;
-    border-top-right-radius: 8px;
+    border-top-left-radius: 11px;
+    border-top-right-radius: 11px;
     flex-shrink: 0 !important;
 
     .card-image {
@@ -280,9 +280,9 @@
     }
 
     .button-favorite {
-        background-color: #424242;
-        color: white;
-        border: none;
+        background-color: var(--background-color);
+        color: var(--text-color-secondary);
+        border: 1px solid var(--card-border);
         border-radius: 50%;
         width: 40px;
         height: 40px;
@@ -290,13 +290,14 @@
         align-items: center;
         justify-content: center;
         cursor: pointer;
-        transition: all 0.3s ease;
+        transition: all 0.25s ease;
         position: relative;
         overflow: hidden;
 
         &:hover {
-            background-color: #616161;
-            transform: scale(1.1);
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+            transform: scale(1.08);
         }
 
         &.favorited {
@@ -325,9 +326,9 @@
         position: relative;
 
         .dropdown-toggle {
-            background-color: #424242;
-            color: white;
-            border: none;
+            background-color: var(--background-color);
+            color: var(--text-color-secondary);
+            border: 1px solid var(--card-border);
             border-radius: 50%;
             width: 40px;
             height: 40px;
@@ -335,11 +336,12 @@
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.25s ease;
 
             &:hover {
-                background-color: #616161;
-                transform: scale(1.1);
+                border-color: var(--primary-color);
+                color: var(--text-color);
+                transform: scale(1.08);
             }
         }
 

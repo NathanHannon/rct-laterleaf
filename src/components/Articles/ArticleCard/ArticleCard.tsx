@@ -3,7 +3,7 @@ import './ArticleCard.scss';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faArchive, faTrash, faEllipsisV, faFolderPlus, faSeedling, faPlus, faExternalLinkAlt, faShieldAlt, faStarHalfStroke, faPodcast } from '@fortawesome/free-solid-svg-icons';
+import { faArchive, faTrash, faEllipsisV, faFolderPlus, faPlus, faExternalLinkAlt, faShieldAlt, faStarHalfStroke, faPodcast } from '@fortawesome/free-solid-svg-icons';
 import BookmarkLeafIcon from '../../Common/LaterLeafLogo/BookmarkLeafIcon';
 import CollectionSelector from '../../Collections/CollectionSelector/CollectionSelector';
 import { getGradientForString } from '../../../utils/colorUtils';
@@ -115,7 +115,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
                                                 : `linear-gradient(135deg, ${getDomainColor(url)} 0%, ${getDomainColor(url + 'gradient')} 100%)`
                                         }}
                                     >
-                                        <FontAwesomeIcon icon={faSeedling} className="preview-icon" />
+                                        <BookmarkLeafIcon filled={false} size={44} animateVein={false} className="preview-icon" />
                                     </div>
                                 )}
                                 <div className="preview-overlay external-link-overlay">
@@ -169,7 +169,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
                                     }}
                                 >
                                     <span className="placeholder-icon">
-                                        <FontAwesomeIcon icon={faSeedling} />
+                                        <BookmarkLeafIcon filled={false} size={52} animateVein={false} />
                                     </span>
                                 </div>
                             )}

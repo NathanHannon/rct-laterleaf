@@ -44,9 +44,16 @@
 .leaf {
     width: 20px;
     height: 20px;
-    background-image: url('/src/assets/logo/icon-mask.png');
-    background-size: contain;
-    background-repeat: no-repeat;
+    background-color: var(--primary-color, #22c55e);
+    opacity: 0.35;
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath d='M15 55V31C15 15 29 7 48 7c1.5 10 1 18 1 26v22c0 1.8-2.1 2.8-3.5 1.6L32 45.5 18.5 56.6C17.1 57.8 15 56.8 15 55Z' fill='black'/%3E%3C/svg%3E");
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath d='M15 55V31C15 15 29 7 48 7c1.5 10 1 18 1 26v22c0 1.8-2.1 2.8-3.5 1.6L32 45.5 18.5 56.6C17.1 57.8 15 56.8 15 55Z' fill='black'/%3E%3C/svg%3E");
+    -webkit-mask-size: contain;
+    mask-size: contain;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    mask-position: center;
     animation-name: sway;
     animation-duration: 2s;
     animation-timing-function: ease-in-out;
