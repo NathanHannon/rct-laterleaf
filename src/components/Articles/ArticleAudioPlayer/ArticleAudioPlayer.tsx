@@ -178,48 +178,8 @@ const ArticleAudioPlayer: React.FC<ArticleAudioPlayerProps> = ({
     }
 
     return (
-        <div className={`article-audio-player ${className}`}>
+        <div className={`article-audio-player compact-bar ${className}`}>
             {showWaveform && isThisTrackPlaying && <WaveformAnimation isPlaying={true} className="player-background-waveform" />}
-
-            <div className="player-header">
-                <div className="player-title">
-                    <div className="icon-wrapper">
-                        <FontAwesomeIcon icon={faVolumeUp} />
-                    </div>
-                    <div>
-                        <h4>Read Aloud</h4>
-                    </div>
-                </div>
-
-                <div className="player-actions">
-                    {downloadUrl && (
-                        <a
-                            href={downloadUrl}
-                            download={`article-audio-${articleId}.mp3`}
-                            className="action-icon-button"
-                            title="Download Audio"
-                        >
-                            <FontAwesomeIcon icon={faDownload} />
-                        </a>
-                    )}
-                    <button
-                        className={`action-icon-button settings-toggle ${showSettings ? 'active' : ''}`}
-                        onClick={() => setShowSettings(!showSettings)}
-                        title={showSettings ? "Hide Settings" : "Audio Settings"}
-                    >
-                        <FontAwesomeIcon icon={faCog} />
-                    </button>
-                    {onClose && (
-                        <button
-                            className="action-icon-button close-button"
-                            onClick={onClose}
-                            title="Close Player"
-                        >
-                            <FontAwesomeIcon icon={faTimes} />
-                        </button>
-                    )}
-                </div>
-            </div>
 
             {showSettings && (
                 <div className="audio-settings-panel">
@@ -270,51 +230,51 @@ const ArticleAudioPlayer: React.FC<ArticleAudioPlayerProps> = ({
                 </div>
             )}
 
-            <div className="audio-main-row">
-                <div className="playback-controls">
-                    <button
-                        onClick={skipBackward}
-                        disabled={isLoading || !audioUrl}
-                        className="skip-button"
-                        title="Skip Back 10s"
-                    >
-                        <FontAwesomeIcon icon={faRotateLeft} />
-                    </button>
+            <div className="audio-bar">
+                {isLoading ? (
+                    <div className="audio-bar-status">
+                        <FontAwesomeIcon icon={faSpinner} spin />
+                        <span>Generating audio...</span>
+                    </div>
+                ) : audioUrl ? (
+                    <>
+                        <div className="audio-transport">
+                            <button
+                                onClick={skipBackward}
+                                disabled={!audioUrl}
+                                className="bar-icon-btn"
+                                title="Skip Back 10s"
+                                aria-label="Skip Back 10s"
+                            >
+                                <FontAwesomeIcon icon={faRotateLeft} />
+                            </button>
 
-                    <button
-                        onClick={togglePlayback}
-                        disabled={isLoading}
-                        className={`main-play-button ${audioUrl ? 'compact' : ''}`}
-                        title={audioUrl ? (isThisTrackPlaying ? 'Pause' : 'Play') : 'Generate Audio'}
-                    >
-                        {isLoading ? (
-                            <FontAwesomeIcon icon={faSpinner} spin />
-                        ) : isThisTrackPlaying ? (
-                            <FontAwesomeIcon icon={faPause} />
-                        ) : (
-                            <FontAwesomeIcon icon={audioUrl && isThisTrackLoaded ? (currentTime >= duration && duration > 0 ? faRedo : faPlay) : faPlay} />
-                        )}
-                        {!audioUrl && !isLoading && <span className="generate-text">Generate Audio</span>}
-                    </button>
+                            <button
+                                onClick={togglePlayback}
+                                className="bar-play-btn"
+                                title={isThisTrackPlaying ? 'Pause' : (isThisTrackLoaded && currentTime >= duration && duration > 0 ? 'Replay' : 'Play')}
+                                aria-label={isThisTrackPlaying ? 'Pause' : 'Play'}
+                            >
+                                {isThisTrackPlaying ? (
+                                    <FontAwesomeIcon icon={faPause} />
+                                ) : (
+                                    <FontAwesomeIcon icon={isThisTrackLoaded && currentTime >= duration && duration > 0 ? faRedo : faPlay} />
+                                )}
+                            </button>
 
-                    <button
-                        onClick={skipForward}
-                        disabled={isLoading || !audioUrl}
-                        className="skip-button"
-                        title="Skip Forward 10s"
-                    >
-                        <FontAwesomeIcon icon={faRotateRight} />
-                    </button>
-                </div>
-
-                {audioUrl && (
-                    <div className="time-display-group">
-                        <div className="time-text">
-                            <span className="current">{formatTime(isThisTrackLoaded ? currentTime : 0)}</span>
-                            <span className="separator">/</span>
-                            <span className="total">{formatTime(isThisTrackLoaded ? duration : prefetchedDuration)}</span>
+                            <button
+                                onClick={skipForward}
+                                disabled={!audioUrl}
+                                className="bar-icon-btn"
+                                title="Skip Forward 10s"
+                                aria-label="Skip Forward 10s"
+                            >
+                                <FontAwesomeIcon icon={faRotateRight} />
+                            </button>
                         </div>
-                        <div className="progress-container">
+
+                        <div className="audio-scrubber">
+                            <span className="bar-time">{formatTime(isThisTrackLoaded ? currentTime : 0)}</span>
                             <input
                                 type="range"
                                 min="0"
@@ -325,9 +285,55 @@ const ArticleAudioPlayer: React.FC<ArticleAudioPlayerProps> = ({
                                 className="progress-slider"
                                 style={{ '--progress': `${((isThisTrackLoaded ? currentTime : 0) / ((isThisTrackLoaded ? duration : 0) || 1)) * 100}%` } as React.CSSProperties}
                             />
+                            <span className="bar-time">{formatTime(isThisTrackLoaded ? duration : prefetchedDuration)}</span>
                         </div>
+                    </>
+                ) : (
+                    <div className="audio-bar-status">
+                        <span className="audio-bar-label">
+                            <FontAwesomeIcon icon={faVolumeUp} /> Read Aloud
+                        </span>
+                        <button
+                            onClick={togglePlayback}
+                            className="bar-generate-btn"
+                        >
+                            <FontAwesomeIcon icon={faPlay} />
+                            <span>Generate Audio</span>
+                        </button>
                     </div>
                 )}
+
+                <div className="audio-bar-actions">
+                    {downloadUrl && (
+                        <a
+                            href={downloadUrl}
+                            download={`article-audio-${articleId}.mp3`}
+                            className="bar-icon-btn"
+                            title="Download Audio"
+                            aria-label="Download Audio"
+                        >
+                            <FontAwesomeIcon icon={faDownload} />
+                        </a>
+                    )}
+                    <button
+                        className={`bar-icon-btn ${showSettings ? 'active' : ''}`}
+                        onClick={() => setShowSettings(!showSettings)}
+                        title={showSettings ? "Hide Settings" : "Audio Settings"}
+                        aria-label="Audio Settings"
+                    >
+                        <FontAwesomeIcon icon={faCog} />
+                    </button>
+                    {onClose && (
+                        <button
+                            className="bar-icon-btn"
+                            onClick={onClose}
+                            title="Close Player"
+                            aria-label="Close Player"
+                        >
+                            <FontAwesomeIcon icon={faTimes} />
+                        </button>
+                    )}
+                </div>
             </div>
 
             {error && (

@@ -3,7 +3,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useAuth } from "@clerk/react";
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPlay, faPause, faSpinner, faPodcast, faCog, faRotateLeft, faRotateRight, faRedo, faDownload } from '@fortawesome/free-solid-svg-icons';
+import { faPlay, faPause, faSpinner, faPodcast, faCog, faRotateLeft, faRotateRight, faRedo, faDownload, faTrash, faClosedCaptioning } from '@fortawesome/free-solid-svg-icons';
 import { useUserStatus } from '../../../hooks/useUserStatus';
 import { useAudio } from '../../../context/useAudio';
 import { useNavigate } from 'react-router-dom';
@@ -434,59 +434,22 @@ const ArticlePodcastPlayer: React.FC<ArticlePodcastPlayerProps> = ({
     };
 
     return (
-        <div className={`article-podcast-player ${className} ${isLoading ? 'is-loading' : ''}`}>
+        <div className={`article-podcast-player compact-bar ${className} ${isLoading ? 'is-loading' : ''}`}>
             {showWaveform && !isLoading && isThisTrackPlaying && <WaveformAnimation isPlaying={true} className="player-background-waveform" />}
 
-            <div className="podcast-header">
-                <div className="podcast-info">
-                    <h4>
-                        🎙️ Podcast Discussion {selectedLanguage && selectedLanguage !== 'original' && selectedLanguage !== 'en' && (
-                            <span style={{ fontSize: '0.9em', opacity: 0.8, fontWeight: 'normal', marginLeft: '0.5rem' }}>
-                                ({LANGUAGES.find(l => l.code === selectedLanguage)?.name || selectedLanguage})
-                            </span>
-                        )}
-                    </h4>
-                    {isLoading ? (
-                        <p className="loading-status">
-                            <FontAwesomeIcon icon={faSpinner} spin />
-                            {isGenerating ? ' Generating podcast...' : ' Loading...'}
-                        </p>
-                    ) : (
-                        <p>Podcast-style conversation about: "{title}"</p>
-                    )}
+            {/* Expandable Captions Strip */}
+            {transcriptScript && showTranscript && (
+                <div className="podcast-captions-strip">
+                    <span className="caption-badge">CC</span>
+                    <p className="caption-text">{activeSubtitle?.text || 'Captions will appear here while playback progresses.'}</p>
                 </div>
-                {!isLoading && (
-                    <button
-                        onClick={handleDownload}
-                        className="download-button"
-                        title={audioUrl ? "Download Audio" : "Generate podcast to download"}
-                        disabled={!audioUrl}
-                    >
-                        <FontAwesomeIcon icon={faDownload} />
-                    </button>
-                )}
-                <button
-                    onClick={() => setShowSettings(!showSettings)}
-                    className="settings-toggle"
-                    title="Podcast Settings"
-                >
-                    <FontAwesomeIcon icon={faCog} />
-                </button>
-                {onClose && (
-                    <button
-                        onClick={onClose}
-                        className="close-button"
-                        title="Close Podcast"
-                    >
-                        ✕
-                    </button>
-                )}
-            </div>
+            )}
 
+            {/* Expandable Settings Popover Panel */}
             {showSettings && !isLoading && (
                 <div className="podcast-settings">
                     <div className="setting-group">
-                        <label>Duration:</label>
+                        <label>Duration</label>
                         <select
                             value={podcastDuration}
                             onChange={(e) => setPodcastDuration(e.target.value as 'short' | 'medium' | 'long')}
@@ -495,16 +458,11 @@ const ArticlePodcastPlayer: React.FC<ArticlePodcastPlayerProps> = ({
                             <option value="short">Short (4-5 min)</option>
                             <option value="medium">Medium (8-10 min)</option>
                             <option value="long">Long (15 min)</option>
-                            {/* 
-                            <option value="short">Short (2-3 min)</option>
-                            <option value="medium">Medium (4 min)</option>
-                            <option value="long">Long (5 min)</option>
-                            */}
                         </select>
                     </div>
 
                     <div className="setting-group">
-                        <label>Voice Pair:</label>
+                        <label>Voices</label>
                         <select
                             value={selectedVoicePair}
                             onChange={(e) => setSelectedVoicePair(e.target.value)}
@@ -524,7 +482,7 @@ const ArticlePodcastPlayer: React.FC<ArticlePodcastPlayerProps> = ({
                     </div>
 
                     <div className="setting-group">
-                        <label>Speed:</label>
+                        <label>Speed</label>
                         <select
                             value={speed}
                             onChange={(e) => handleSpeedChange(parseFloat(e.target.value))}
@@ -538,154 +496,170 @@ const ArticlePodcastPlayer: React.FC<ArticlePodcastPlayerProps> = ({
                     </div>
 
                     <div className="setting-group">
-                        <label>Waveform:</label>
+                        <label>Waveform</label>
                         <select
                             value={showWaveform ? 'show' : 'hide'}
                             onChange={(e) => handleToggleWaveform(e.target.value === 'show')}
                             disabled={isLoading}
                         >
-                            <option value="show">Show Animation</option>
-                            <option value="hide">Hide Animation</option>
+                            <option value="show">Show</option>
+                            <option value="hide">Hide</option>
                         </select>
                     </div>
                 </div>
             )}
 
-            <div className="podcast-controls">
+            {/* Main Single-Row Compact Bar */}
+            <div className="podcast-bar">
                 {!isPro ? (
-                    <div className="pro-required-banner">
-                        <div className="upgrade-message">
-                            🎙️ Pro Required for Podcasts
+                    <div className="podcast-bar-status">
+                        <span className="podcast-bar-label">
+                            <FontAwesomeIcon icon={faPodcast} /> Pro required for AI podcasts
+                        </span>
+                        <button
+                            type="button"
+                            className="podcast-upgrade-btn"
+                            onClick={() => navigate('/pricing')}
+                        >
+                            View plans
+                        </button>
+                    </div>
+                ) : isLoading ? (
+                    <div className="podcast-bar-status">
+                        <FontAwesomeIcon icon={faSpinner} spin />
+                        <span>{isGenerating ? 'Generating podcast...' : 'Loading podcast...'}</span>
+                    </div>
+                ) : audioUrl ? (
+                    <>
+                        <div className="podcast-transport">
+                            <button
+                                onClick={skipBackwardHandler}
+                                disabled={!audioUrl}
+                                className="bar-icon-btn"
+                                title="Skip backward 10s"
+                                aria-label="Skip backward 10s"
+                            >
+                                <FontAwesomeIcon icon={faRotateLeft} />
+                            </button>
+                            <button
+                                onClick={togglePlayback}
+                                className="bar-play-btn"
+                                title={isThisTrackPlaying ? 'Pause' : (isThisTrackLoaded && currentTime >= duration && duration > 0) ? 'Replay' : 'Play'}
+                                aria-label={isThisTrackPlaying ? 'Pause' : 'Play'}
+                            >
+                                {isThisTrackPlaying ? (
+                                    <FontAwesomeIcon icon={faPause} />
+                                ) : (isThisTrackLoaded && currentTime >= duration && duration > 0) ? (
+                                    <FontAwesomeIcon icon={faRedo} />
+                                ) : (
+                                    <FontAwesomeIcon icon={faPlay} />
+                                )}
+                            </button>
+                            <button
+                                onClick={skipForwardHandler}
+                                disabled={!audioUrl}
+                                className="bar-icon-btn"
+                                title="Skip forward 10s"
+                                aria-label="Skip forward 10s"
+                            >
+                                <FontAwesomeIcon icon={faRotateRight} />
+                            </button>
                         </div>
-                        <p className="upgrade-description">
-                            Multi-speaker audio generation requires a Pro subscription.
-                            Upgrade to unlock premium AI features.
-                        </p>
+
+                        <div className="podcast-scrubber">
+                            <span className="bar-time">{formatTime(isThisTrackLoaded ? currentTime : 0)}</span>
+                            <input
+                                type="range"
+                                min="0"
+                                max={(isThisTrackLoaded ? duration : 0) || 0}
+                                value={isThisTrackLoaded ? currentTime : 0}
+                                onChange={handleSeek}
+                                disabled={!isThisTrackLoaded}
+                                className="progress-slider"
+                                style={{ '--progress': `${((isThisTrackLoaded ? currentTime : 0) / ((isThisTrackLoaded ? duration : 0) || 1)) * 100}%` } as React.CSSProperties}
+                            />
+                            <span className="bar-time">{formatTime(isThisTrackLoaded ? duration : prefetchedDuration)}</span>
+                        </div>
+                    </>
+                ) : !isLanguageSupported ? (
+                    <div className="podcast-bar-status">
+                        <span className="podcast-bar-label">
+                            <FontAwesomeIcon icon={faPodcast} /> Unavailable in {LANGUAGES.find(l => l.code === selectedLanguage)?.name || 'this language'}
+                        </span>
                     </div>
                 ) : (
-                    <div className="primary-controls">
-                        {isLoading ? (
-                            <div className="loading-container">
-                                <FontAwesomeIcon icon={faSpinner} spin />
-                                <span>{isGenerating ? 'Generating podcast discussion...' : 'Checking for existing podcast...'}</span>
-                            </div>
-                        ) : audioUrl ? (
-                            <div className="playback-controls">
-                                <button
-                                    onClick={skipBackwardHandler}
-                                    disabled={!audioUrl}
-                                    className="skip-button skip-backward"
-                                    title="Skip backward 10s"
-                                >
-                                    <FontAwesomeIcon icon={faRotateLeft} />
-                                </button>
-                                <button
-                                    onClick={togglePlayback}
-                                    className="play-button"
-                                    title={isThisTrackPlaying ? 'Pause' : (isThisTrackLoaded && currentTime >= duration && duration > 0) ? 'Replay' : 'Play'}
-                                >
-                                    {isThisTrackPlaying ? (
-                                        <FontAwesomeIcon icon={faPause} />
-                                    ) : (isThisTrackLoaded && currentTime >= duration && duration > 0) ? (
-                                        <FontAwesomeIcon icon={faRedo} />
-                                    ) : (
-                                        <FontAwesomeIcon icon={faPlay} />
-                                    )}
-                                </button>
-                                <button
-                                    onClick={skipForwardHandler}
-                                    disabled={!audioUrl}
-                                    className="skip-button skip-forward"
-                                    title="Skip forward 10s"
-                                >
-                                    <FontAwesomeIcon icon={faRotateRight} />
-                                </button>
-                                <button
-                                    onClick={() => setShowDeleteConfirm(true)}
-                                    className="new-podcast-button"
-                                    title="Delete podcast and clear from storage"
-                                >
-                                    🗑️ Delete Podcast
-                                </button>
-                            </div>
-                        ) : !isLanguageSupported ? (
-                            <div className="unsupported-language-container">
-                                <button className="generate-btn disabled" disabled>
-                                    <FontAwesomeIcon icon={faPodcast} />
-                                    <span>Unavailable in this language</span>
-                                </button>
-                                <p className="unsupported-notice">
-                                    Audio generation is currently not available for {LANGUAGES.find(l => l.code === selectedLanguage)?.name || 'this language'}.
-                                </p>
-                            </div>
-                        ) : (
-                            <button
-                                onClick={() => generatePodcast(false)}
-                                className="generate-btn"
-                            >
-                                <FontAwesomeIcon icon={faPodcast} />
-                                <span>Generate Podcast</span>
-                            </button>
-                        )}
-
-                        <div className="audio-info">
-                            <div className="time-display">
-                                {audioUrl ? (
-                                    <>
-                                        <span>{formatTime(isThisTrackLoaded ? currentTime : 0)}</span>
-                                        <span>/</span>
-                                        <span>{formatTime(isThisTrackLoaded ? duration : prefetchedDuration)}</span>
-                                    </>
-                                ) : (
-                                    <span>Ready to generate podcast discussion</span>
-                                )}
-                            </div>
-                            {!isLoading && (
-                                <div className="tier-info">
-                                    <small>
-                                        🎙️ Pro Feature - Premium Quality •
-                                        Multiple voice pairs available
-                                    </small>
-                                </div>
+                    <div className="podcast-bar-status">
+                        <span className="podcast-bar-label">
+                            🎙️ Podcast
+                            {selectedLanguage && selectedLanguage !== 'original' && selectedLanguage !== 'en' && (
+                                <span className="lang-tag">({LANGUAGES.find(l => l.code === selectedLanguage)?.name || selectedLanguage})</span>
                             )}
-                        </div>
+                        </span>
+                        <button
+                            onClick={() => generatePodcast(false)}
+                            className="bar-generate-btn"
+                        >
+                            <FontAwesomeIcon icon={faPodcast} />
+                            <span>Generate</span>
+                        </button>
                     </div>
                 )}
 
-                {audioUrl && isPro && (
-                    <div className="progress-controls">
-                        <input
-                            type="range"
-                            min="0"
-                            max={(isThisTrackLoaded ? duration : 0) || 0}
-                            value={isThisTrackLoaded ? currentTime : 0}
-                            onChange={handleSeek}
-                            disabled={!isThisTrackLoaded}
-                            className="progress-slider"
-                            style={{ '--progress': `${((isThisTrackLoaded ? currentTime : 0) / ((isThisTrackLoaded ? duration : 0) || 1)) * 100}%` } as React.CSSProperties}
-                        />
-                    </div>
-                )}
-            </div>
-
-            {transcriptScript && (
-                <div className="podcast-transcript">
-                    <button
-                        type="button"
-                        className="transcript-toggle"
-                        aria-expanded={showTranscript}
-                        onClick={() => setShowTranscript((value) => !value)}
-                    >
-                        {showTranscript ? 'Hide captions' : 'Show captions'}
-                    </button>
-                    {showTranscript && (
-                        <div className="transcript-content">
-                            <p className="caption-label">Captions · approximate timing</p>
-                            <p className="caption-text">{activeSubtitle?.text || 'Captions will appear here while playback progresses.'}</p>
-                        </div>
+                <div className="podcast-bar-actions">
+                    {!isLoading && audioUrl && transcriptScript && (
+                        <button
+                            type="button"
+                            onClick={() => setShowTranscript((value) => !value)}
+                            className={`bar-icon-btn ${showTranscript ? 'active' : ''}`}
+                            aria-expanded={showTranscript}
+                            title={showTranscript ? 'Hide captions' : 'Show captions'}
+                            aria-label={showTranscript ? 'Hide captions' : 'Show captions'}
+                        >
+                            <FontAwesomeIcon icon={faClosedCaptioning} />
+                        </button>
+                    )}
+                    {!isLoading && audioUrl && (
+                        <button
+                            onClick={handleDownload}
+                            className="bar-icon-btn"
+                            title="Download Audio"
+                            aria-label="Download Audio"
+                        >
+                            <FontAwesomeIcon icon={faDownload} />
+                        </button>
+                    )}
+                    {!isLoading && isPro && (
+                        <button
+                            onClick={() => setShowSettings(!showSettings)}
+                            className={`bar-icon-btn ${showSettings ? 'active' : ''}`}
+                            title="Podcast Settings"
+                            aria-label="Podcast Settings"
+                        >
+                            <FontAwesomeIcon icon={faCog} />
+                        </button>
+                    )}
+                    {!isLoading && audioUrl && isPro && (
+                        <button
+                            onClick={() => setShowDeleteConfirm(true)}
+                            className="bar-icon-btn danger"
+                            title="Delete podcast"
+                            aria-label="Delete podcast"
+                        >
+                            <FontAwesomeIcon icon={faTrash} />
+                        </button>
+                    )}
+                    {onClose && (
+                        <button
+                            onClick={onClose}
+                            className="bar-icon-btn"
+                            title="Close Podcast"
+                            aria-label="Close Podcast"
+                        >
+                            ✕
+                        </button>
                     )}
                 </div>
-            )}
+            </div>
 
             {error && audioUrl && (
                 <div className="podcast-error">

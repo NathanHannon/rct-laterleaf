@@ -148,10 +148,10 @@ const ArticleChat = ({ articleId, isOpen, onClose, userHasProAccess, articleTitl
             {isOpen && (
                 <motion.div
                     className="article-chat-panel"
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: 20 }}
-                    transition={{ duration: 0.2 }}
+                    initial={{ opacity: 0, y: 12, scale: 0.98 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: 12, scale: 0.98 }}
+                    transition={{ duration: 0.22, ease: [0.23, 1, 0.32, 1] }}
                     onAnimationStart={() => { if (isOpen) handleOpen(); }}
                 >
                     <div className="chat-panel-header">

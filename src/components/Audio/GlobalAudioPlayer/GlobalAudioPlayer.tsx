@@ -1,15 +1,14 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useAudio } from '../../../context/useAudio';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPlay, faPause, faTimes, faChevronUp, faRotateLeft, faRotateRight } from '@fortawesome/free-solid-svg-icons';
+import { faPlay, faPause, faRotateLeft, faRotateRight } from '@fortawesome/free-solid-svg-icons';
 import './GlobalAudioPlayer.scss';
 
 const GlobalAudioPlayer: React.FC = () => {
     const { currentTrack, isPlaying, togglePlayback, closePlayer, currentTime, duration, seek, skipBackward, skipForward } = useAudio();
     const location = useLocation();
     const navigate = useNavigate();
-    const [isExpanded, setIsExpanded] = useState(false);
 
     const formatTime = (time: number) => {
         const minutes = Math.floor(time / 60);
@@ -20,17 +19,18 @@ const GlobalAudioPlayer: React.FC = () => {
     // Hide if no track is playing
     if (!currentTrack) return null;
 
-    // Check if we are on the current track's article page. If so, hide the global player
-    // to let the inline ArticleAudioPlayer take over the UI.
+    // Hide on the active track's article page so the in-reader player handles controls
     const isOnArticlePage = location.pathname === `/article/${currentTrack.id}`;
     if (isOnArticlePage) return null;
+
+    const isPodcast = (currentTrack.artist || '').toLowerCase().includes('podcast');
+    const progressPercent = duration > 0 ? Math.min(100, (currentTime / duration) * 100) : 0;
 
     const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
         seek(parseFloat(e.target.value));
     };
 
     const navigateToArticle = (e: React.MouseEvent) => {
-        // Prevent expanding the player or clicking through controls
         if ((e.target as HTMLElement).closest('button') || (e.target as HTMLElement).closest('input')) {
             return;
         }
@@ -38,72 +38,72 @@ const GlobalAudioPlayer: React.FC = () => {
     };
 
     return (
-        <div className={`global-audio-player ${isExpanded ? 'expanded' : 'collapsed'}`}>
-            <div className="mini-player-content" onClick={navigateToArticle}>
-
-                {/* Expand Toggle (Desktop usually keeps it collapsed or expands a side panel) */}
-                <button className="expand-btn" onClick={(e) => { e.stopPropagation(); setIsExpanded(!isExpanded); }} aria-label="Toggle Player Size">
-                    <FontAwesomeIcon icon={faChevronUp} style={{ transform: isExpanded ? 'rotate(180deg)' : 'rotate(0)' }} />
+        <div
+            className={`global-audio-player ${isPodcast ? 'is-podcast' : ''}`}
+            onClick={navigateToArticle}
+            role="region"
+            aria-label="Audio player"
+        >
+            <div className="global-player-transport">
+                <button
+                    onClick={(e) => { e.stopPropagation(); skipBackward(); }}
+                    className="bar-icon-btn"
+                    title="Skip backward 10s"
+                    aria-label="Skip backward 10s"
+                >
+                    <FontAwesomeIcon icon={faRotateLeft} />
                 </button>
 
-                <div className="track-info">
-                    <h4 className="track-title">{currentTrack.title}</h4>
-                    <span className="track-artist">{currentTrack.artist || 'LaterLeaf AI'}</span>
-                </div>
-
-                <div className="playback-controls">
-                    <button onClick={(e) => { e.stopPropagation(); skipBackward(); }} className="skip-btn" aria-label="Skip backward">
-                        <FontAwesomeIcon icon={faRotateLeft} />
-                    </button>
-
-                    <button
-                        onClick={(e) => { e.stopPropagation(); togglePlayback(); }}
-                        className="play-pause-btn"
-                        aria-label={isPlaying ? "Pause" : "Play"}
-                    >
-                        <FontAwesomeIcon icon={isPlaying ? faPause : faPlay} />
-                    </button>
-
-                    <button onClick={(e) => { e.stopPropagation(); skipForward(); }} className="skip-btn" aria-label="Skip forward">
-                        <FontAwesomeIcon icon={faRotateRight} />
-                    </button>
-                </div>
+                <button
+                    onClick={(e) => { e.stopPropagation(); togglePlayback(); }}
+                    className="bar-play-btn"
+                    title={isPlaying ? 'Pause' : 'Play'}
+                    aria-label={isPlaying ? 'Pause' : 'Play'}
+                >
+                    <FontAwesomeIcon icon={isPlaying ? faPause : faPlay} />
+                </button>
 
                 <button
-                    onClick={(e) => { e.stopPropagation(); closePlayer(); }}
-                    className="close-btn"
-                    aria-label="Close player"
+                    onClick={(e) => { e.stopPropagation(); skipForward(); }}
+                    className="bar-icon-btn"
+                    title="Skip forward 10s"
+                    aria-label="Skip forward 10s"
                 >
-                    <FontAwesomeIcon icon={faTimes} />
+                    <FontAwesomeIcon icon={faRotateRight} />
                 </button>
             </div>
 
-            {isExpanded && (
-                <div className="expanded-controls">
-                    <div className="time-info">
-                        <span>{formatTime(currentTime)}</span>
-                        <span>{formatTime(duration)}</span>
-                    </div>
+            <div className="global-player-center">
+                <div className="global-player-meta">
+                    <span className="track-title" title={currentTrack.title}>
+                        {currentTrack.title}
+                    </span>
+                </div>
+                <div className="global-player-scrubber">
+                    <span className="bar-time">{formatTime(currentTime)}</span>
                     <input
                         type="range"
                         min="0"
-                        max={duration || 100}
+                        max={duration || 0}
                         value={currentTime}
                         onChange={handleSeek}
-                        className="seek-slider"
+                        disabled={!duration}
+                        className="progress-slider"
+                        style={{ '--progress': `${progressPercent}%` } as React.CSSProperties}
+                        aria-label="Seek audio"
                     />
+                    <span className="bar-time">{formatTime(duration)}</span>
                 </div>
-            )}
+            </div>
 
-            {/* The progress bar is always visible at the top/bottom boundary even when collapsed */}
-            {!isExpanded && duration > 0 && (
-                <div className="mini-progress-bar">
-                    <div
-                        className="mini-progress-fill"
-                        style={{ width: `${(currentTime / duration) * 100}%` }}
-                    />
-                </div>
-            )}
+            <button
+                onClick={(e) => { e.stopPropagation(); closePlayer(); }}
+                className="bar-icon-btn close-btn"
+                title="Close player"
+                aria-label="Close player"
+            >
+                ✕
+            </button>
         </div>
     );
 };

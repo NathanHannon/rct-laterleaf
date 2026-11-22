@@ -390,7 +390,9 @@ const ArticleReader = () => {
 
         // If summary already exists, just toggle display
         if (article.summary && article.summaryStatus !== 'pending') {
-            setShowSummary(!showSummary);
+            const nextShow = !showSummary;
+            setShowSummary(nextShow);
+            if (nextShow && window.innerWidth <= 1480) setIsChatMode(false);
             return;
         }
 
@@ -422,6 +424,7 @@ const ArticleReader = () => {
                 status: data.status
             });
             showSummaryCreditWarning(data.softCapWarning);
+            if (window.innerWidth <= 1480) setIsChatMode(false);
             setShowSummary(true);
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Failed to generate summary');
@@ -477,6 +480,7 @@ const ArticleReader = () => {
                 status: data.status
             });
             showSummaryCreditWarning(data.softCapWarning);
+            if (window.innerWidth <= 1480) setIsChatMode(false);
             setShowSummary(true);
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Failed to regenerate summary');
@@ -581,7 +585,7 @@ const ArticleReader = () => {
     }
 
     return (
-        <div className={`article-reader theme-${readingTheme}`}>
+        <div className={`article-reader theme-${readingTheme} ${(showPodcastPlayer || showAudioPlayer) ? 'has-podcast-open' : ''}`}>
             {/* Reading Progress Bar */}
             <div className="reading-progress-bar">
                 <div
@@ -622,7 +626,7 @@ const ArticleReader = () => {
 
                 <button
                     onClick={handleSummarize}
-                    className={`action-icon-btn button-summarize ${article.summary ? 'has-summary' : ''} ${isGeneratingSummary ? 'loading' : ''} ${article.hasContent === false ? 'disabled' : ''}`}
+                    className={`action-icon-btn button-summarize ${showSummary ? 'active' : ''} ${article.summary ? 'has-summary' : ''} ${isGeneratingSummary ? 'loading' : ''} ${article.hasContent === false ? 'disabled' : ''}`}
                     disabled={isGeneratingSummary || article.hasContent === false}
                     title={article.hasContent === false ? 'Summary unavailable for paywalled content' :
                         isGeneratingSummary ? 'Generating summary...' :
@@ -634,7 +638,11 @@ const ArticleReader = () => {
                 </button>
 
                 {!article.isPastedText && <button
-                    onClick={() => setShowPodcastPlayer(!showPodcastPlayer)}
+                    onClick={() => {
+                        const next = !showPodcastPlayer;
+                        setShowPodcastPlayer(next);
+                        if (next) setShowAudioPlayer(false);
+                    }}
                     className={`action-icon-btn button-podcast ${showPodcastPlayer ? 'active' : ''} ${article.hasContent === false ? 'disabled' : ''}`}
                     disabled={article.hasContent === false}
                     title={article.hasContent === false ? 'Audio unavailable for paywalled content' : (showPodcastPlayer ? 'Hide podcast' : 'Podcast')}
@@ -644,7 +652,11 @@ const ArticleReader = () => {
                 </button>}
 
                 {!article.isPastedText && <button
-                    onClick={() => setShowAudioPlayer(!showAudioPlayer)}
+                    onClick={() => {
+                        const next = !showAudioPlayer;
+                        setShowAudioPlayer(next);
+                        if (next) setShowPodcastPlayer(false);
+                    }}
                     className={`action-icon-btn button-audio ${showAudioPlayer ? 'active' : ''} ${article.narrationLocation ? 'has-narration' : ''} ${article.hasContent === false ? 'disabled' : ''}`}
                     disabled={article.hasContent === false}
                     title={article.hasContent === false ? 'Audio unavailable for paywalled content' : (showAudioPlayer ? 'Hide reader' : 'Read aloud')}
@@ -654,7 +666,11 @@ const ArticleReader = () => {
                 </button>}
 
                 {!article.isPastedText && <button
-                    onClick={() => setIsChatMode(!isChatMode)}
+                    onClick={() => {
+                        const nextChat = !isChatMode;
+                        setIsChatMode(nextChat);
+                        if (nextChat && window.innerWidth <= 1480) setShowSummary(false);
+                    }}
                     className={`action-icon-btn button-chat ${isChatMode ? 'active' : ''} ${article.hasContent === false ? 'disabled' : ''}`}
                     disabled={article.hasContent === false || !userHasProAccess}
                     title={!userHasProAccess ? 'Chat is a Pro feature' : article.hasContent === false ? 'Chat unavailable for paywalled content' : (isChatMode ? 'Close chat' : 'Chat with article')}
@@ -686,9 +702,10 @@ const ArticleReader = () => {
                         {showTranslateDropdown && (
                             <motion.div
                                 className="action-dropdown-menu translation-menu"
-                                initial={{ opacity: 0, y: -10 }}
+                                initial={{ opacity: 0, y: 10 }}
                                 animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, y: -10 }}
+                                exit={{ opacity: 0, y: 10 }}
+                                transition={{ duration: 0.16 }}
                             >
                                 <button
                                     className={`dropdown-item ${currentLanguage === 'original' ? 'active' : ''}`}
@@ -805,60 +822,6 @@ const ArticleReader = () => {
             </div>
 
 
-            <ArticleSummaryPanel
-                article={article}
-                isOpen={showSummary}
-                isGeneratingSummary={isGeneratingSummary}
-                detectedLanguage={detectedLanguage}
-                summaryMetadata={summaryMetadata}
-                onRefresh={(language) => { void handleRefreshSummary(language); }}
-                onDelete={handleDeleteSummary}
-                onClose={() => setShowSummary(false)}
-            />
-
-            {/* AI Podcast Player */}
-            <AnimatePresence>
-                {!article.isPastedText && article.content && articleId && showPodcastPlayer && (
-                    <motion.div
-                        className="article-audio-section"
-                        initial={{ opacity: 0, height: 0, marginBottom: 0 }}
-                        animate={{ opacity: 1, height: 'auto', marginBottom: '1.5rem' }}
-                        exit={{ opacity: 0, height: 0, marginBottom: 0 }}
-                        transition={{ duration: 0.3, ease: "easeOut" }}
-                    >
-                        <ArticlePodcastPlayer
-                            articleId={articleId}
-                            title={article.title || 'Article Audio'}
-                            savedAudioUrl={article.audioLocation}
-                            className="article-podcast-player"
-                            onClose={() => setShowPodcastPlayer(false)}
-                            selectedLanguage={detectedLanguage ?? undefined}
-                        />
-                    </motion.div>
-                )}
-            </AnimatePresence>
-
-            {/* Standard TTS Player */}
-            <AnimatePresence>
-                {!article.isPastedText && articleId && showAudioPlayer && (
-                    <motion.div
-                        className="article-audio-section"
-                        initial={{ opacity: 0, height: 0, marginBottom: 0 }}
-                        animate={{ opacity: 1, height: 'auto', marginBottom: '1.5rem' }}
-                        exit={{ opacity: 0, height: 0, marginBottom: 0 }}
-                        transition={{ duration: 0.3, ease: "easeOut" }}
-                    >
-                        <ArticleAudioPlayer
-                            articleId={articleId}
-                            content={article.content || ''}
-                            className="article-audio-player"
-                            audioLocation={article.narrationLocation}
-                            onClose={() => setShowAudioPlayer(false)}
-                        />
-                    </motion.div>
-                )}
-            </AnimatePresence>
-
             {/* Related Articles from User's Library */}
             {articleId && !article.isUrlOnly && !article.isPastedText && (
                 <RelatedArticles articleId={articleId} />
@@ -906,6 +869,61 @@ const ArticleReader = () => {
                 onConfirm={confirmDeleteSummary}
                 onCancel={() => setShowDeleteSummaryConfirm(false)}
             />
+
+            {/* Floating Summary Companion Panel (Right rail on wide screens, dock-anchored sheet on smaller screens) */}
+            <ArticleSummaryPanel
+                article={article}
+                isOpen={showSummary}
+                isGeneratingSummary={isGeneratingSummary}
+                detectedLanguage={detectedLanguage}
+                summaryMetadata={summaryMetadata}
+                onRefresh={(language) => { void handleRefreshSummary(language); }}
+                onDelete={handleDeleteSummary}
+                onClose={() => setShowSummary(false)}
+            />
+
+            {/* Floating Audio / Podcast Player Tray anchored above the bottom dock */}
+            <div className="article-podcast-tray">
+                <AnimatePresence mode="wait">
+                    {!article.isPastedText && article.content && articleId && showPodcastPlayer && (
+                        <motion.div
+                            key="podcast-player"
+                            className="article-podcast-tray__inner"
+                            initial={{ opacity: 0, y: 16 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: 16 }}
+                            transition={{ duration: 0.22, ease: [0.23, 1, 0.32, 1] }}
+                        >
+                            <ArticlePodcastPlayer
+                                articleId={articleId}
+                                title={article.title || 'Article Audio'}
+                                savedAudioUrl={article.audioLocation}
+                                className="article-podcast-player"
+                                onClose={() => setShowPodcastPlayer(false)}
+                                selectedLanguage={detectedLanguage ?? undefined}
+                            />
+                        </motion.div>
+                    )}
+                    {!article.isPastedText && articleId && showAudioPlayer && (
+                        <motion.div
+                            key="tts-player"
+                            className="article-podcast-tray__inner"
+                            initial={{ opacity: 0, y: 16 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: 16 }}
+                            transition={{ duration: 0.22, ease: [0.23, 1, 0.32, 1] }}
+                        >
+                            <ArticleAudioPlayer
+                                articleId={articleId}
+                                content={article.content || ''}
+                                className="article-audio-player"
+                                audioLocation={article.narrationLocation}
+                                onClose={() => setShowAudioPlayer(false)}
+                            />
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+            </div>
 
             {/* Right-side Chat Panel */}
             {!article.isPastedText && <ArticleChat
