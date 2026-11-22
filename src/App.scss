@@ -1,5 +1,19 @@
 // App-specific layout styles only - colors defined in theme.scss
 
+:root {
+  --rail-width: 0px;
+}
+
+@media (min-width: 1024px) {
+  html.has-desktop-rail {
+    --rail-width: 232px;
+
+    &.rail-collapsed {
+      --rail-width: 68px;
+    }
+  }
+}
+
 .app {
   display: flex;
   flex-direction: column;
@@ -12,6 +26,8 @@
   flex-direction: column;
   flex-grow: 1;
   height: 100%;
+  padding-left: var(--rail-width);
+  transition: padding-left 0.24s cubic-bezier(0.23, 1, 0.32, 1);
 }
 
 .main-content {

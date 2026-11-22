@@ -280,7 +280,7 @@ const Settings = () => {
                 )}
 
                 {activeTab === 'appearance' && (
-                    <div className="settings-column">
+                    <div className="settings-column appearance-layout">
                         <div className="settings-section appearance-section">
                             <h2><FontAwesomeIcon icon={faPalette} /> Mode</h2>
                             <p className="section-desc">Choose between light, dark, or system appearance.</p>
@@ -310,7 +310,29 @@ const Settings = () => {
                             </div>
                         </div>
 
-                        <div className="settings-section appearance-section">
+                        <div className="settings-section preferences-section">
+                            <h2>Player Preferences</h2>
+                            <p className="section-desc">Customize visual effects in the audio player.</p>
+                            <div className="preference-item">
+                                <div className="preference-info">
+                                    <div className="pref-title">
+                                        <FontAwesomeIcon icon={faWaveSquare} />
+                                        <span>Audio Waveform Animation</span>
+                                    </div>
+                                    <p>Show the animated background threads in audio players.</p>
+                                </div>
+                                <div className="preference-control">
+                                    <button
+                                        className={`toggle-btn ${showWaveform ? 'active' : ''}`}
+                                        onClick={handleToggleWaveform}
+                                    >
+                                        {showWaveform ? 'Enabled' : 'Disabled'}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="settings-section appearance-section span-full">
                             <h2><FontAwesomeIcon icon={faSwatchbook} /> Theme</h2>
                             <p className="section-desc">Pick a colour palette for the entire app.</p>
 
@@ -379,27 +401,6 @@ const Settings = () => {
                                     <span>Wild Strawberry</span>
                                 </button>
 
-                            </div>
-                        </div>
-
-                        <div className="settings-section preferences-section span-full">
-                            <h2>Player Preferences</h2>
-                            <div className="preference-item">
-                                <div className="preference-info">
-                                    <div className="pref-title">
-                                        <FontAwesomeIcon icon={faWaveSquare} />
-                                        <span>Audio Waveform Animation</span>
-                                    </div>
-                                    <p>Show the animated background threads in audio players.</p>
-                                </div>
-                                <div className="preference-control">
-                                    <button
-                                        className={`toggle-btn ${showWaveform ? 'active' : ''}`}
-                                        onClick={handleToggleWaveform}
-                                    >
-                                        {showWaveform ? 'Enabled' : 'Disabled'}
-                                    </button>
-                                </div>
                             </div>
                         </div>
                     </div>

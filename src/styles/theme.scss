@@ -1,23 +1,23 @@
-// LaterLeaf Design System - Light Appearance
+// LaterLeaf Design System - Light Appearance ("Warm Paper")
 [data-appearance='light'] {
     // Primary brand colors
-    --primary-color: #22c55e; // Primary Green for CTAs, active states
-    --primary-color-rgb: 34, 197, 94; // RGB version for opacity usage
-    --primary-hover: #16a34a; // Darker green for hover states
+    --primary-color: #16a34a; // Rich forest green on warm paper
+    --primary-color-rgb: 22, 163, 74; // RGB version for opacity usage
+    --primary-hover: #15803d; // Deeper green for hover states
 
     // Text colors
-    --text-color: #0f766e; // Dark Teal for primary text 
-    --text-color-secondary: #4b5563; // Neutral Gray for secondary text
+    --text-color: #171a18; // Deep charcoal-forest ink for primary text
+    --text-color-secondary: #5f6660; // Warm muted stone for secondary text
 
     // Background colors
-    --background-color: #f9fafb; // Background White for main areas
-    --card-bg: #ffffff; // Bright white for cards/modals
-    --header-bg: #ffffff;
-    --footer-bg: #f9fafb;
+    --background-color: #faf8f5; // Warm archival paper canvas
+    --card-bg: #ffffff; // Clean elevated card surface
+    --header-bg: #faf8f5;
+    --footer-bg: #f3f0ea;
 
     // UI elements
-    --card-border: #e5e7eb; // Light border for cards
-    --button-bg: #22c55e; // Primary Green for buttons
+    --card-border: #e8e4dc; // Hairline warm stone border
+    --button-bg: #16a34a; // Primary Green for buttons
     --button-text: #052e16; // Deep green ink on bright green buttons
     --link-color: #15803d; // Readable green for links on light surfaces
     --accent-color: #15803d; // Leaf green secondary accent
@@ -26,7 +26,7 @@
     --related-articles-hover: #0891b2; // Darker cyan for hover states
 }
 
-// LaterLeaf Design System - Dark Appearance
+// LaterLeaf Design System - Dark Appearance (Deep Blue-Slate)
 [data-appearance='dark'] {
     // Primary brand colors (adjusted for dark mode)
     --primary-color: #22c55e;
@@ -34,20 +34,20 @@
     --primary-hover: #16a34a;
 
     // Text colors
-    --text-color: #ffffff; // White primary text in dark mode
-    --text-color-secondary: #9ca3af; // Lighter gray for secondary text
+    --text-color: #f3f4f6; // Soft off-white ink for comfortable long-form reading
+    --text-color-secondary: #9ca3af; // Muted slate-gray for secondary text
 
     // Background colors
-    --background-color: #111827; // Dark background
-    --card-bg: #1f2937; // Dark gray for cards
-    --header-bg: #1f2937;
+    --background-color: #111827; // Deep blue-slate canvas (matches landing & brand assets)
+    --card-bg: #1f2937; // Elevated slate card surface
+    --header-bg: #172033;
     --footer-bg: #111827;
 
     // UI elements
-    --card-border: #374151; // Darker border for cards
+    --card-border: #374151; // Subtle slate border
     --button-bg: #22c55e; // Keep primary green for buttons
     --button-text: #052e16;
-    --link-color: #22c55e;
+    --link-color: #4ade80;
     --accent-color: #86efac; // Light leaf green on dark surfaces
     --related-articles-color: #22d3ee; // Lighter cyan for dark mode
     --related-articles-color-rgb: 34, 211, 238; // RGB version for opacity usage

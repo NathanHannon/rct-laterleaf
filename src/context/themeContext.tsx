@@ -64,7 +64,7 @@ export const ThemeProvider = ({ children }: ThemeProviderProps) => {
         localStorage.setItem('theme', theme);
         const themeColorMeta = document.querySelector('meta[name="theme-color"]');
         if (themeColorMeta) {
-            themeColorMeta.setAttribute('content', activeAppearance === 'dark' ? '#111827' : '#f9fafb');
+            themeColorMeta.setAttribute('content', activeAppearance === 'dark' ? '#111827' : '#faf8f5');
         }
     }, [activeAppearance, appearance, theme]);
 

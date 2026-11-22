@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Show, SignInButton, SignUpButton, UserButton } from "@clerk/react";
+import { Show, SignInButton, SignUpButton, UserButton, useAuth } from "@clerk/react";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBars, faCog, faSearch, faTimes } from '@fortawesome/free-solid-svg-icons';
 import ThemeSwitcher from '../../Common/ThemeSwitcher/ThemeSwitcher';
@@ -13,16 +13,41 @@ import LaterLeafLogo from '../../Common/LaterLeafLogo/LaterLeafLogo';
 const Header: React.FC = () => {
     const navigate = useNavigate();
     const location = useLocation();
+    const { isSignedIn } = useAuth();
     const { searchTerm, setSearchTerm } = useSearch();
 
     const SEARCH_PATHS = ['/', '/articles', '/bookmarks', '/archive'];
     const showSearch = SEARCH_PATHS.includes(location.pathname)
         || location.pathname.startsWith('/collections/');
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    const [isRailCollapsed, setIsRailCollapsed] = useState<boolean>(() => {
+        return localStorage.getItem('laterleaf_rail_collapsed') === 'true';
+    });
     const [isScrolled, setIsScrolled] = useState(false);
     const [isLogoHovered, setIsLogoHovered] = useState(false);
     const [logoIndex, setLogoIndex] = useState(0);
     const sidebarRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const root = document.documentElement;
+        if (isSignedIn) {
+            root.classList.add('has-desktop-rail');
+            root.classList.toggle('rail-collapsed', isRailCollapsed);
+        } else {
+            root.classList.remove('has-desktop-rail', 'rail-collapsed');
+        }
+        return () => {
+            root.classList.remove('has-desktop-rail', 'rail-collapsed');
+        };
+    }, [isSignedIn, isRailCollapsed]);
+
+    const toggleRailCollapse = () => {
+        setIsRailCollapsed((prev) => {
+            const next = !prev;
+            localStorage.setItem('laterleaf_rail_collapsed', String(next));
+            return next;
+        });
+    };
 
     const logoVariants = [
         { className: 'font-default', text: 'LaterLeaf' },
@@ -180,6 +205,8 @@ const Header: React.FC = () => {
                 <Sidebar
                     isOpen={isSidebarOpen}
                     onClose={closeSidebar}
+                    isCollapsed={isRailCollapsed}
+                    onToggleCollapse={toggleRailCollapse}
                     ref={sidebarRef}
                 />
             </Show>

@@ -83,6 +83,39 @@
         .header-right {
             display: flex;
             align-items: center;
+            gap: 0.75rem;
+        }
+
+        .view-mode-toggle {
+            display: inline-flex;
+            align-items: center;
+            padding: 3px;
+            border-radius: 8px;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+
+            button {
+                width: 32px;
+                height: 30px;
+                border: none;
+                border-radius: 6px;
+                background: transparent;
+                color: var(--text-color-secondary);
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                transition: background-color 0.15s ease, color 0.15s ease;
+
+                &:hover {
+                    color: var(--text-color);
+                }
+
+                &.active {
+                    background: rgba(var(--primary-color-rgb, 22, 163, 74), 0.14);
+                    color: var(--primary-color);
+                }
+            }
         }
     }
 
@@ -90,6 +123,98 @@
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
         gap: 2rem;
+
+        &.article-grid--list {
+            grid-template-columns: 1fr;
+            gap: 0.75rem;
+
+            .article-card-wrapper {
+                flex-direction: row;
+                align-items: stretch;
+
+                .favorite-indicator {
+                    top: -5px;
+                    right: 12px;
+                }
+
+                .article-card-link {
+                    flex-direction: row;
+                    align-items: center;
+                    min-width: 0;
+
+                    &.typographic-card {
+                        .card-content {
+                            padding: 0.9rem 1.15rem;
+                        }
+
+                        .typographic-eyebrow {
+                            display: none;
+                        }
+
+                        .card-title {
+                            font-size: 1.35rem;
+                            -webkit-line-clamp: 1;
+                            line-clamp: 1;
+                            margin-bottom: 0.25rem;
+                        }
+
+                        .card-description {
+                            -webkit-line-clamp: 1;
+                            line-clamp: 1;
+                            font-size: 0.85rem;
+                        }
+                    }
+                }
+
+                .card-image-container {
+                    width: 116px !important;
+                    min-width: 116px !important;
+                    height: 82px !important;
+                    min-height: 82px !important;
+                    max-height: 82px !important;
+                    margin: 0.65rem 0 0.65rem 0.75rem;
+                    border-radius: 8px;
+
+                    .card-image {
+                        height: 82px !important;
+                        min-height: 82px !important;
+                        max-height: 82px !important;
+                    }
+                }
+
+                .card-content {
+                    padding: 0.85rem 1rem;
+
+                    .card-title {
+                        font-size: 1.35rem;
+                        -webkit-line-clamp: 1;
+                        line-clamp: 1;
+                        margin-bottom: 0.2rem;
+                    }
+
+                    .card-description {
+                        -webkit-line-clamp: 1;
+                        line-clamp: 1;
+                        font-size: 0.85rem;
+                    }
+
+                    .card-footer {
+                        margin-top: 0.4rem;
+                        padding-top: 0;
+                        border-top: none;
+                    }
+                }
+
+                .article-card-actions {
+                    border-top: none;
+                    border-left: 1px solid var(--card-border);
+                    height: auto;
+                    padding: 0.5rem 0.85rem;
+                    gap: 0.5rem;
+                    flex-shrink: 0;
+                }
+            }
+        }
     }
 
     .premium-icon {

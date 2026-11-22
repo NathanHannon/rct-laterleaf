@@ -6,7 +6,6 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArchive, faTrash, faEllipsisV, faFolderPlus, faPlus, faExternalLinkAlt, faShieldAlt, faStarHalfStroke, faPodcast } from '@fortawesome/free-solid-svg-icons';
 import BookmarkLeafIcon from '../../Common/LaterLeafLogo/BookmarkLeafIcon';
 import CollectionSelector from '../../Collections/CollectionSelector/CollectionSelector';
-import { getGradientForString } from '../../../utils/colorUtils';
 import { extractUrlMetadata, getDomainColor } from '../../../utils/urlMetadata';
 import type { ArticleCardProps } from '../../../interfaces/props/article-card-props';
 
@@ -27,7 +26,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
     const [isBookmarkAnimating, setIsBookmarkAnimating] = useState(false);
     const [showDropdown, setShowDropdown] = useState(false);
     const [showCollectionSelector, setShowCollectionSelector] = useState(false);
-    const placeholderGradient = getGradientForString(title ?? id ?? '');
+    const hasCoverImage = Boolean(ogImage || imageUrl);
     const currentBookmarkState = isBookmarked;
 
     // Only celebrate a favorite once its confirmed state arrives from the library.
@@ -155,26 +154,18 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
                         </div>
                     </a>
                 ) : (
-                    <Link viewTransition to={`/article/${id}`} className="article-card-link">
-                        <div className="card-image-container">
-                            {(ogImage || imageUrl) ? (
+                    <Link viewTransition to={`/article/${id}`} className={`article-card-link ${!hasCoverImage ? 'typographic-card' : ''}`}>
+                        {hasCoverImage && (
+                            <div className="card-image-container">
                                 <img src={ogImage || imageUrl} alt={title} className="card-image" loading="lazy" />
-                            ) : (
-                                <div
-                                    className="card-image-placeholder"
-                                    style={{
-                                        background: themeColor
-                                            ? `linear-gradient(135deg, ${themeColor} 0%, ${themeColor}88 100%)`
-                                            : placeholderGradient
-                                    }}
-                                >
-                                    <span className="placeholder-icon">
-                                        <BookmarkLeafIcon filled={false} size={52} animateVein={false} />
-                                    </span>
-                                </div>
-                            )}
-                        </div>
+                            </div>
+                        )}
                         <div className="card-content">
+                            {!hasCoverImage && (
+                                <span className="typographic-eyebrow">
+                                    {isPastedText ? 'Saved Note' : (siteName || extractUrlMetadata(url).siteName)}
+                                </span>
+                            )}
                             <h2 className="card-title">{title}</h2>
                             <p className="card-description">{ogDescription || excerpt}</p>
 

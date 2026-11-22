@@ -1,6 +1,8 @@
 import { apiUrl } from '../../../constants/api';
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faGrip, faList } from '@fortawesome/free-solid-svg-icons';
 import { useAuth } from '@clerk/react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useSearch } from '../../../hooks/searchHook';
@@ -54,7 +56,16 @@ const ArticleList = () => {
         return valid.includes(saved as SortOption) ? saved as SortOption : 'newest-first';
     });
     const [isSortDropdownOpen, setIsSortDropdownOpen] = useState(false);
+    const [viewMode, setViewMode] = useState<'grid' | 'list'>(() => {
+        const saved = localStorage.getItem('articleViewMode');
+        return saved === 'list' ? 'list' : 'grid';
+    });
     const { showInfo } = useToastContext();
+
+    const handleViewModeChange = (mode: 'grid' | 'list') => {
+        setViewMode(mode);
+        localStorage.setItem('articleViewMode', mode);
+    };
 
     useEffect(() => {
         if (!isLoaded || !isSignedIn || hasSeenTip(TIP_STORAGE_KEYS.commandPalette)) return;
@@ -100,7 +111,33 @@ const ArticleList = () => {
             <header className="list-header-premium">
                 <div className="header-top">
                     <div className="header-left"><p className="library-eyebrow">A little space for a good read</p><h1 className="list-title">Your library</h1></div>
-                    {!busy && sortedArticles.length > 0 && <SortDropdown sortBy={sortBy} onSortChange={(value) => { setSortBy(value); localStorage.setItem('articleSortPreference', value); }} isOpen={isSortDropdownOpen} onToggle={() => setIsSortDropdownOpen(!isSortDropdownOpen)} />}
+                    {!busy && sortedArticles.length > 0 && (
+                        <div className="header-right">
+                            <div className="view-mode-toggle" role="group" aria-label="Library view mode">
+                                <button
+                                    type="button"
+                                    className={viewMode === 'grid' ? 'active' : ''}
+                                    onClick={() => handleViewModeChange('grid')}
+                                    aria-label="Grid view"
+                                    aria-pressed={viewMode === 'grid'}
+                                    title="Grid view"
+                                >
+                                    <FontAwesomeIcon icon={faGrip} />
+                                </button>
+                                <button
+                                    type="button"
+                                    className={viewMode === 'list' ? 'active' : ''}
+                                    onClick={() => handleViewModeChange('list')}
+                                    aria-label="Compact list view"
+                                    aria-pressed={viewMode === 'list'}
+                                    title="Compact list view"
+                                >
+                                    <FontAwesomeIcon icon={faList} />
+                                </button>
+                            </div>
+                            <SortDropdown sortBy={sortBy} onSortChange={(value) => { setSortBy(value); localStorage.setItem('articleSortPreference', value); }} isOpen={isSortDropdownOpen} onToggle={() => setIsSortDropdownOpen(!isSortDropdownOpen)} />
+                        </div>
+                    )}
                 </div>
                 <p className="list-subtitle">Everything you saved, ready when you are.</p>
             </header>
@@ -112,7 +149,7 @@ const ArticleList = () => {
                 ? <section className="library-state" role="status"><p className="library-eyebrow">No matches this time</p><h2>No articles found for “{debouncedSearchTerm}”.</h2><p>Try a title, an author, or a different word from the article.</p><button onClick={() => setSearchTerm('')}>Clear search</button></section>
                 : <section className="library-state library-state--welcome"><span className="library-leaf" aria-hidden="true">❧</span><p className="library-eyebrow">Your reading starts here</p><h2>Start with something that caught your eye.</h2><p>Paste an article link above. Then open it for a quiet read, or start with the key points.</p><button onClick={() => document.getElementById('save-article-url')?.focus()}>Save your first article <span aria-hidden="true">↑</span></button><ol className="library-first-steps"><li><strong>01 / Save</strong><span>Give a good article a home.</span></li><li><strong>02 / Read</strong><span>Make a moment for the full story.</span></li><li><strong>03 / Return</strong><span>Favorite it or add it to a collection.</span></li></ol><Link to="/import">Already have a reading list? Import your articles</Link></section>
             )}
-            {!busy && !isShortSearch && sortedArticles.length > 0 && <><p className="library-results" role="status">{sortedArticles.length} {isSearch ? (sortedArticles.length === 1 ? 'result' : 'results') : (sortedArticles.length === 1 ? 'article' : 'articles')}{isFetching ? ' · Updating…' : ''}</p><div className="article-grid">{sortedArticles.map(article => <ArticleCard key={article.id} article={article} onDelete={setDeletingId} onArchive={(articleId) => actionMutation.mutate({ articleId, action: 'archive' })} onToggleBookmark={(articleId) => actionMutation.mutate({ articleId, action: 'bookmark' })} isActionPending={actionMutation.isPending} />)}</div></>}
+            {!busy && !isShortSearch && sortedArticles.length > 0 && <><p className="library-results" role="status">{sortedArticles.length} {isSearch ? (sortedArticles.length === 1 ? 'result' : 'results') : (sortedArticles.length === 1 ? 'article' : 'articles')}{isFetching ? ' · Updating…' : ''}</p><div className={`article-grid ${viewMode === 'list' ? 'article-grid--list' : ''}`}>{sortedArticles.map(article => <ArticleCard key={article.id} article={article} onDelete={setDeletingId} onArchive={(articleId) => actionMutation.mutate({ articleId, action: 'archive' })} onToggleBookmark={(articleId) => actionMutation.mutate({ articleId, action: 'bookmark' })} isActionPending={actionMutation.isPending} />)}</div></>}
             <ConfirmationDialog isOpen={deletingId !== null} title="Delete article?" message="This removes the article from your library. This action cannot be undone." confirmText={actionMutation.isPending ? 'Deleting…' : 'Delete article'} variant="danger" isPending={actionMutation.isPending} onConfirm={confirmDelete} onCancel={() => setDeletingId(null)} />
         </div>
     );
