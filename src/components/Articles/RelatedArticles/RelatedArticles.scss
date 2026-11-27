@@ -62,6 +62,34 @@
     }
 }
 
+.related-articles-container--end {
+    margin: 2.5rem 0 1.5rem;
+}
+
+.related-articles-end-header {
+    padding: 1.25rem 1.5rem 0.75rem;
+
+    .end-header-title {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+
+        h3 {
+            margin: 0;
+            font-size: 1.15rem;
+            font-weight: 600;
+            color: var(--text-color);
+        }
+    }
+
+    .end-header-subtitle {
+        margin: 0.35rem 0 0;
+        font-size: 0.875rem;
+        color: var(--text-color-secondary);
+        line-height: 1.4;
+    }
+}
+
 .related-articles-list {
     display: flex;
     flex-direction: column;
@@ -75,9 +103,16 @@
     transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 
     &.expanded {
-        max-height: 1000px;
+        max-height: 1400px;
         opacity: 1;
         padding: 0 1.5rem 1.5rem;
+    }
+
+    &.always-expanded {
+        max-height: none;
+        opacity: 1;
+        overflow: visible;
+        padding: 0.5rem 1.5rem 1.5rem;
     }
 }
 
@@ -148,15 +183,54 @@
 
     .related-article-meta {
         display: flex;
+        flex-wrap: wrap;
         align-items: center;
-        gap: 0.5rem;
+        gap: 0.45rem;
+    }
+
+    .status-badge {
+        font-size: 0.75rem;
+        padding: 0.2rem 0.55rem;
+        border-radius: 4px;
+        font-weight: 600;
+
+        &--unread {
+            background: rgba(var(--related-articles-color-rgb), 0.18);
+            color: var(--related-articles-color);
+        }
+
+        &--progress {
+            background: rgba(245, 158, 11, 0.18);
+            color: #d97706;
+
+            [data-appearance='dark'] & {
+                color: #fbbf24;
+            }
+        }
+
+        &--read {
+            background: rgba(128, 128, 128, 0.15);
+            color: var(--text-color-secondary);
+            font-weight: 500;
+        }
+    }
+
+    .meta-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        font-size: 0.75rem;
+        padding: 0.2rem 0.45rem;
+        border-radius: 4px;
+        background: rgba(128, 128, 128, 0.1);
+        color: var(--text-color-secondary);
     }
 
     .similarity-badge {
-        font-size: 0.75rem;
-        padding: 0.25rem 0.5rem;
-        background: rgba(var(--related-articles-color-rgb), 0.15);
-        color: var(--related-articles-color);
+        font-size: 0.72rem;
+        padding: 0.2rem 0.45rem;
+        background: transparent;
+        color: var(--text-color-secondary);
         border-radius: 4px;
         font-weight: 500;
     }

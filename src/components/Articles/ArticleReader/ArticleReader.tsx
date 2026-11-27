@@ -838,6 +838,11 @@ const ArticleReader = () => {
                 dangerouslySetInnerHTML={{ __html: displayContent }}
             />
 
+            {/* End-of-article anti-graveyard resurfacing */}
+            {articleId && !article.isUrlOnly && !article.isPastedText && (
+                <RelatedArticles articleId={articleId} variant="end-of-article" />
+            )}
+
             {articleId && !article.isPastedText && (
                 <SelectionToolbar articleId={articleId} contentRef={contentRef} />
             )}
